@@ -98,6 +98,12 @@ async function enterTerminal(session) {
   await selectSymbol(SYM);
   subscribePrivate();
   await refreshBlotter();
+  if (_q.get("demo") === "1" && !el("faucetBtn")) {   // public demo: let visitors self-fund to trade
+    const b = document.createElement("button");
+    b.id = "faucetBtn"; b.className = "swap"; b.textContent = "💰 Demo funds";
+    b.onclick = async () => { const { error } = await sb.rpc("demo_faucet"); if (error) toast(error.message, "err"); else { toast("Demo funds added — you can trade now"); refreshBlotter(); } };
+    el("logout").parentNode.insertBefore(b, el("logout"));
+  }
 }
 
 async function loadSymbols() {

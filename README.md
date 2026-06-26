@@ -15,7 +15,7 @@ Matching · Settlement · Wallet · Risk · Realtime · Auth — **no applicatio
 > ⚠️ **Reference / educational software — not independently audited.** Don't custody real funds without your own audit & compliance review. See [SECURITY.md](./SECURITY.md). / **参考与教育用途，未经独立审计**；未经自审与合规审查请勿托管真实资金。
 
 
-**[▶ Live UI demo](https://xiongchenyu6.github.io/pg-outcry/)** (static terminal on GitHub Pages — point it at any Supabase with `?api=<url>&anon=<key>`)
+**[▶ Live demo](https://xiongchenyu6.github.io/pg-outcry/?api=https://axtziasfallmdgssbgsl.supabase.co&anon=sb_publishable_j1Jr-NMeKb_P29JcBRhz6Q_0ZkbVzUc&demo=1)** — real hosted backend (Seoul). Sign up (instant), click **💰 Demo funds**, and trade against a live order book. / 点开即用：注册（秒过）→ 点「Demo funds」→ 对着真实盘口下单。
 
 **[★ Why pg-outcry — comparison vs top-tier exchanges & the SMB advantage (diagrams) / 为什么选我们 · 与顶级交易所对比 · 中小所优势](./WHY.md)**
 
