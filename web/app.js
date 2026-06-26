@@ -2,7 +2,11 @@
 // Supabase: PostgREST (RPC + views) · Realtime (broadcast md + private postgres_changes) · Auth (OAuth2/email).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-// Local Supabase defaults (override via localStorage.oc_api / oc_anon, or edit here for deploy).
+// Backend config resolution order: URL params (?api=&anon=, e.g. for a shareable Pages demo)
+// → localStorage → local-supabase default. URL params are persisted so reloads keep them.
+const _q = new URLSearchParams(location.search);
+if (_q.get("api"))  localStorage.setItem("oc_api",  _q.get("api"));
+if (_q.get("anon")) localStorage.setItem("oc_anon", _q.get("anon"));
 const CONFIG = {
   API:  localStorage.getItem("oc_api")  || "http://127.0.0.1:54321",
   ANON: localStorage.getItem("oc_anon") ||
