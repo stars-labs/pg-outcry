@@ -23,7 +23,9 @@ jobs:
       - name: Install Supabase CLI
         uses: supabase/setup-cli@v1
         with:
-          version: latest
+          # Pin the version — `latest` resolves via the GitHub release API and
+          # intermittently fails CI with "rate limit exceeded".
+          version: 2.105.0
 
       # ---- WASM engine + static checks ----
       - name: Build WASM order-book engine
