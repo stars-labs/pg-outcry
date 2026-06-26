@@ -15,7 +15,7 @@ Matching · Settlement · Wallet · Risk · Realtime · Auth — **no applicatio
 
 **[★ Why pg-outcry — comparison vs top-tier exchanges & the SMB advantage (diagrams) / 为什么选我们 · 与顶级交易所对比 · 中小所优势](./WHY.md)**
 
-[English](#english) · [中文](#中文) · [Quickstart](#quickstart--快速开始) · [Deploy](./DEPLOY.md) · [Performance](./PERFORMANCE.md) · [Dev](./DEVELOPMENT.md)
+[English](#english) · [中文](#中文) · [Quickstart](#quickstart--快速开始) · [Deploy](./DEPLOY.md) · [Benchmark](./BENCH.md) · [Performance](./PERFORMANCE.md) · [Dev](./DEVELOPMENT.md)
 
 </div>
 
@@ -114,6 +114,14 @@ Big exchanges can afford a bespoke C++ matching engine and a 50-person platform 
 ### Verified
 
 The repo ships smoke tests covering **11 end-to-end flows** — matching, settlement & reservations, realtime tape + L2 broadcast, Auth+RLS isolation, wallet (idempotency + reconciliation), order types, stop-order activation, and the private feed — all green against a clean `supabase db reset`. See [`scripts/`](./scripts) and [`DEVELOPMENT.md`](./DEVELOPMENT.md).
+
+### Benchmark
+On a single, **untuned** PostgreSQL (16 vCPU dev box, `synchronous_commit=on`): **~200–270 fully-settled
+double-entry trades/sec** per symbol at **~3.5 ms p50** engine latency, scaling to **~560–730/sec**
+across 6 symbols in parallel (per-symbol advisory-lock isolation). Each "match" is a *durable, ACID,
+double-entry settled* trade — not an in-memory book op. The self-host perf profile
+(`synchronous_commit=off`, native C `banker_round`, UNLOGGED book) and symbol sharding raise the
+ceiling well beyond. Reproduce: `SERVICE=<key> ./scripts/bench.sh`. Full methodology → [BENCH.md](./BENCH.md).
 
 ---
 
