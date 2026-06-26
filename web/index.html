@@ -24,10 +24,6 @@
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.2.8-.5v-2c-3.2.7-3.9-1.4-3.9-1.4-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.6.8.5 4.6-1.5 7.9-5.8 7.9-10.9C23.5 5.7 18.3.5 12 .5Z"/></svg>
           Continue with GitHub
         </button>
-        <button class="btn" data-oauth="google">
-          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.9h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.4Z"/><path fill="currentColor" d="M12 22c2.7 0 4.9-.9 6.6-2.4l-3.2-2.5c-.9.6-2 .9-3.4.9-2.6 0-4.8-1.7-5.6-4.1H3.1v2.6A10 10 0 0 0 12 22Z"/><path fill="currentColor" d="M6.4 13.9a6 6 0 0 1 0-3.8V7.5H3.1a10 10 0 0 0 0 9l3.3-2.6Z"/><path fill="currentColor" d="M12 6c1.5 0 2.8.5 3.8 1.5l2.8-2.8A10 10 0 0 0 3.1 7.5l3.3 2.6C7.2 7.7 9.4 6 12 6Z"/></svg>
-          Continue with Google
-        </button>
       </div>
       <div class="divider">or with email</div>
       <div class="field"><span class="label">email</span><input id="email" type="email" autocomplete="email" placeholder="trader@outcry.dev" /></div>
@@ -121,7 +117,7 @@
           <div class="seg"><button class="buy on" data-side="BUY">Buy / Bid</button><button class="sell" data-side="SELL">Sell / Ask</button></div>
           <div class="seg small" id="otype"><button data-ot="LIMIT" class="on">Limit</button><button data-ot="MARKET">Market</button></div>
           <div class="inp" id="priceWrap"><span class="label">Limit Price</span><input id="oPrice" class="mono-num" type="number" step="0.01" value="100.00" /></div>
-          <div class="inp"><span class="label">Amount (base)</span><input id="oAmount" class="mono-num" type="number" step="0.0001" value="1" /></div>
+          <div class="inp"><span class="label" id="amtLabel">Amount (base)</span><input id="oAmount" class="mono-num" type="number" step="0.0001" value="1" /></div>
           <div class="inp"><span class="label">Time in Force</span><select id="oTif"><option>GTC</option><option>IOC</option><option>FOK</option></select></div>
           <div class="preview">
             <div class="r"><span>Est. cost / proceeds</span><b id="pvCost">—</b></div>

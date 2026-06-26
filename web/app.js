@@ -124,6 +124,7 @@ async function selectSymbol(s) {
   SYM = s;
   buildSymbolPicker();
   el("bookSym").textContent = s; el("ticketSym").textContent = s;
+  const al = el("amtLabel"); if (al) al.textContent = `Amount (${s.split("_")[0]})`;
   const cs = el("chartSym"); if (cs) cs.textContent = s;
   rawTrades = []; loadDrawings(); if (W) { W.candleReset(); renderChart(); }
   if (mdChan) { sb.removeChannel(mdChan); mdChan = null; }
