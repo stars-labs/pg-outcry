@@ -1,5 +1,18 @@
--- +goose Up
--- +goose StatementBegin
+-- Dust guard for process_trade_order.
+--
+-- The matching loops compute a per-fill `trade_amount_var` by dividing the
+-- remaining quote budget by the maker price and rounding. When only a tiny
+-- amount of budget is left, that rounds to 0 and the engine still tried to
+-- emit a 0-amount trade, which fails `transfer_amount_check` (transfers must be
+-- > 0). This surfaced as BUY MARKET orders erroring with
+-- `new row for relation "transfer" violates check constraint "transfer_amount_check"`.
+--
+-- Add a guard in both the market and limit matching loops: if the computed fill
+-- amount is null or <= 0, stop matching. The remaining (dust) budget is then
+-- released by the existing per-TIF leftover handling. Market orders are sent
+-- IOC by the client, so the dust is released rather than rested on the book.
+--
+-- This redefinition mirrors engine/pkg/services/trade_order/process_trade_order.sql.
 
 CREATE OR REPLACE FUNCTION
     process_trade_order(
@@ -12,13 +25,13 @@ CREATE OR REPLACE FUNCTION
         time_in_force_param text,
         trade_order_id_param BIGINT
     )
-    RETURNS TEXT -- taker_trade_order.pub_id
+    RETURNS TEXT
     LANGUAGE 'plpgsql'
 AS $$
 DECLARE
 instrument_account_instance instrument_account%ROWTYPE;
     currency_account_instance currency_account%ROWTYPE;
-    taker_trade_order_instance trade_order%ROWTYPE; -- saved
+    taker_trade_order_instance trade_order%ROWTYPE;
     maker_book_order_instance trade_order%ROWTYPE;
     book_order_instance book_order%ROWTYPE;
     instrument_instance instrument%ROWTYPE;
@@ -41,7 +54,6 @@ instrument_account_instance instrument_account%ROWTYPE;
     reserve_amount NUMERIC;
     release_amount NUMERIC;
 BEGIN
-    -- basic validation
     IF instrument_name_param IS NULL OR length(instrument_name_param) = 0 THEN
         RAISE EXCEPTION 'invalid_instrument';
 END IF;
@@ -57,7 +69,6 @@ END IF;
     original_amount := amount_param;
     remaining_amount := amount_param;
 
-    -- load trading account (external mode)
     IF instrument_account_id_param != 'VOID' THEN
 SELECT *
 FROM instrument_account
@@ -69,7 +80,6 @@ IF NOT FOUND THEN
 END IF;
 END IF;
 
-    -- load instrument
 SELECT *
 FROM instrument
 WHERE name = instrument_name_param
@@ -79,7 +89,6 @@ IF NOT FOUND THEN
         RAISE EXCEPTION 'instrument_instance_not_found';
 END IF;
 
-    -- side derived vars (fix := assignment)
     IF side_param = 'SELL' THEN
         opposite_side_var := 'BUY'::order_side;
         order_currency_var := instrument_instance.base_currency;
@@ -88,7 +97,6 @@ ELSE
         order_currency_var := instrument_instance.quote_currency;
 END IF;
 
-    -- deterministic precision lookups
 SELECT c.precision
 INTO base_currency_precision
 FROM currency c
@@ -108,7 +116,6 @@ IF NOT FOUND THEN
 END IF;
 
     IF instrument_account_id_param != 'VOID' THEN
-        -- find and lock transfer account row to avoid reservation races
 SELECT pa.*
 FROM currency_account pa
          INNER JOIN app_entity ae
@@ -122,7 +129,6 @@ IF NOT FOUND THEN
             RAISE EXCEPTION 'currency_account_instance_not_found';
 END IF;
 
-        -- normalize inputs to currency precisions
         remaining_amount := round(remaining_amount, base_currency_precision);
         original_amount := remaining_amount;
 
@@ -130,9 +136,8 @@ END IF;
             price_param := round(price_param, quote_currency_precision);
 END IF;
 
-        -- reserve funds (fix precision usage and stable error token)
         IF side_param = 'SELL' OR (side_param = 'BUY' AND order_type_param = 'MARKET') THEN
-            reserve_amount := remaining_amount; -- base for SELL, quote for BUY\+MARKET in this model
+            reserve_amount := remaining_amount;
             IF currency_account_instance.amount - currency_account_instance.amount_reserved < reserve_amount THEN
                 RAISE EXCEPTION 'insufficient_funds'
                     USING DETAIL = format(
@@ -161,7 +166,6 @@ SET amount_reserved = round(currency_account.amount_reserved + reserve_amount, q
 WHERE id = currency_account_instance.id;
 END IF;
 
-        -- create trade order
 INSERT INTO trade_order (
     instrument_account_id,
     instrument_id,
@@ -185,7 +189,6 @@ VALUES (
     RETURNING * INTO taker_trade_order_instance;
 
 ELSE
-        -- internal mode
 SELECT *
 FROM trade_order
 WHERE id = trade_order_id_param
@@ -196,12 +199,10 @@ FROM instrument_account
 WHERE id = taker_trade_order_instance.instrument_account_id
     INTO instrument_account_instance;
 
--- in internal mode, remaining\_amount should start from persisted open\_amount
 remaining_amount := taker_trade_order_instance.open_amount;
         original_amount := taker_trade_order_instance.amount;
 END IF;
 
-    -- stop orders: persist and exit (no matching)
     IF order_type_param = 'STOPLOSS' OR order_type_param = 'STOPLIMIT' THEN
         INSERT INTO stop_order (
             trade_order_id,
@@ -215,7 +216,6 @@ END IF;
 RETURN taker_trade_order_instance.pub_id;
 END IF;
 
-    -- begin matching
 <<matching_loop>>
     LOOP
         total_available_volume_var =
@@ -247,7 +247,6 @@ END IF;
 RETURN taker_trade_order_instance.pub_id;
 END IF;
 
-        -- execute market order trades
 <<market_matching_loop>>
         FOR maker_book_order_instance
             IN SELECT t.*
@@ -307,9 +306,6 @@ END IF;
                 book_order_volume_var := maker_book_order_instance.open_amount - trade_amount_var;
 END IF;
 
-            -- dust guard: if rounding drove the fill to zero, stop (no zero-amount
-            -- transfer, which would violate transfer_amount_check). Leftover is
-            -- released/handled by the post-loop TIF logic.
             IF trade_amount_var IS NULL OR trade_amount_var <= 0 THEN
                 EXIT market_matching_loop;
 END IF;
@@ -350,7 +346,6 @@ END IF;
 END IF;
 END LOOP;
 
-        -- process limit orders
         IF remaining_amount > 0 THEN
             <<limit_matching_loop>>
             FOR book_order_instance
@@ -404,7 +399,6 @@ END IF;
                     remaining_amount := remaining_amount - trade_amount_var;
 END IF;
 
-                -- dust guard: stop before emitting a zero-amount trade/transfer.
                 IF trade_amount_var IS NULL OR trade_amount_var <= 0 THEN
                     EXIT limit_matching_loop;
 END IF;
@@ -453,7 +447,6 @@ ELSE
 END IF;
 END LOOP;
 
-    -- persist leftover or reject per TIF
     IF remaining_amount > 0 THEN
         IF taker_trade_order_instance.time_in_force = 'IOC'::order_time_in_force THEN
             IF taker_trade_order_instance.open_amount != remaining_amount THEN
@@ -495,7 +488,3 @@ END IF;
 RETURN taker_trade_order_instance.pub_id;
 END;
 $$;
--- +goose StatementEnd
-
--- +goose Down
-DROP FUNCTION process_trade_order(TEXT, TEXT, TEXT, order_side, DECIMAL, DECIMAL, TEXT, BIGINT);

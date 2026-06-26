@@ -497,11 +497,28 @@ function updatePreview() {
 }
 
 el("place").onclick = async () => {
-  const amt = +el("oAmount").value, px = otype === "MARKET" ? 0 : +el("oPrice").value;
+  const baseAmt = +el("oAmount").value;
+  let amountParam = baseAmt, px = 0;
+  if (otype === "MARKET") {
+    // The engine's BUY MARKET model spends `amount` as a QUOTE budget, so convert
+    // the base amount the user entered into an estimated budget (ask-side VWAP).
+    // SELL MARKET `amount` is base, so it's sent as-is. price stays 0 (not null;
+    // the column is NOT NULL and price-band risk is skipped for market orders).
+    if (side === "BUY") {
+      const vwap = W.marketBuyVwap(baseAmt) || 0;
+      if (!vwap) { toast("no asks to estimate market buy", "err"); return; }
+      amountParam = W.bankerRound(baseAmt * vwap, PREC);
+    }
+  } else {
+    px = +el("oPrice").value;
+  }
+  // Market orders never rest on the book — force IOC so any unfilled remainder
+  // (e.g. rounding dust on a buy budget) is released instead of booked.
+  const tif = otype === "MARKET" ? "IOC" : el("oTif").value;
   el("place").disabled = true;
   const { error } = await sb.rpc("place_order", {
     instrument_name_param: SYM, side_param: side, order_type_param: otype,
-    price_param: px, amount_param: amt, time_in_force_param: el("oTif").value,
+    price_param: px, amount_param: amountParam, time_in_force_param: tif,
   });
   el("place").disabled = false;
   if (error) toast(error.message.replace(/_/g, " "), "err");
