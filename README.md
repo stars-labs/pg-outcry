@@ -10,6 +10,8 @@ Matching · Settlement · Wallet · Risk · Realtime · Auth — **no applicatio
 
 `PostgreSQL` · `PostgREST` · `Supabase Realtime` · `Supabase Auth (GoTrue)` · `WebAssembly` · `pgvector-class extensions`
 
+**[★ Why pg-outcry — comparison vs top-tier exchanges & the SMB advantage (diagrams) / 为什么选我们 · 与顶级交易所对比 · 中小所优势](./WHY.md)**
+
 [English](#english) · [中文](#中文) · [Quickstart](#quickstart--快速开始) · [Deploy](./DEPLOY.md) · [Performance](./PERFORMANCE.md) · [Dev](./DEVELOPMENT.md)
 
 </div>
@@ -79,6 +81,8 @@ Big exchanges can afford a bespoke C++ matching engine and a 50-person platform 
 6. **No lock-in, fully inspectable.** The matching and settlement logic is plain SQL you can read, fork, and audit. No black-box engine binary.
 
 > In short: **the correctness, realtime, and compliance of a serious exchange — at the operational complexity and cost a small team can actually carry.**
+
+> 📊 **Deep dive with diagrams:** see **[WHY.md](./WHY.md)** for the side-by-side architecture, order-lifecycle and consistency comparisons against a top-tier-exchange stack, the moving-parts/cost analysis, and the full scaling path. / 配图深度对比见 **[WHY.md](./WHY.md)**。
 
 ### Feature set
 
