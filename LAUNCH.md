@@ -10,7 +10,7 @@ Internal checklist + post drafts for announcing pg-outcry. Not part of the produ
 - [x] CI green; issue/PR templates
 - [x] GitHub Pages workflow (static frontend) — `.github/workflows/pages.yml`
 - [x] **Hero screenshot** (web/docs/hero.png — real render via scripts/render-shots.mjs); optional: a GIF still needs a browser capture
-- [ ] **Live demo backend**: a hosted Supabase project; share a link with creds baked in:
+- [x] **Live demo** deployed → hosted Supabase (Seoul), seeded, autoconfirm on, faucet; link in README
       `https://xiongchenyu6.github.io/pg-outcry/?api=https://<ref>.supabase.co&anon=<anon key>`
       (the app reads `?api=&anon=` and persists them). Seed it: `scripts/seed-demo.sh` + `scripts/seed-candles.sh`.
 - [x] Hero + admin screenshots rendered (web/docs/hero.png, admin.png). TODO(you): set repo Social-preview image (Settings, UI-only) using hero.png
