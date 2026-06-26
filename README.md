@@ -21,6 +21,11 @@ Matching · Settlement · Wallet · Risk · Realtime · Auth — **no applicatio
 
 [English](#english) · [中文](#中文) · [Quickstart](#quickstart--快速开始) · [Deploy](./DEPLOY.md) · [Benchmark](./BENCH.md) · [Performance](./PERFORMANCE.md) · [Dev](./DEVELOPMENT.md)
 
+
+<img src="web/docs/hero.png" alt="OUTCRY terminal — order book, candlesticks with SMA/EMA/Bollinger/VWAP, volume, RSI (rendered from the live WASM engine)" width="100%"/>
+
+<sub>↑ the OUTCRY terminal — order book + candlesticks (SMA/EMA/Bollinger/VWAP) + volume + RSI, rendered from the real WASM engine & live data. / 上图为 OUTCRY 终端，全部由真实 WASM 引擎 + 实时数据渲染。</sub>
+
 </div>
 
 ---

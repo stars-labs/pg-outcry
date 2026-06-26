@@ -5,5 +5,10 @@
   "scripts": {
     "build:wasm": "asc wasm/orderbook.ts --outFile public/orderbook.wasm --optimize --runtime stub --exportRuntime"
   },
-  "devDependencies": { "assemblyscript": "^0.27.31" }
+  "devDependencies": {
+    "assemblyscript": "^0.27.31"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "^2.6.2"
+  }
 }
