@@ -52,6 +52,16 @@ body::after {
 .label { font-family: var(--cond); text-transform: uppercase; letter-spacing: .18em;
   font-size: 10px; color: var(--ink-dim); }
 .up { color: var(--phos); } .down { color: var(--coral); } .amber { color: var(--amber); }
+
+/* always-visible available-balance bar in the order-entry panel */
+.balbar { border: 1px solid var(--line); background: rgba(78,247,168,.03); padding: 8px 10px; margin-bottom: 10px; }
+.balbar > .label { display: block; margin-bottom: 6px; }
+.balbar__rows { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.balbar__rows .empty { color: var(--ink-faint); font-size: 11px; }
+.bal-cell { display: flex; align-items: baseline; gap: 6px; }
+.bal-cell .ccy { font-family: var(--cond); letter-spacing: .12em; color: var(--ink-dim); font-size: 10px; }
+.bal-cell .amt { font-variant-numeric: tabular-nums; color: var(--phos); font-size: 13px; font-weight: 600; }
+.bal-cell .resv { color: var(--amber); font-size: 10px; }
 .glow { text-shadow: var(--glow); }
 
 /* ---------- auth gate ---------- */

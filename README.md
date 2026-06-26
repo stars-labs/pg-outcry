@@ -14,7 +14,9 @@ Matching · Settlement · Wallet · Risk · Realtime · Auth — **no applicatio
 
 > ⚠️ **Reference / educational software — not independently audited.** Don't custody real funds without your own audit & compliance review. See [SECURITY.md](./SECURITY.md).
 
-**[▶ Live demo](https://xiongchenyu6.github.io/pg-outcry/?api=https://axtziasfallmdgssbgsl.supabase.co&anon=sb_publishable_j1Jr-NMeKb_P29JcBRhz6Q_0ZkbVzUc&demo=1)** — real hosted backend. Sign up (instant), click **💰 Demo funds**, and trade against a live order book.
+**[▶ Live demo — trading terminal](https://xiongchenyu6.github.io/pg-outcry/?api=https://axtziasfallmdgssbgsl.supabase.co&anon=sb_publishable_j1Jr-NMeKb_P29JcBRhz6Q_0ZkbVzUc&demo=1)** — real hosted backend. Sign up (instant), click **💰 Demo funds**, and trade against a live order book.
+
+**[▶ Live demo — back-office](https://xiongchenyu6.github.io/pg-outcry/admin.html?api=https://axtziasfallmdgssbgsl.supabase.co&anon=sb_publishable_j1Jr-NMeKb_P29JcBRhz6Q_0ZkbVzUc&demo=1)** — read-only admin console: reconciliation invariants, approvals queue, accounts, and audit log on the same live data.
 
 **[★ Why pg-outcry — comparison vs top-tier exchanges & the SMB advantage (diagrams)](./WHY.md)**
 

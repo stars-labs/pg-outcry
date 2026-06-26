@@ -104,6 +104,12 @@ async function enterTerminal(session) {
     b.onclick = async () => { const { error } = await sb.rpc("demo_faucet"); if (error) toast(error.message, "err"); else { toast("Demo funds added — you can trade now"); refreshBlotter(); } };
     el("logout").parentNode.insertBefore(b, el("logout"));
   }
+  if (_q.get("demo") === "1" && !el("adminLink")) {   // jump to the read-only back-office demo
+    const a = document.createElement("a");
+    a.id = "adminLink"; a.className = "swap"; a.textContent = "⚙ Back-office";
+    a.href = "admin.html" + location.search; a.target = "_blank"; a.rel = "noopener";
+    el("logout").parentNode.insertBefore(a, el("logout"));
+  }
 }
 
 async function loadSymbols() {
@@ -559,7 +565,19 @@ document.querySelectorAll("#blotTabs button").forEach((b) => b.onclick = () => {
   document.querySelectorAll("#blotTabs button").forEach((x) => x.classList.toggle("on", x === b));
   refreshBlotter();
 });
+// Always-visible available-balance bar (independent of the blotter sub-tab).
+async function updateBalances() {
+  const rows = el("balRows"); if (!rows) return;
+  const { data: cash } = await sb.from("cash_balances")
+    .select("currency,amount,amount_reserved,available").order("currency");
+  const cells = (cash || []).filter((c) => +c.amount || +c.amount_reserved).map((c) =>
+    `<div class="bal-cell"><span class="ccy">${c.currency}</span><span class="amt">${fmt(c.available, 4)}</span>${
+      +c.amount_reserved ? `<span class="resv">+${fmt(c.amount_reserved, 4)} rsv</span>` : ""}</div>`);
+  rows.innerHTML = cells.length ? cells.join("") : `<span class="empty">no funds yet — click 💰 Demo funds</span>`;
+}
+
 async function refreshBlotter() {
+  updateBalances();
   const body = el("blotBody");
   if (blotTab === "orders") {
     const { data } = await sb.from("open_orders").select("pub_id,instrument,side,order_type,price,amount,open_amount,status").order("created_at", { ascending: false });

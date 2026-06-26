@@ -1,5 +1,10 @@
 /* OUTCRY back-office — amber-accented admin skin over the phosphor base */
 body.admin { --accent: var(--amber); }
+.demo-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  background: var(--amber); color: #1a1206; text-align: center;
+  font-family: var(--cond, monospace); text-transform: uppercase; letter-spacing: .14em;
+  font-size: 11px; font-weight: 700; padding: 5px 10px; }
+body.admin:has(.demo-banner) #app { margin-top: 24px; }
 body.admin .brand { color: var(--amber); text-shadow: 0 0 8px rgba(255,180,84,.4); }
 body.admin #app { display: none; height: 100%; grid-template-rows: 46px 1fr; position: relative; z-index: 2; }
 body.admin #app.live { display: grid; }
