@@ -1,5 +1,7 @@
 <div align="center">
 
+**English** · [中文](./WHY.zh-CN.md)
+
 # Why pg-outcry
 
 **Architecture, the top-tier-exchange comparison, and the small/mid-size-exchange advantage.**
