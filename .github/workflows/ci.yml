@@ -1,0 +1,86 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install psql client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      # ---- WASM engine + static checks ----
+      - name: Build WASM order-book engine
+        working-directory: web
+        run: npm install && npm run build:wasm
+
+      - name: JS syntax checks
+        working-directory: web
+        run: node --check app.js && node --check admin.js
+
+      - name: WASM unit check (indicators)
+        working-directory: web
+        run: |
+          node --input-type=module -e '
+            import { readFileSync } from "node:fs";
+            const { instance } = await WebAssembly.instantiate(readFileSync("public/orderbook.wasm"), { env: { abort(){ throw new Error("abort"); } } });
+            const w = instance.exports;
+            const eq = (a,b,m)=>{ if (Math.abs(a-b)>1e-9){ console.error("FAIL",m,a,"!=",b); process.exit(1);} };
+            eq(w.bankerRound(0.125,2),0.12,"banker 0.125");
+            eq(w.bankerRound(3.5,0),4,"banker 3.5");
+            w.candleSetInterval(60); const b=1700000000;
+            [[b+5,100,1],[b+30,102,2],[b+70,101,1]].forEach(([t,p,a])=>w.addTrade(t,p,a));
+            if (w.candleCount()<1) { console.error("no candles"); process.exit(1); }
+            w.computeRsi(14); w.computeMacd(12,26,9); w.computeBoll(20,2); w.computeKdj(9); w.computeAtr(14); w.computeVwap();
+            console.log("wasm indicators OK; candles=", w.candleCount());
+          '
+
+      # ---- backend: Supabase up + migrations ----
+      - name: Start Supabase
+        run: supabase start
+
+      - name: Apply migrations
+        run: supabase db reset
+
+      - name: Export keys
+        run: |
+          echo "ANON=$(supabase status -o json | jq -r .ANON_KEY)" >> $GITHUB_ENV
+          echo "SERVICE=$(supabase status -o json | jq -r .SERVICE_ROLE_KEY)" >> $GITHUB_ENV
+
+      # ---- deterministic end-to-end smoke suite ----
+      - name: Smoke — matching (stage1)
+        run: bash scripts/smoke-postgrest.sh
+      - name: Smoke — settlement + reads (stage2)
+        run: RESET=1 bash scripts/smoke-stage2.sh
+      - name: Smoke — auth + RLS (stage3)
+        run: RESET=1 bash scripts/smoke-stage3.sh
+      - name: Smoke — wallet (stage4)
+        run: RESET=1 bash scripts/smoke-stage4.sh
+      - name: Smoke — risk + back-office (stage5)
+        run: RESET=1 bash scripts/smoke-stage5.sh
+      - name: Smoke — idempotency + reconciliation (stage7)
+        run: RESET=1 bash scripts/smoke-stage7.sh
+      - name: Smoke — order types (stage8)
+        run: RESET=1 bash scripts/smoke-stage8.sh
+      - name: Smoke — stop orders (stage9)
+        run: RESET=1 bash scripts/smoke-stage9.sh
+
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop || true

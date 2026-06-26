@@ -10,6 +10,9 @@ Matching · Settlement · Wallet · Risk · Realtime · Auth — **no applicatio
 
 `PostgreSQL` · `PostgREST` · `Supabase Realtime` · `Supabase Auth (GoTrue)` · `WebAssembly` · `pgvector-class extensions`
 
+[![ci](https://github.com/xiongchenyu6/pg-outcry/actions/workflows/ci.yml/badge.svg)](https://github.com/xiongchenyu6/pg-outcry/actions/workflows/ci.yml) [![license: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-4ef7a8)](./LICENSE)
+
+
 **[★ Why pg-outcry — comparison vs top-tier exchanges & the SMB advantage (diagrams) / 为什么选我们 · 与顶级交易所对比 · 中小所优势](./WHY.md)**
 
 [English](#english) · [中文](#中文) · [Quickstart](#quickstart--快速开始) · [Deploy](./DEPLOY.md) · [Performance](./PERFORMANCE.md) · [Dev](./DEVELOPMENT.md)
@@ -61,6 +64,18 @@ flowchart LR
 | Per-user security | hand-rolled authz layer | **Postgres RLS** (zero custom authz code) |
 | Moving parts | 5–15 services + brokers + caches | **one database + Supabase** |
 | Ops team to run it | a platoon | **one or two engineers** |
+
+```mermaid
+flowchart LR
+  subgraph T["Top-tier: ~10–15 systems to run"]
+    direction TB
+    t1[gateways] --- t2[matching C++] --- t3[Kafka] --- t4[ledger svc]
+    t5[risk svc] --- t6[wallet svc] --- t7[Redis] --- t8[WS fanout] --- t9[OLTP]
+  end
+  subgraph O["pg-outcry: 1 DB + managed Supabase"]
+    o1[(PostgreSQL)] --- o2[PostgREST] --- o3[Realtime] --- o4[Auth]
+  end
+```
 
 - **Correct by construction.** Order match *and* full double-entry settlement happen in **one database transaction** — no cross-service synchronization, no "trade booked but ledger lagged" class of bugs.
 - **Auditable money.** The ledger is **append-only** (triggers reject UPDATE/DELETE) and a built-in `reconcile()` continuously checks 5 invariants (cash == ledger, double-entry balanced, reservations sane, every approved wallet op has a settlement transfer, issuance conserved). Every admin action is written to an audit log.
@@ -188,6 +203,15 @@ Run the verification suite (from repo root, with `ANON`/`SERVICE` exported): the
 | `web/` | **OUTCRY** terminal (WASM indicators + drawing tools) and **admin** console |
 | `scripts/` | Smoke tests, seeds, perf tuning |
 | `DEPLOY.md` · `PERFORMANCE.md` · `DEVELOPMENT.md` · `IMPLEMENTATION_PLAN.md` | Deploy profiles · scaling plan · dev reference · roadmap |
+
+## License / 许可证
+
+**AGPL-3.0.** The matching/settlement core under `engine/` derives from
+[tolyo/open-outcry](https://github.com/tolyo/open-outcry) (AGPL-3.0); as a derivative
+work the entire project is distributed under [AGPL-3.0](./LICENSE) (see [`NOTICE`](./NOTICE)).
+If you run a modified version as a network service, AGPL-3.0 requires you to offer users
+its source. / 本项目为 open-outcry（AGPL-3.0）的衍生作品，整体以 AGPL-3.0 分发；按 AGPL
+条款，若你以网络服务形式运行修改版，须向用户提供其源码。
 
 ## Credits / 致谢
 

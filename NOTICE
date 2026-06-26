@@ -1,0 +1,16 @@
+pg-outcry
+Copyright (c) 2026 xiongchenyu6
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU Affero General Public License v3.0 (see LICENSE).
+
+This work is a DERIVATIVE of and includes source from:
+  • tolyo/open-outcry — multi-asset matching engine (Go + PL/pgSQL)
+    https://github.com/tolyo/open-outcry — licensed AGPL-3.0.
+The PL/pgSQL matching/settlement core under `engine/` (and the engine migrations
+generated from it under `supabase/migrations/0*_engine_*.sql`) derive from
+open-outcry and remain under AGPL-3.0. Because of AGPL-3.0's copyleft, this
+combined work is distributed under AGPL-3.0 in its entirety.
+
+Bundled at runtime (not modified): PostgREST, Supabase Realtime, Supabase Auth
+(GoTrue), PostgreSQL, and @supabase/supabase-js are used under their own licenses.
