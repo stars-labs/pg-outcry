@@ -297,3 +297,54 @@ tr:hover td { background: rgba(255,255,255,.02); }
 .xhair { stroke: rgba(120,150,138,.4); stroke-width:1; stroke-dasharray:2 3; }
 .xhair-lbl { position:absolute; z-index:4; pointer-events:none; font-size:10px; font-family:var(--mono);
   background: var(--amber); color:#1a1206; padding:1px 4px; display:none; }
+
+/* ============================ MOBILE / NARROW ============================ */
+@media (max-width: 860px) {
+  html, body { height: auto; min-height: 100%; overflow-y: auto; -webkit-text-size-adjust: 100%; }
+  #app.live { height: auto; min-height: 100vh; grid-template-rows: auto 1fr; }
+
+  /* header: wrap and shed non-essential bits */
+  header { flex-wrap: wrap; gap: 6px 10px; padding: 8px 10px; height: auto; }
+  header .brand { font-size: 14px; letter-spacing: .2em; }
+  header .spacer { display: none; }
+  .who { display: none; }
+  .ticker .px { font-size: 16px; }
+  .conn { order: 4; }
+  .sym-pick { order: 5; width: 100%; overflow-x: auto; }
+
+  /* collapse the 3-column trading grid into one scrolling column */
+  main { display: flex; flex-direction: column; height: auto; overflow: visible; }
+  main > .panel { width: 100%; opacity: 1; transform: none; animation: none; }
+  #center  { order: 1; height: auto; }
+  #right   { order: 2; }
+  #book    { order: 3; }
+  #blotter { order: 4; }
+
+  /* chart: explicit heights (#kline has preserveAspectRatio=none, so it fills) */
+  #center .panel__h { flex-wrap: wrap; gap: 6px; }
+  .tf { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; }
+  .tf::-webkit-scrollbar { height: 0; }
+  .chart-wrap { flex: 0 0 auto; height: 46vh; min-height: 280px; }
+  .osc-wrap { height: 96px; }
+
+  /* let stacked panels size to content; cap the long ones with their own scroll */
+  #right .panel__b { overflow: visible; }
+  #book .panel__b { max-height: 300px; }
+  #blotter .panel__b { max-height: 65vh; }
+
+  /* wide blotter tables scroll sideways instead of overflowing the screen */
+  #blotBody { overflow-x: auto; }
+  #blotBody table { min-width: 460px; }
+
+  /* comfortable tap targets */
+  .submit, #wGo, .btn--go, .seg button, #otype button, .tf button, .ma-t { min-height: 38px; }
+  .draw-tools { right: 6px; }
+}
+
+/* phones in portrait — tighten further */
+@media (max-width: 480px) {
+  .ticker .meta { display: none; }
+  main { gap: 6px; }
+  .chart-wrap { height: 40vh; min-height: 240px; }
+  .preview { font-size: 10px; }
+}

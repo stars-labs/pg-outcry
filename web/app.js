@@ -529,7 +529,7 @@ el("place").onclick = async () => {
   });
   el("place").disabled = false;
   if (error) toast(error.message.replace(/_/g, " "), "err");
-  else { toast(`${side} ${amt} ${SYM} placed`); pollBook(); refreshBlotter(); }
+  else { toast(`${side} ${baseAmt} ${SYM} ${otype.toLowerCase()} placed`); pollBook(); refreshBlotter(); }
 };
 
 // ---------- wallet ----------
@@ -614,7 +614,12 @@ async function refreshBlotter() {
   await loadWasm();
   // connectivity hint (e.g. the hosted Pages demo with no backend configured yet)
   let reachable = false;
-  try { reachable = (await fetch(CONFIG.API + "/auth/v1/health")).ok; } catch {}
+  // hosted GoTrue returns 401 on /health without an apikey, so send it (a 401
+  // still means the backend is up — only a network failure means unreachable).
+  try {
+    const r = await fetch(CONFIG.API + "/auth/v1/health", { headers: { apikey: CONFIG.ANON } });
+    reachable = r.ok || r.status === 401;
+  } catch {}
   if (!reachable) {
     el("authMsg").innerHTML = `No backend reachable at <code>${CONFIG.API}</code>. This is the live UI — point it at a Supabase by adding <code>?api=&lt;url&gt;&amp;anon=&lt;key&gt;</code> to the URL, or run the stack locally (see the README).`;
   }

@@ -12,6 +12,19 @@ body.admin #app.live { display: grid; }
 .adash { overflow: auto; padding: 1px; background: var(--line);
   display: grid; grid-template-columns: 1fr 1fr; gap: 1px; align-content: start; }
 .adash .stats { grid-column: 1 / 3; display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--line); }
+
+/* mobile: single column, stats wrap, tables scroll sideways */
+@media (max-width: 860px) {
+  html, body { height: auto; min-height: 100%; overflow-y: auto; }
+  body.admin #app, body.admin #app.live { height: auto; min-height: 100vh; grid-template-rows: auto 1fr; }
+  body.admin header { flex-wrap: wrap; gap: 6px 10px; padding: 8px 10px; height: auto; }
+  .adash { grid-template-columns: 1fr; }
+  .adash .stats { grid-column: 1; grid-template-columns: repeat(2, 1fr); }
+  .adash section, .panel { overflow-x: auto; }
+  .adash table { min-width: 460px; }
+  .adm-form .row3 { grid-template-columns: 1fr; }
+  .demo-banner { font-size: 10px; letter-spacing: .08em; }
+}
 .stat { background: var(--bg-panel); padding: 12px 14px; }
 .stat .n { font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .stat .n.warn { color: var(--amber); } .stat .n.bad { color: var(--coral); } .stat .n.ok { color: var(--phos); }
