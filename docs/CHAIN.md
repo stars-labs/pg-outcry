@@ -54,6 +54,19 @@ select register_deposit_address('ethereum-sepolia', '0xYourSepoliaAddress');
 Get testnet funds from faucets (Sepolia ETH/ERC-20, Tron Nile TRX, Solana testnet SOL), send to the
 registered address, and within a couple of poll cycles the balance appears — credited entirely in-DB.
 
+## Test it against a local node
+
+`scripts/test-chain-local.sh` runs the whole loop against a **local anvil** node (Foundry): it
+deploys a minimal ERC-20, sends a `Transfer` to a watched address, then calls `poll_evm()` inside
+Postgres and asserts the deposit is credited (EUR = 2.5). Requires `supabase start` + foundry + docker:
+
+```bash
+./scripts/test-chain-local.sh      # spins up anvil, deploys, transfers, polls, asserts credit
+```
+
+The EVM log decoder (`hex_to_numeric` + topic/data parsing) is also checked deterministically against
+a real Transfer-log shape — including 256-bit amounts that overflow a naive `int64` parse.
+
 ## Confirmations & idempotency
 
 `chain.confirmations` defaults: Sepolia 12, Tron Nile 19, Solana 32. `credit_chain_deposit` records

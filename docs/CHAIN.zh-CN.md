@@ -51,6 +51,19 @@ select register_deposit_address('ethereum-sepolia', '0x你的Sepolia地址');
 从水龙头领测试币（Sepolia ETH/ERC-20、Tron Nile TRX、Solana testnet SOL），打到注册的地址，几个轮询周期内
 余额就会出现 —— 完全在库内入账。
 
+## 用本地节点测试
+
+`scripts/test-chain-local.sh` 用**本地 anvil** 节点（Foundry）跑完整流程：部署一个最小 ERC-20、向被监听地址
+发一笔 `Transfer`，然后在 Postgres 里调用 `poll_evm()` 并断言入账（EUR = 2.5）。需要 `supabase start` +
+foundry + docker：
+
+```bash
+./scripts/test-chain-local.sh      # 启动 anvil、部署、转账、轮询、断言入账
+```
+
+EVM 日志解码（`hex_to_numeric` + topic/data 解析）也用真实 Transfer 日志的形状做了确定性校验 ——
+包括会让朴素 `int64` 解析溢出的 256 位金额。
+
 ## 确认数与幂等
 
 `chain.confirmations` 默认：Sepolia 12、Tron Nile 19、Solana 32。`credit_chain_deposit` 记录每次观察

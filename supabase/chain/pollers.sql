@@ -21,6 +21,13 @@
 
 create extension if not exists http with schema extensions;
 
+-- hex (no 0x) -> numeric, overflow-safe for 256-bit EVM words (int64 would overflow).
+create or replace function hex_to_numeric(h text) returns numeric
+  language sql immutable as $$
+  select coalesce(sum(('x' || substr(h, i, 1))::bit(4)::int * power(16::numeric, length(h) - i)), 0)
+  from generate_series(1, length(h)) i;
+$$;
+
 -- ── Ethereum (Sepolia) — ERC-20 Transfer logs via eth_getLogs ───────────────────
 -- Transfer(address,address,uint256) topic0:
 --   0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef
@@ -29,7 +36,7 @@ create or replace function poll_evm(chain_param text) returns int
 as $$
 declare
   cfg chain%rowtype; a chain_asset%rowtype; latest bigint; fromb bigint; nb int := 0;
-  body jsonb; resp jsonb; lg jsonb; topics jsonb; addr text; amt numeric; conf bigint;
+  body jsonb; resp jsonb; lg jsonb; topics jsonb; addr text; amt numeric; conf numeric;
 begin
   select * into cfg from chain where name = chain_param and enabled and kind = 'evm';
   if not found then return 0; end if;
@@ -37,9 +44,9 @@ begin
   -- latest block height
   resp := (extensions.http_post(cfg.rpc_url,
             '{"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]}', 'application/json')).content::jsonb;
-  latest := ('x' || lpad(substr(resp->>'result', 3), 16, '0'))::bit(64)::bigint;
+  latest := hex_to_numeric(substr(resp->>'result', 3))::bigint;
   select last_scanned::bigint into fromb from chain_cursor where chain = chain_param;
-  fromb := coalesce(fromb, latest - 5000) + 1;
+  fromb := greatest(coalesce(fromb, latest - 5000) + 1, 0);
 
   for a in select * from chain_asset where chain = chain_param and token <> 'native' loop
     body := jsonb_build_object('jsonrpc','2.0','id',1,'method','eth_getLogs','params',
@@ -51,10 +58,10 @@ begin
       topics := lg->'topics';
       addr := '0x' || right(topics->>2, 40);                       -- indexed `to`
       if exists (select 1 from watched_address w where w.chain = chain_param and lower(w.address) = lower(addr)) then
-        amt  := ('x' || lpad(substr(lg->>'data', 3), 16, '0'))::bit(64)::bigint / power(10, a.decimals);
-        conf := latest - ('x' || lpad(substr(lg->>'blockNumber', 3), 16, '0'))::bit(64)::bigint;
+        amt  := hex_to_numeric(substr(lg->>'data', 3)) / power(10, a.decimals);
+        conf := latest - hex_to_numeric(substr(lg->>'blockNumber', 3));
         perform credit_chain_deposit(chain_param, lg->>'transactionHash',
-                  ('x'||lpad(substr(lg->>'logIndex',3),16,'0'))::bit(64)::bigint::int,
+                  hex_to_numeric(substr(lg->>'logIndex', 3))::int,
                   addr, a.currency, amt, conf::int);
         nb := nb + 1;
       end if;
