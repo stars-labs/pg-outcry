@@ -20,7 +20,7 @@ Matching · Settlement · Wallet · Risk · Realtime · Auth — **no applicatio
 
 **[★ Why pg-outcry — comparison vs top-tier exchanges & the SMB advantage (diagrams)](./WHY.md)**
 
-[Quickstart](#quickstart) · [Deploy](./DEPLOY.md) · [Benchmark](./BENCH.md) · [Performance](./PERFORMANCE.md) · [Dev](./DEVELOPMENT.md)
+[Quickstart](#quickstart) · [Deploy](./DEPLOY.md) · [Benchmark](./BENCH.md) · [Tuning ladder](./TUNING.md) · [Performance](./PERFORMANCE.md) · [Dev](./DEVELOPMENT.md)
 
 <img src="web/docs/hero.png" alt="OUTCRY terminal — order book, candlesticks with SMA/EMA/Bollinger/VWAP, volume, RSI (rendered from the live WASM engine)" width="100%"/>
 
@@ -129,7 +129,8 @@ double-entry trades/sec** per symbol at **~3.5 ms p50** engine latency, scaling 
 across 6 symbols in parallel (per-symbol advisory-lock isolation). Each "match" is a *durable, ACID,
 double-entry settled* trade — not an in-memory book op. The self-host perf profile
 (`synchronous_commit=off`, native C `banker_round`, UNLOGGED book) and symbol sharding raise the
-ceiling well beyond. Reproduce: `SERVICE=<key> ./scripts/bench.sh`. Full methodology → [BENCH.md](./BENCH.md).
+ceiling well beyond. Reproduce: `SERVICE=<key> ./scripts/bench.sh`. Full methodology → [BENCH.md](./BENCH.md);
+step-by-step tuning ladder to the ceiling → [TUNING.md](./TUNING.md).
 
 ## Quickstart
 

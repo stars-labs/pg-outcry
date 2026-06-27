@@ -47,3 +47,10 @@ These numbers use the **baseline** config. The self-host high-performance profil
 - Horizontal: **shard by symbol** across nodes (a CEX has no cross-symbol transactions) — near-linear with shard count.
 
 > Bottom line: a **single, untuned PostgreSQL** already serves hundreds of fully-settled trades/sec at millisecond latency, scaling with symbols — which is more than enough for the small/mid-size venues this is built for, with a clear, documented path to push further.
+
+## See how far it climbs
+
+This page is the **floor**. For the step-by-step **tuning ladder** — how throughput rises as you
+apply each lever (`synchronous_commit=off`, symbol sharding, native C hot-path, WAL/memory sizing),
+in priority order, with a script that measures each rung on your hardware — see
+**[TUNING.md](./TUNING.md)** (`SERVICE=<key> ./scripts/bench-ladder.sh`).

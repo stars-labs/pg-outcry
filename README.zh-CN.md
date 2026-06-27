@@ -20,7 +20,7 @@
 
 **[★ 为什么选 pg-outcry —— 与顶级交易所对比 · 中小所优势（配图）](./WHY.zh-CN.md)**
 
-[快速开始](#快速开始) · [部署](./DEPLOY.md) · [基准测试](./BENCH.md) · [性能](./PERFORMANCE.md) · [开发](./DEVELOPMENT.md)
+[快速开始](#快速开始) · [部署](./DEPLOY.md) · [基准测试](./BENCH.md) · [调优阶梯](./TUNING.md) · [性能](./PERFORMANCE.md) · [开发](./DEVELOPMENT.md)
 
 <img src="web/docs/hero.png" alt="OUTCRY 终端 —— 盘口、带 SMA/EMA/布林/VWAP 的蜡烛图、成交量、RSI（由实时 WASM 引擎渲染）" width="100%"/>
 
@@ -128,7 +128,8 @@ flowchart LR
 完全结算的双边记账成交**，引擎延迟 **p50 ≈ 3.5 ms**，6 个品种并行可扩展到 **每秒约 560–730 笔**（按品种
 advisory-lock 隔离）。这里的每一次「撮合」都是*持久、ACID、双边记账已结算*的成交 —— 不是内存盘口操作。自建
 性能档（`synchronous_commit=off`、原生 C `banker_round`、UNLOGGED 盘口）与 symbol 分片可把上限抬得更高。
-复现：`SERVICE=<key> ./scripts/bench.sh`。完整方法学见 [BENCH.md](./BENCH.md)。
+复现：`SERVICE=<key> ./scripts/bench.sh`。完整方法学见 [BENCH.md](./BENCH.md)；
+逐级调优、冲击上限的阶梯见 [TUNING.md](./TUNING.md)。
 
 ## 快速开始
 
