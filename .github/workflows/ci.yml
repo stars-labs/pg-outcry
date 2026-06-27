@@ -83,7 +83,7 @@ jobs:
       - name: Smoke — stop orders (stage9)
         run: RESET=1 bash scripts/smoke-stage9.sh
       - name: Smoke — API keys + referral + withdrawal whitelist
-        run: node scripts/smoke-features.mjs
+        run: supabase db reset && node scripts/smoke-features.mjs
 
       - name: Stop Supabase
         if: always()
