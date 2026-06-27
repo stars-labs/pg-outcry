@@ -67,5 +67,16 @@ ok((await rpc(W.token, "request_withdrawal_to", { currency_param: "EUR", amount_
 ok((await rpc(W.token, "request_withdrawal_to", { currency_param: "EUR", amount_param: 999999, to_address_param: "IBAN-OK" })).status >= 400, "over-limit blocked");
 ok((await rpc(W.token, "request_withdrawal_to", { currency_param: "EUR", amount_param: 100, to_address_param: "NOPE" })).status >= 400, "non-whitelisted blocked");
 
+console.log("── Chain deposits (in-DB watcher core) ──");
+const C = await signup("C");
+ok((await rpc(C.token, "register_deposit_address", { chain_param: "ethereum-sepolia", address_param: "0xSMOKE" })).status < 300, "user registers a deposit address");
+const credit = (txid, conf) => svc("credit_chain_deposit", { chain_param: "ethereum-sepolia", txid_param: txid, log_index_param: 0, address_param: "0xSMOKE", currency_param: "EUR", amount_param: 123.45, confirmations_param: conf });
+ok((await credit("0xT1", 3)).body === "pending", "below N confirmations → pending (no credit)");
+ok((await credit("0xT1", 20)).body === "credited", "≥ N confirmations → credited");
+ok((await credit("0xT1", 30)).body === "duplicate", "same txid again → duplicate (idempotent)");
+ok((await svc("credit_chain_deposit", { chain_param: "ethereum-sepolia", txid_param: "0xT2", log_index_param: 0, address_param: "0xUNWATCHED", currency_param: "EUR", amount_param: 1, confirmations_param: 20 })).body === "unwatched", "unwatched address → unwatched");
+const dep = await get(C.token, "my_chain_deposits?select=txid,amount,credited_at");
+ok(Array.isArray(dep) && dep.some(d => d.txid === "0xT1" && d.credited_at), "deposit visible to owner via RLS view");
+
 console.log(failed ? `\n${failed} FAILED` : "\nall feature smokes passed");
 process.exit(failed ? 1 : 0);

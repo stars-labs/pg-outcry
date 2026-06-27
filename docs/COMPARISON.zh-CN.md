@@ -16,7 +16,7 @@
 | 撮合引擎 | ✅ Ruby/Go | ✅ Python | ✅ Kotlin | ✅ **PL/pgSQL** |
 | 双边记账账本 + 对账 | ✅ | ✅ | ✅（Accountant 服务） | ✅ **库内、ACID、同一事务** |
 | 订单类型 | 限价/市价/止损 | 限价/市价 | 限价/市价 | ✅ 限价/市价/止损/止损限价 · GTC/IOC/FOK |
-| 链上充提 | ✅ 热/温/冷 | ✅ BTC/ETH/BNB/TRX/USDT | ✅ Blockchain Gateway | 🧩 内部账本 + 人工审批（网关在外部） |
+| 链上充提 | ✅ 热/温/冷 | ✅ BTC/ETH/BNB/TRX/USDT | ✅ Blockchain Gateway | ◐ **充值在库内**（pg_cron+pg_net；Sepolia/Tron-Nile/Solana 测试网）—— 提现需签名器（[CHAIN.zh-CN.md](./CHAIN.zh-CN.md)） |
 | KYC / 身份 | ✅ Barong | ✅ Sumsub | ✅ Keycloak | ❌（有意跳过） |
 | KYT（交易筛查） | — | ✅ Scorechain | — | ❌ 外部供应商 |
 | 2FA / MFA | ✅ 短信+TOTP | ✅ 短信 | ✅ Keycloak | ◐ Supabase MFA 可用 |
@@ -49,7 +49,8 @@ OpenCEX 接 Twilio/Sumsub/Scorechain 的 key。pg-outcry 的赌注是：**账本
   - **提现 + HD 地址派生 —— 需要签名器。** `pgcrypto` 没有 secp256k1/keccak，所以构造并**签名**原始交易
     （以及派生每个用户的地址）无法用原生 SQL 完成。要么用一个签名**扩展**（C / `plpython3u` / `plv8`
     —— 留在库内，但热私钥进了数据库，是真实的安全权衡），要么用一个**极小的外部签名器**（仍由数据库决定
-    *发什么*；广播只是 `pg_net`）。路线图：先搭好纯 PG 的充值监听 + 提现队列，签名器是唯一的外部件。
+    *发什么*；广播只是 `pg_net`）。**已交付：** 纯 PG 充值监听 —— 迁移 `9920`（已测核心）+ 可选的
+    Sepolia / Tron Nile / Solana 测试网轮询器。完整指南：**[CHAIN.zh-CN.md](./CHAIN.zh-CN.md)**。
 - **KYC / KYT / 短信 / 法币** —— 都是供应商 API 集成。pg-outcry 暴露*挂载点*（账户状态、等级、限额），
   你把供应商接到状态字段上即可。KYC 本身**有意不做** —— 它面向的中小交易所起步阶段往往用不到供应商 KYC。
 
