@@ -1,0 +1,71 @@
+// Smoke: per-user API keys (9905), referral (9910), withdrawal whitelist+limits (9915).
+// Pure fetch (no deps). Usage: ANON=.. SERVICE=.. node scripts/smoke-features.mjs
+import { execSync } from "node:child_process";
+const API = process.env.API ?? "http://127.0.0.1:54321";
+const ANON = process.env.ANON, SERVICE = process.env.SERVICE;
+const PGURL = process.env.PGURL ?? "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
+if (!ANON || !SERVICE) { console.error("set ANON and SERVICE"); process.exit(2); }
+
+let failed = 0;
+const ok = (b, m) => { console.log((b ? "PASS" : "FAIL") + " " + m); if (!b) failed++; };
+const J = (r) => r.text().then((t) => { try { return JSON.parse(t); } catch { return t; } });
+const rpc = (token, fn, body) => fetch(`${API}/rest/v1/rpc/${fn}`, { method: "POST",
+  headers: { apikey: ANON, Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+  body: JSON.stringify(body ?? {}) }).then(async (r) => ({ status: r.status, body: await J(r) }));
+const svc = (fn, body) => rpc(SERVICE, fn, body);
+const get = (token, path) => fetch(`${API}/rest/v1/${path}`,
+  { headers: { apikey: ANON, Authorization: `Bearer ${token}` } }).then(J);
+
+async function signup(tag) {
+  const r = await fetch(`${API}/auth/v1/signup`, { method: "POST",
+    headers: { apikey: ANON, "Content-Type": "application/json" },
+    body: JSON.stringify({ email: `${tag}_${Date.now()}@ex.com`, password: "Passw0rd!demo" }) }).then(J);
+  const token = r.access_token, uid = r.user?.id ?? r.id;
+  const ent = await get(SERVICE, `app_entity?external_id=eq.${uid}&select=pub_id`);
+  return { token, uid, pub: ent[0].pub_id };
+}
+const fund = (pub, cur, amt) => svc("process_transfer", { type_param: "DEPOSIT", from_customer_id_param: "MASTER",
+  amount_param: amt, currency_param: cur, to_customer_id_param: pub, reference_param: "f", details_param: "f", fee_type_param: null });
+const acct = (pub, cur) => svc("create_currency_account", { app_entity_id_param: pub, currency_param: cur });
+const ia = (uid) => svc("find_instrument_account", { external_id_param: uid }).then((r) => r.body);
+
+console.log("── API keys ──");
+const K = await signup("k"); await acct(K.pub, "BTC"); await fund(K.pub, "EUR", 100000);
+const ck = (await rpc(K.token, "create_api_key", { label_param: "bot" })).body;
+ok(ck?.secret && ck?.key_id, "create_api_key returns key_id+secret");
+const lg = (await rpc("anon-placeholder", "api_key_login", { key_id_param: ck.key_id, secret_param: ck.secret }));
+// api_key_login is callable with the anon key as bearer too; use ANON as bearer:
+const lg2 = (await rpc(ANON, "api_key_login", { key_id_param: ck.key_id, secret_param: ck.secret })).body;
+ok(lg2?.access_token, "api_key_login mints a JWT");
+const po = await rpc(lg2.access_token, "place_order", { instrument_name_param: "BTC_EUR", side_param: "BUY",
+  order_type_param: "LIMIT", price_param: 50, amount_param: 1, time_in_force_param: "GTC" });
+ok(po.status < 300, "bot places order via minted JWT");
+const bad = await rpc(ANON, "api_key_login", { key_id_param: ck.key_id, secret_param: "ocs_wrong" });
+ok(bad.status >= 400, "wrong secret rejected");
+
+console.log("── Referral ──");
+const A = await signup("A"), B = await signup("B"), M = await signup("M");
+await acct(B.pub, "BTC"); await fund(B.pub, "EUR", 100000); await acct(M.pub, "BTC"); await fund(M.pub, "BTC", 100);
+const code = (await rpc(A.token, "my_referral_code")).body;
+ok(typeof code === "string" && code.length > 0, "A gets referral code");
+ok((await rpc(B.token, "set_my_referrer", { code_param: code })).body === true, "B attributes to A");
+ok((await rpc(B.token, "set_my_referrer", { code_param: code })).status >= 400, "double attribution rejected");
+await svc("submit_orders", { instrument_account_id_param: await ia(M.uid), instrument_name_param: "BTC_EUR",
+  orders: [{ type: "LIMIT", side: "SELL", price: 100, amount: 3, tif: "GTC" }] });
+ok((await rpc(B.token, "place_order", { instrument_name_param: "BTC_EUR", side_param: "BUY", order_type_param: "LIMIT",
+  price_param: 100, amount_param: 3, time_in_force_param: "GTC" })).status < 300, "B buys as taker");
+const sum = (await get(A.token, "referral_summary?select=referred_count,total_earned"))[0];
+ok(sum && Number(sum.total_earned) > 0, `referrer earned commission (${JSON.stringify(sum)})`);
+ok(Number((await svc("pay_referral_earnings", { entity_pub: A.pub, currency_param: "EUR" })).body) > 0, "admin pays referral earnings");
+
+console.log("── Withdrawal whitelist + limits ──");
+const W = await signup("W"); await fund(W.pub, "EUR", 100000);
+await rpc(W.token, "add_withdrawal_address", { currency_param: "EUR", address_param: "IBAN-OK", label_param: "bank" });
+ok((await rpc(W.token, "request_withdrawal_to", { currency_param: "EUR", amount_param: 100, to_address_param: "IBAN-OK" })).status >= 400, "blocked during cooling");
+execSync(`psql "${PGURL}" -tAqc "update withdrawal_address set active_at=now()-interval '1 min' where address='IBAN-OK';"`);
+ok((await rpc(W.token, "request_withdrawal_to", { currency_param: "EUR", amount_param: 100, to_address_param: "IBAN-OK" })).status < 300, "succeeds after cooling");
+ok((await rpc(W.token, "request_withdrawal_to", { currency_param: "EUR", amount_param: 999999, to_address_param: "IBAN-OK" })).status >= 400, "over-limit blocked");
+ok((await rpc(W.token, "request_withdrawal_to", { currency_param: "EUR", amount_param: 100, to_address_param: "NOPE" })).status >= 400, "non-whitelisted blocked");
+
+console.log(failed ? `\n${failed} FAILED` : "\nall feature smokes passed");
+process.exit(failed ? 1 : 0);

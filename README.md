@@ -114,6 +114,7 @@ Big exchanges can afford a bespoke C++ matching engine and a 50-person platform 
 - **Risk:** per-instrument max order amount / notional / price-band (fat-finger) checks.
 - **Realtime:** public L2 + trade broadcast; private RLS-scoped order/fill/wallet feed.
 - **Auth & security:** OAuth2 (GitHub/Google) + email; full RLS; deny-by-default function surface.
+- **API keys & growth (pure SQL):** per-user **API keys** (HMAC → in-DB-minted JWT, for bots/market-makers), a **referral/affiliate** program (codes, attribution, commission as ledger entries), and **withdrawal whitelist + rolling limits** (address cooling period). See [COMPARISON.md](./docs/COMPARISON.md).
 - **Back-office:** approvals queue, suspend/unsuspend, fee & risk config, reconciliation dashboard, audit log.
 - **Frontend:** "phosphor terminal" WASM trading UI + admin console.
 - **Performance:** per-symbol advisory-lock concurrency, monthly partitioning of trade/ledger, UNLOGGED in-memory book, WAL reduction, coalesced async market data, optional native C extension, **group-commit batch order submission** (`submit_orders` — N orders in one transaction; tune the size with [`scripts/bench-batch.sh`](./scripts/bench-batch.sh), see [TUNING.md](./docs/TUNING.md)).

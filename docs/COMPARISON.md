@@ -22,9 +22,9 @@ and (B) things we can add **in pure SQL** while keeping the "whole exchange in P
 | KYT (tx screening) | — | ✅ Scorechain | — | ❌ external vendor |
 | 2FA / MFA | ✅ SMS+TOTP | ✅ SMS | ✅ Keycloak | ◐ Supabase MFA available |
 | Fiat on/off-ramp | ✅ | — | — | ❌ external (payment processor) |
-| Per-user API keys (HMAC) | ✅ | ◐ | ✅ | 🔜 **building (pure SQL)** |
-| Referral / affiliate | — | ✅ | ✅ (Referral svc) | 🔜 **building (pure SQL)** |
-| Withdrawal whitelist + limits | ✅ | ✅ | ◐ | 🔜 **building (pure SQL)** |
+| Per-user API keys (HMAC) | ✅ | ◐ | ✅ | ✅ **pure SQL** |
+| Referral / affiliate | — | ✅ | ✅ (Referral svc) | ✅ **pure SQL** |
+| Withdrawal whitelist + limits | ✅ | ✅ | ◐ | ✅ **pure SQL** |
 | Notifications (email/SMS) | ✅ | ✅ | ✅ | ◐ via Supabase triggers |
 | Liquidity / market-making | via vendors | ◐ | — | ❌ demo seeder only |
 | Public REST/WS market-data API | ✅ v2 + WS + AMQP | ◐ | ✅ | ◐ PostgREST + Realtime (no FIX) |
@@ -55,13 +55,13 @@ database stays the system-of-record.
 
 ## Bucket B — closable in pure SQL (the on-brand gaps)
 
-Ordered by leverage. The first three are **being implemented now**:
+Ordered by leverage. The first three are **shipped (pure SQL)** — see [DEVELOPMENT.md](./DEVELOPMENT.md):
 
-1. **Per-user API keys (HMAC)** 🔜 — bots/market-makers need programmatic auth, not interactive
+1. **Per-user API keys (HMAC)** ✅ — bots/market-makers need programmatic auth, not interactive
    JWT. A `api_key` table + a key→short-lived-JWT exchange RPC (minted in SQL), scoped read/trade.
-2. **Referral / affiliate** 🔜 — OPEX dedicates a whole microservice; this is trivially pure SQL:
+2. **Referral / affiliate** ✅ — OPEX dedicates a whole microservice; this is trivially pure SQL:
    referral codes, one-time attribution, commission accrued as real ledger entries.
-3. **Withdrawal whitelist + limits** 🔜 — address allow-list (with a cooling period) + per-window
+3. **Withdrawal whitelist + limits** ✅ — address allow-list (with a cooling period) + per-window
    limits enforced in `request_withdrawal`. Today it's manual-approval only.
 4. **2FA/MFA** — wire Supabase Auth TOTP + frontend enrollment.
 5. **Notifications** — DB triggers → `pg_net`/Edge Function on fills, deposits, withdrawal status.
@@ -81,4 +81,4 @@ Margin / futures / derivatives, staking, P2P, lending, FIX protocol — differen
 The defining gap is **blockchain custody**, and that is intentionally external (a gateway worker on
 top of an already-correct ledger — demoable on public testnets). Within the pure-SQL philosophy, the
 highest-leverage additions are **API keys, referral, and withdrawal security**, which reinforce
-rather than dilute the "whole exchange in Postgres" story — and are the ones being built now.
+rather than dilute the "whole exchange in Postgres" story — and are now shipped (with CI smoke coverage).

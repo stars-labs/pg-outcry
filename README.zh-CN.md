@@ -114,6 +114,7 @@ flowchart LR
 - **风控：** 按品种的单笔/名义/价带（防胖手指）校验。
 - **实时：** 公共 L2 + 成交广播；私有 RLS 限定的订单/成交/钱包流。
 - **鉴权与安全：** OAuth2（GitHub/Google）+ 邮箱；全表 RLS；函数面默认拒绝。
+- **API key 与增长（纯 SQL）：** 用户 **API key**（HMAC → 库内签发 JWT，面向机器人/做市商）、**推荐返佣**程序（推荐码、归因、按账本分录计提佣金）、**提现白名单 + 滚动限额**（地址冷却期）。见 [COMPARISON.zh-CN.md](./docs/COMPARISON.zh-CN.md)。
 - **后台：** 审批队列、冻结/解冻、费率与风控配置、对账看板、审计日志。
 - **前端：** 「磷光终端」风格的 WASM 交易界面 + 管理后台。
 - **性能：** 按 symbol 的 advisory-lock 并发、trade/账本月度分区、UNLOGGED 内存盘口、WAL 缩减、合并式异步行情、可选原生 C 扩展、**组提交批量下单**（`submit_orders` —— N 笔订单一个事务；用 [`scripts/bench-batch.sh`](./scripts/bench-batch.sh) 调参，见 [TUNING.md](./docs/TUNING.zh-CN.md)）。

@@ -21,9 +21,9 @@
 | KYT（交易筛查） | — | ✅ Scorechain | — | ❌ 外部供应商 |
 | 2FA / MFA | ✅ 短信+TOTP | ✅ 短信 | ✅ Keycloak | ◐ Supabase MFA 可用 |
 | 法币出入金 | ✅ | — | — | ❌ 外部（支付处理商） |
-| 用户 API key（HMAC） | ✅ | ◐ | ✅ | 🔜 **建设中（纯 SQL）** |
-| 推荐 / 返佣 | — | ✅ | ✅（Referral 服务） | 🔜 **建设中（纯 SQL）** |
-| 提现白名单 + 限额 | ✅ | ✅ | ◐ | 🔜 **建设中（纯 SQL）** |
+| 用户 API key（HMAC） | ✅ | ◐ | ✅ | ✅ **纯 SQL** |
+| 推荐 / 返佣 | — | ✅ | ✅（Referral 服务） | ✅ **纯 SQL** |
+| 提现白名单 + 限额 | ✅ | ✅ | ◐ | ✅ **纯 SQL** |
 | 通知（邮件/短信） | ✅ | ✅ | ✅ | ◐ 经 Supabase 触发器 |
 | 流动性 / 做市 | 经供应商 | ◐ | — | ❌ 仅演示灌单 |
 | 公共 REST/WS 行情 API | ✅ v2 + WS + AMQP | ◐ | ✅ | ◐ PostgREST + Realtime（无 FIX） |
@@ -50,12 +50,12 @@ OpenCEX 接 Twilio/Sumsub/Scorechain 的 key。pg-outcry 的赌注是：**账本
 
 ## 桶 B —— 可以用纯 SQL 补齐（最契合本项目的差距）
 
-按杠杆排序。前三项**正在实现**：
+按杠杆排序。前三项**已交付（纯 SQL）** —— 见 [DEVELOPMENT.zh-CN.md](./DEVELOPMENT.zh-CN.md)：
 
-1. **用户 API key（HMAC）** 🔜 —— 机器人/做市商需要程序化鉴权，而不是交互式 JWT。一张 `api_key` 表 +
+1. **用户 API key（HMAC）** ✅ —— 机器人/做市商需要程序化鉴权，而不是交互式 JWT。一张 `api_key` 表 +
    一个 key→短时 JWT 兑换 RPC（在 SQL 里签发），按 读/交易 限定范围。
-2. **推荐 / 返佣** 🔜 —— OPEX 为此专门做了一个微服务；这用纯 SQL 极其简单：推荐码、一次性归因、按真实账本分录计提佣金。
-3. **提现白名单 + 限额** 🔜 —— 地址白名单（带冷却期）+ 在 `request_withdrawal` 里按时间窗限额。目前只有人工审批。
+2. **推荐 / 返佣** ✅ —— OPEX 为此专门做了一个微服务；这用纯 SQL 极其简单：推荐码、一次性归因、按真实账本分录计提佣金。
+3. **提现白名单 + 限额** ✅ —— 地址白名单（带冷却期）+ 在 `request_withdrawal` 里按时间窗限额。目前只有人工审批。
 4. **2FA/MFA** —— 接上 Supabase Auth TOTP + 前端注册流程。
 5. **通知** —— 库内触发器 → `pg_net`/Edge Function，在成交、入金、提现状态变更时推送。
 6. **服务端 OHLCV** —— 一个连续聚合 / 视图 + RPC，让非 WASM 客户端（移动端、TradingView）也能拿到 K 线。
@@ -73,4 +73,4 @@ OpenCEX 接 Twilio/Sumsub/Scorechain 的 key。pg-outcry 的赌注是：**账本
 
 最关键的差距是**区块链托管**，而它有意做成外部组件（在已正确的账本之上加一个网关 worker，可在公开测试网上演示）。
 在纯 SQL 哲学之内，杠杆最高的补齐是 **API key、推荐返佣、提现安全**，它们强化而非稀释「整个交易所跑在 Postgres 里」
-的故事 —— 也正是现在在建的内容。
+的故事 —— 也正是现已交付（并有 CI 冒烟覆盖）的内容。
