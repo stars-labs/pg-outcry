@@ -3,17 +3,30 @@
 Internal checklist + post drafts for announcing pg-outcry. Not part of the product.
 
 ## Pre-flight checklist
-- [x] README (English, badges, diagram, disclaimer)
-- [x] WHY.md (top-tier comparison, 9 diagrams)
+- [x] README (English primary + separate `README.zh-CN.md`, language switcher), badges, diagram, disclaimer
+- [x] WHY.md (+ `WHY.zh-CN.md`) — top-tier comparison, 9 diagrams
 - [x] BENCH.md + `scripts/bench.sh` (reproducible numbers)
-- [x] LICENSE (AGPL-3.0) + NOTICE, SECURITY.md, CONTRIBUTING.md
-- [x] CI green; issue/PR templates
-- [x] GitHub Pages workflow (static frontend) — `.github/workflows/pages.yml`
-- [x] **Hero screenshot** (web/docs/hero.png — real render via scripts/render-shots.mjs); optional: a GIF still needs a browser capture
-- [x] **Live demo** deployed → hosted Supabase (Seoul), seeded, autoconfirm on, faucet; link in README
-      `https://xiongchenyu6.github.io/pg-outcry/?api=https://<ref>.supabase.co&anon=<anon key>`
-      (the app reads `?api=&anon=` and persists them). Seed it: `scripts/seed-demo.sh` + `scripts/seed-candles.sh`.
-- [x] Hero + admin screenshots rendered (web/docs/hero.png, admin.png). TODO(you): set repo Social-preview image (Settings, UI-only) using hero.png
+- [x] LICENSE (AGPL-3.0) + NOTICE, SECURITY.md (operator hardening checklist), CONTRIBUTING.md
+- [x] CI green (build + 8 smokes on a clean `db reset`); CLI version pinned to avoid release-API rate-limit flakes; issue/PR templates
+- [x] GitHub Pages workflow (static frontend) — `.github/workflows/pages.yml`; live + serving latest commit
+- [x] **Hero + admin screenshots** rendered (web/docs/hero.png, admin.png via scripts/render-*.mjs); optional: a GIF still needs a browser capture
+- [x] **Live demo — trading terminal** → hosted Supabase (Seoul), seeded, autoconfirm on, faucet; link in README.
+      Verified end-to-end: signup→faucet→LIMIT + MARKET buy/sell fill→balances visible.
+- [x] **Live demo — back-office** (read-only) → `admin.html?...&demo=1` via `demo_admin_overview()` (anon-safe; no service_role exposed). Verified: reconciliation 5/5 PASS.
+- [x] **GitHub OAuth** enabled (hosted): site_url + redirect allow-list set; GitHub login round-trips. Email/password also works.
+- [x] Public market data anon-readable (order book / tape); per-user RLS verified.
+
+### Out of scope for THIS launch (it's reference/educational OSS, not a real-money venue)
+These are the deployer's responsibility before custodying real funds, and are called out in README + SECURITY.md — they are NOT blockers for promoting the project:
+- Independent third-party security & financial audit
+- Production compliance / KYC-AML / legal & ToS
+- Real payment-processor / custody integration
+- Production rate-limiting / WAF / DDoS (Supabase provides baseline; app-level guidance in SECURITY.md)
+- Formal load testing beyond the reproducible BENCH.md benchmark, on-call / incident-response
+
+### Owner-only manual step (UI, can't be scripted)
+- [ ] Set the repo **Social-preview image** (Settings → General, upload web/docs/hero.png)
+- [ ] Optional: rotate the DB password & GitHub OAuth secret that were pasted in chat
 
 ## Capturing visuals (local)
 ```bash
