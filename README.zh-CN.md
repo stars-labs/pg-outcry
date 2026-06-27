@@ -20,7 +20,7 @@
 
 **[★ 为什么选 pg-outcry —— 与顶级交易所对比 · 中小所优势（配图）](./docs/WHY.zh-CN.md)**
 
-[从演示到生产](#从演示到生产) · [快速开始](#快速开始) · [全部文档](./docs/) · [部署](./docs/DEPLOY.zh-CN.md) · [基准测试](./docs/BENCH.zh-CN.md) · [调优阶梯](./docs/TUNING.zh-CN.md) · [性能](./docs/PERFORMANCE.zh-CN.md) · [开发](./docs/DEVELOPMENT.zh-CN.md)
+[从演示到生产](#从演示到生产) · [快速开始](#快速开始) · [全部文档](./docs/) · [横向对比](./docs/COMPARISON.zh-CN.md) · [部署](./docs/DEPLOY.zh-CN.md) · [基准测试](./docs/BENCH.zh-CN.md) · [调优阶梯](./docs/TUNING.zh-CN.md) · [性能](./docs/PERFORMANCE.zh-CN.md) · [开发](./docs/DEVELOPMENT.zh-CN.md)
 
 <img src="web/docs/hero.png" alt="OUTCRY 终端 —— 盘口、带 SMA/EMA/布林/VWAP 的蜡烛图、成交量、RSI（由实时 WASM 引擎渲染）" width="100%"/>
 

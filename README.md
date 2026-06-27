@@ -20,7 +20,7 @@ Matching · Settlement · Wallet · Risk · Realtime · Auth — **no applicatio
 
 **[★ Why pg-outcry — comparison vs top-tier exchanges & the SMB advantage (diagrams)](./docs/WHY.md)**
 
-[Demo → production](#from-demo-to-production) · [Quickstart](#quickstart) · [All docs](./docs/) · [Deploy](./docs/DEPLOY.md) · [Benchmark](./docs/BENCH.md) · [Tuning ladder](./docs/TUNING.md) · [Performance](./docs/PERFORMANCE.md) · [Dev](./docs/DEVELOPMENT.md)
+[Demo → production](#from-demo-to-production) · [Quickstart](#quickstart) · [All docs](./docs/) · [Comparison](./docs/COMPARISON.md) · [Deploy](./docs/DEPLOY.md) · [Benchmark](./docs/BENCH.md) · [Tuning ladder](./docs/TUNING.md) · [Performance](./docs/PERFORMANCE.md) · [Dev](./docs/DEVELOPMENT.md)
 
 <img src="web/docs/hero.png" alt="OUTCRY terminal — order book, candlesticks with SMA/EMA/Bollinger/VWAP, volume, RSI (rendered from the live WASM engine)" width="100%"/>
 

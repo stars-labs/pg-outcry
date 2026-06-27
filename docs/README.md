@@ -8,6 +8,7 @@ Every doc is bilingual: an English file and a `*.zh-CN.md` mirror with a languag
 | Topic / 主题 | English | 中文 |
 |---|---|---|
 | **Why pg-outcry** — architecture vs top-tier exchanges, SMB advantage (diagrams) / 架构对比与中小所优势 | [WHY.md](./WHY.md) | [WHY.zh-CN.md](./WHY.zh-CN.md) |
+| **Comparison** — vs peatio / OpenCEX / OPEX; gap analysis & roadmap / 与三个开源所对比、差距与路线图 | [COMPARISON.md](./COMPARISON.md) | [COMPARISON.zh-CN.md](./COMPARISON.zh-CN.md) |
 | **Benchmark** — the two dimensions (engine vs API) + honest numbers / 两个维度与诚实数字 | [BENCH.md](./BENCH.md) | [BENCH.zh-CN.md](./BENCH.zh-CN.md) |
 | **Tuning ladder** — climb from baseline to the ceiling; batch sizing / 从基线到上限、批量调参 | [TUNING.md](./TUNING.md) | [TUNING.zh-CN.md](./TUNING.zh-CN.md) |
 | **Deploy** — hosted-Supabase demo & self-host high-performance / 托管演示与自建高性能 | [DEPLOY.md](./DEPLOY.md) | [DEPLOY.zh-CN.md](./DEPLOY.zh-CN.md) |
