@@ -116,7 +116,7 @@ Big exchanges can afford a bespoke C++ matching engine and a 50-person platform 
 - **Auth & security:** OAuth2 (GitHub/Google) + email; full RLS; deny-by-default function surface.
 - **Back-office:** approvals queue, suspend/unsuspend, fee & risk config, reconciliation dashboard, audit log.
 - **Frontend:** "phosphor terminal" WASM trading UI + admin console.
-- **Performance:** per-symbol advisory-lock concurrency, monthly partitioning of trade/ledger, UNLOGGED in-memory book, WAL reduction, coalesced async market data, optional native C extension.
+- **Performance:** per-symbol advisory-lock concurrency, monthly partitioning of trade/ledger, UNLOGGED in-memory book, WAL reduction, coalesced async market data, optional native C extension, **group-commit batch order submission** (`submit_orders` — N orders in one transaction; tune the size with [`scripts/bench-batch.sh`](./scripts/bench-batch.sh), see [TUNING.md](./TUNING.md)).
 
 ## Verified
 
@@ -172,7 +172,7 @@ Run the verification suite (from repo root, with `ANON`/`SERVICE` exported): the
 
 - **anon** — public market data only (order book, tape, instruments). No RPCs.
 - **authenticated** (user JWT) — self-scoped API: `place_order`, `cancel_order`, `request_deposit`, `request_withdrawal`. RLS limits all reads to the caller's own entity.
-- **service_role** (back-office) — full engine + admin RPCs; bypasses RLS.
+- **service_role** (back-office / operator) — full engine + admin RPCs; bypasses RLS. Includes the **batch** path `submit_orders(account, instrument, jsonb[])` (group-commit; for market-maker / bulk submitters) — operator-plane, like `submit_order`.
 - `9900_lockdown.sql` revokes EXECUTE on every engine function from public/anon/authenticated and re-grants only the whitelist, so internal helpers (`create_trade`, `update_price_level`, …) are unreachable by clients.
 
 ## Realtime feeds

@@ -116,7 +116,7 @@ flowchart LR
 - **鉴权与安全：** OAuth2（GitHub/Google）+ 邮箱；全表 RLS；函数面默认拒绝。
 - **后台：** 审批队列、冻结/解冻、费率与风控配置、对账看板、审计日志。
 - **前端：** 「磷光终端」风格的 WASM 交易界面 + 管理后台。
-- **性能：** 按 symbol 的 advisory-lock 并发、trade/账本月度分区、UNLOGGED 内存盘口、WAL 缩减、合并式异步行情、可选原生 C 扩展。
+- **性能：** 按 symbol 的 advisory-lock 并发、trade/账本月度分区、UNLOGGED 内存盘口、WAL 缩减、合并式异步行情、可选原生 C 扩展、**组提交批量下单**（`submit_orders` —— N 笔订单一个事务；用 [`scripts/bench-batch.sh`](./scripts/bench-batch.sh) 调参，见 [TUNING.md](./TUNING.md)）。
 
 ## 已验证
 
@@ -171,7 +171,7 @@ cd web && npm install && npm run build:wasm && python3 -m http.server 4173
 
 - **anon** —— 仅公共行情（盘口、成交带、品种列表），无 RPC。
 - **authenticated**（用户 JWT）—— 自限定 API：`place_order`、`cancel_order`、`request_deposit`、`request_withdrawal`。RLS 把所有读取限定在调用者自己的实体上。
-- **service_role**（后台）—— 完整引擎 + 管理 RPC；绕过 RLS。
+- **service_role**（后台 / 运营）—— 完整引擎 + 管理 RPC；绕过 RLS。含**批量**路径 `submit_orders(account, instrument, jsonb[])`（组提交；面向做市商 / 批量下单方）—— 与 `submit_order` 同属运营平面。
 - `9900_lockdown.sql` 撤销 public/anon/authenticated 对每个引擎函数的 EXECUTE，只重新放行白名单，因此内部辅助函数（`create_trade`、`update_price_level` 等）客户端无法调用。
 
 ## 实时频道
