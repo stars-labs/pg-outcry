@@ -104,6 +104,12 @@ book and indexes resident; larger `max_wal_size` reduces checkpoint frequency un
 > It can never exceed the engine ceiling, and it never makes a single order settle slower. If a table
 > ever shows batching *below* singles, that's the longer transaction's own cost (see the knee) or a
 > contended box — not "tuning made the exchange slower."
+>
+> **And don't read single-connection sequential HTTP as capacity.** One request at a time measures
+> *latency* (~one round-trip each), not throughput. Real throughput comes from **many concurrent
+> clients**, bounded by the engine ceiling (~200–270 durable settled trades/s/symbol, ~560–730/s
+> across 6 symbols — see [BENCH.md](./BENCH.md)) and multiplied across symbols. A two-digit
+> orders/s number means the measurement was sequential and/or the box was busy — not the system's limit.
 
 `submit_orders(account, instrument, jsonb[])` (migration `9765`) processes N orders for one
 instrument in **one transaction**: one HTTP round-trip, one auth, one advisory-lock acquisition, one
