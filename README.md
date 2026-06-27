@@ -18,9 +18,9 @@ Matching · Settlement · Wallet · Risk · Realtime · Auth — **no applicatio
 
 **[▶ Live demo — back-office](https://xiongchenyu6.github.io/pg-outcry/admin.html?api=https://axtziasfallmdgssbgsl.supabase.co&anon=sb_publishable_j1Jr-NMeKb_P29JcBRhz6Q_0ZkbVzUc&demo=1)** — read-only admin console: reconciliation invariants, approvals queue, accounts, and audit log on the same live data.
 
-**[★ Why pg-outcry — comparison vs top-tier exchanges & the SMB advantage (diagrams)](./WHY.md)**
+**[★ Why pg-outcry — comparison vs top-tier exchanges & the SMB advantage (diagrams)](./docs/WHY.md)**
 
-[Demo → production](#from-demo-to-production) · [Quickstart](#quickstart) · [Deploy](./DEPLOY.md) · [Benchmark](./BENCH.md) · [Tuning ladder](./TUNING.md) · [Performance](./PERFORMANCE.md) · [Dev](./DEVELOPMENT.md)
+[Demo → production](#from-demo-to-production) · [Quickstart](#quickstart) · [All docs](./docs/) · [Deploy](./docs/DEPLOY.md) · [Benchmark](./docs/BENCH.md) · [Tuning ladder](./docs/TUNING.md) · [Performance](./docs/PERFORMANCE.md) · [Dev](./docs/DEVELOPMENT.md)
 
 <img src="web/docs/hero.png" alt="OUTCRY terminal — order book, candlesticks with SMA/EMA/Bollinger/VWAP, volume, RSI (rendered from the live WASM engine)" width="100%"/>
 
@@ -104,7 +104,7 @@ Big exchanges can afford a bespoke C++ matching engine and a 50-person platform 
 
 > In short: **the correctness, realtime, and compliance of a serious exchange — at the operational complexity and cost a small team can actually carry.**
 
-> 📊 **Deep dive with diagrams:** see **[WHY.md](./WHY.md)** for the side-by-side architecture, order-lifecycle and consistency comparisons against a top-tier-exchange stack, the moving-parts/cost analysis, and the full scaling path.
+> 📊 **Deep dive with diagrams:** see **[WHY.md](./docs/WHY.md)** for the side-by-side architecture, order-lifecycle and consistency comparisons against a top-tier-exchange stack, the moving-parts/cost analysis, and the full scaling path.
 
 ## Feature set
 
@@ -116,11 +116,11 @@ Big exchanges can afford a bespoke C++ matching engine and a 50-person platform 
 - **Auth & security:** OAuth2 (GitHub/Google) + email; full RLS; deny-by-default function surface.
 - **Back-office:** approvals queue, suspend/unsuspend, fee & risk config, reconciliation dashboard, audit log.
 - **Frontend:** "phosphor terminal" WASM trading UI + admin console.
-- **Performance:** per-symbol advisory-lock concurrency, monthly partitioning of trade/ledger, UNLOGGED in-memory book, WAL reduction, coalesced async market data, optional native C extension, **group-commit batch order submission** (`submit_orders` — N orders in one transaction; tune the size with [`scripts/bench-batch.sh`](./scripts/bench-batch.sh), see [TUNING.md](./TUNING.md)).
+- **Performance:** per-symbol advisory-lock concurrency, monthly partitioning of trade/ledger, UNLOGGED in-memory book, WAL reduction, coalesced async market data, optional native C extension, **group-commit batch order submission** (`submit_orders` — N orders in one transaction; tune the size with [`scripts/bench-batch.sh`](./scripts/bench-batch.sh), see [TUNING.md](./docs/TUNING.md)).
 
 ## Verified
 
-The repo ships smoke tests covering **11 end-to-end flows** — matching, settlement & reservations, realtime tape + L2 broadcast, Auth+RLS isolation, wallet (idempotency + reconciliation), order types, stop-order activation, and the private feed — all green against a clean `supabase db reset`. See [`scripts/`](./scripts) and [`DEVELOPMENT.md`](./DEVELOPMENT.md).
+The repo ships smoke tests covering **11 end-to-end flows** — matching, settlement & reservations, realtime tape + L2 broadcast, Auth+RLS isolation, wallet (idempotency + reconciliation), order types, stop-order activation, and the private feed — all green against a clean `supabase db reset`. See [`scripts/`](./scripts) and [`DEVELOPMENT.md`](./docs/DEVELOPMENT.md).
 
 ## Benchmark
 
@@ -129,8 +129,8 @@ double-entry trades/sec** per symbol at **~3.5 ms p50** engine latency, scaling 
 across 6 symbols in parallel (per-symbol advisory-lock isolation). Each "match" is a *durable, ACID,
 double-entry settled* trade — not an in-memory book op. The self-host perf profile
 (`synchronous_commit=off`, native C `banker_round`, UNLOGGED book) and symbol sharding raise the
-ceiling well beyond. Reproduce: `SERVICE=<key> ./scripts/bench.sh`. Full methodology → [BENCH.md](./BENCH.md);
-step-by-step tuning ladder to the ceiling → [TUNING.md](./TUNING.md).
+ceiling well beyond. Reproduce: `SERVICE=<key> ./scripts/bench.sh`. Full methodology → [BENCH.md](./docs/BENCH.md);
+step-by-step tuning ladder to the ceiling → [TUNING.md](./docs/TUNING.md).
 
 ## From demo to production
 
@@ -149,10 +149,10 @@ flowchart LR
 ```
 
 1. **Try it** — open the [live demo](https://xiongchenyu6.github.io/pg-outcry/?api=https://axtziasfallmdgssbgsl.supabase.co&anon=sb_publishable_j1Jr-NMeKb_P29JcBRhz6Q_0ZkbVzUc&demo=1) (trading) and the [back-office](https://xiongchenyu6.github.io/pg-outcry/admin.html?api=https://axtziasfallmdgssbgsl.supabase.co&anon=sb_publishable_j1Jr-NMeKb_P29JcBRhz6Q_0ZkbVzUc&demo=1). Nothing to install.
-2. **Run it locally** — [Quickstart](#quickstart) below: `supabase start` + `supabase db reset` gives you the whole exchange (hosted-Supabase profile in [DEPLOY.md](./DEPLOY.md#demo-deploy-to-hosted-supabase)).
-3. **Self-host the high-performance profile** — native C hot-path, WAL tunables, and the market-data ticker: `./scripts/perf-tune-local.sh` → [DEPLOY.md › Local high-performance](./DEPLOY.md#local-high-performance-self-host). What's identical across hosted vs self-host is spelled out in [DEPLOY.md](./DEPLOY.md#whats-identical-across-both).
-4. **Tune to the ceiling** — walk the [tuning ladder](./TUNING.md) and pick the [batch size](./TUNING.md#batch-order-submission-group-commit--tuning-the-batch-size) at your throughput/latency knee, measuring on your hardware with [`scripts/bench-ladder.sh`](./scripts/bench-ladder.sh) and [`scripts/bench-batch.sh`](./scripts/bench-batch.sh).
-5. **Go live** — production = self-hosted Supabase (or managed PostgreSQL + PostgREST/Realtime/GoTrue) on your own infra, **or** a paid hosted Supabase project. Apply `synchronous_commit=off` + replication/PITR for durable throughput, [shard by symbol](./PERFORMANCE.md#1-shard-by-symbol) to scale out, and complete the operator [hardening checklist](./SECURITY.md#hardening-checklist-for-operators) before custodying real funds.
+2. **Run it locally** — [Quickstart](#quickstart) below: `supabase start` + `supabase db reset` gives you the whole exchange (hosted-Supabase profile in [DEPLOY.md](./docs/DEPLOY.md#demo-deploy-to-hosted-supabase)).
+3. **Self-host the high-performance profile** — native C hot-path, WAL tunables, and the market-data ticker: `./scripts/perf-tune-local.sh` → [DEPLOY.md › Local high-performance](./docs/DEPLOY.md#local-high-performance-self-host). What's identical across hosted vs self-host is spelled out in [DEPLOY.md](./docs/DEPLOY.md#whats-identical-across-both).
+4. **Tune to the ceiling** — walk the [tuning ladder](./docs/TUNING.md) and pick the [batch size](./docs/TUNING.md#batch-order-submission-group-commit--tuning-the-batch-size) at your throughput/latency knee, measuring on your hardware with [`scripts/bench-ladder.sh`](./scripts/bench-ladder.sh) and [`scripts/bench-batch.sh`](./scripts/bench-batch.sh).
+5. **Go live** — production = self-hosted Supabase (or managed PostgreSQL + PostgREST/Realtime/GoTrue) on your own infra, **or** a paid hosted Supabase project. Apply `synchronous_commit=off` + replication/PITR for durable throughput, [shard by symbol](./docs/PERFORMANCE.md#1-shard-by-symbol) to scale out, and complete the operator [hardening checklist](./SECURITY.md#hardening-checklist-for-operators) before custodying real funds.
 
 ## Quickstart
 
@@ -188,7 +188,7 @@ Run the verification suite (from repo root, with `ANON`/`SERVICE` exported): the
 | `supabase/migrations/` | Generated engine schema + the `9xxx` platform layers (API, RLS, wallet, risk, realtime, partitioning, lockdown) |
 | `ext/oc_fastmath/` | Custom **C extension** (native banker's rounding) + build script |
 | `scripts/` | Smoke tests, seeds, benchmark, perf tuning |
-| `DEPLOY.md` · `BENCH.md` · `PERFORMANCE.md` · `DEVELOPMENT.md` · `WHY.md` | Deploy profiles · benchmark · scaling plan · dev reference · architecture comparison |
+| [`docs/`](./docs/) | All deep-dive docs (bilingual): Why · Deploy · Benchmark · Tuning · Performance · Development |
 
 ## Roles & security model
 

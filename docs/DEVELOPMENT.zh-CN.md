@@ -15,7 +15,7 @@
 3. 后台 / 管理系统。
 4. 钱包（充值与提现）。
 
-功能状态见 `IMPLEMENTATION_PLAN.md`，扩展性方案（分片、分区、异步行情、WAL）见 `PERFORMANCE.md`。
+扩展性方案（分片、分区、异步行情、WAL）与功能状态见 [`PERFORMANCE.zh-CN.md`](./PERFORMANCE.zh-CN.md)。
 
 ## 目录结构
 

@@ -4,7 +4,7 @@
 
 # Benchmark
 
-Reproducible: **[`scripts/bench.sh`](./scripts/bench.sh)** (engine) · **[`scripts/bench-batch.sh`](./scripts/bench-batch.sh)** (API) · [← README](./README.md)
+Reproducible: **[`scripts/bench.sh`](../scripts/bench.sh)** (engine) · **[`scripts/bench-batch.sh`](../scripts/bench-batch.sh)** (API) · [← README](../README.md)
 
 </div>
 

@@ -5,7 +5,7 @@
 # 调优阶梯 —— 从基线到上限
 
 吞吐量如何随着每一项优化的施加而攀升。在你自己的硬件上复现：
-**[`scripts/bench-ladder.sh`](./scripts/bench-ladder.sh)** · [← BENCH.md](./BENCH.zh-CN.md) · [← README](./README.zh-CN.md)
+**[`scripts/bench-ladder.sh`](../scripts/bench-ladder.sh)** · [← BENCH.md](./BENCH.zh-CN.md) · [← README](../README.zh-CN.md)
 
 </div>
 

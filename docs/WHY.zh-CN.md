@@ -6,7 +6,7 @@
 
 **架构剖析 · 与顶级交易所技术栈对比 · 中小交易所的巨大优势。**
 
-[← 返回 README](./README.zh-CN.md)
+[← 返回 README](../README.zh-CN.md)
 
 </div>
 
@@ -244,6 +244,6 @@ pg-outcry 面向**绝大多数并非如此的场景**：区域所与零售所、
 
 **交易所级的正确性、实时性与合规 —— 用小团队真正扛得住的复杂度和成本。**
 
-[← 返回 README](./README.zh-CN.md)
+[← 返回 README](../README.zh-CN.md)
 
 </div>

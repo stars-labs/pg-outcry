@@ -15,7 +15,7 @@ the request path.
 3. Back-office / admin system.
 4. Wallet (deposits & withdrawals).
 
-See `IMPLEMENTATION_PLAN.md` for feature status and `PERFORMANCE.md` for the scaling plan (sharding, partitioning, async market data, WAL).
+See [`PERFORMANCE.md`](./PERFORMANCE.md) for the scaling plan (sharding, partitioning, async market data, WAL) and feature status.
 
 ## Layout
 

@@ -4,7 +4,7 @@
 
 # 基准测试
 
-可复现：**[`scripts/bench.sh`](./scripts/bench.sh)**（引擎）· **[`scripts/bench-batch.sh`](./scripts/bench-batch.sh)**（API）· [← README](./README.zh-CN.md)
+可复现：**[`scripts/bench.sh`](../scripts/bench.sh)**（引擎）· **[`scripts/bench-batch.sh`](../scripts/bench-batch.sh)**（API）· [← README](../README.zh-CN.md)
 
 </div>
 

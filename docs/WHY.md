@@ -6,7 +6,7 @@
 
 **Architecture, the top-tier-exchange comparison, and the small/mid-size-exchange advantage.**
 
-[← Back to README](./README.md)
+[← Back to README](../README.md)
 
 </div>
 
@@ -244,6 +244,6 @@ pg-outcry targets the **vast majority of venues that aren't that**: regional and
 
 **Exchange-grade correctness, realtime, and compliance — at the complexity and cost a small team can actually carry.**
 
-[← Back to README](./README.md)
+[← Back to README](../README.md)
 
 </div>

@@ -12,15 +12,15 @@
 
 [![ci](https://github.com/xiongchenyu6/pg-outcry/actions/workflows/ci.yml/badge.svg)](https://github.com/xiongchenyu6/pg-outcry/actions/workflows/ci.yml) [![license: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-4ef7a8)](./LICENSE)
 
-> ⚠️ **参考与教育用途，未经独立审计。** 未经自审与合规审查请勿托管真实资金。见 [SECURITY.md](./SECURITY.md)。
+> ⚠️ **参考与教育用途，未经独立审计。** 未经自审与合规审查请勿托管真实资金。见 [SECURITY.md](./SECURITY.zh-CN.md)。
 
 **[▶ 在线演示 · 交易终端](https://xiongchenyu6.github.io/pg-outcry/?api=https://axtziasfallmdgssbgsl.supabase.co&anon=sb_publishable_j1Jr-NMeKb_P29JcBRhz6Q_0ZkbVzUc&demo=1)** —— 真实托管后端。点开即用：注册（秒过）→ 点「💰 Demo funds」→ 对着真实盘口下单。
 
 **[▶ 在线演示 · 管理后台](https://xiongchenyu6.github.io/pg-outcry/admin.html?api=https://axtziasfallmdgssbgsl.supabase.co&anon=sb_publishable_j1Jr-NMeKb_P29JcBRhz6Q_0ZkbVzUc&demo=1)** —— 只读管理控制台：对账不变量、审批队列、账户、审计日志，基于同一份真实数据。
 
-**[★ 为什么选 pg-outcry —— 与顶级交易所对比 · 中小所优势（配图）](./WHY.zh-CN.md)**
+**[★ 为什么选 pg-outcry —— 与顶级交易所对比 · 中小所优势（配图）](./docs/WHY.zh-CN.md)**
 
-[从演示到生产](#从演示到生产) · [快速开始](#快速开始) · [部署](./DEPLOY.md) · [基准测试](./BENCH.md) · [调优阶梯](./TUNING.md) · [性能](./PERFORMANCE.md) · [开发](./DEVELOPMENT.md)
+[从演示到生产](#从演示到生产) · [快速开始](#快速开始) · [全部文档](./docs/) · [部署](./docs/DEPLOY.zh-CN.md) · [基准测试](./docs/BENCH.zh-CN.md) · [调优阶梯](./docs/TUNING.zh-CN.md) · [性能](./docs/PERFORMANCE.zh-CN.md) · [开发](./docs/DEVELOPMENT.zh-CN.md)
 
 <img src="web/docs/hero.png" alt="OUTCRY 终端 —— 盘口、带 SMA/EMA/布林/VWAP 的蜡烛图、成交量、RSI（由实时 WASM 引擎渲染）" width="100%"/>
 
@@ -104,7 +104,7 @@ flowchart LR
 
 > 一句话：**用小团队真正扛得住的运维复杂度和成本，拿到一家正经交易所的正确性、实时性与合规能力。**
 
-> 📊 **配图深度对比：** 与顶级交易所技术栈的并排架构、订单生命周期与一致性对比、组件数/成本分析，以及完整扩展路径，见 **[WHY.zh-CN.md](./WHY.zh-CN.md)**。
+> 📊 **配图深度对比：** 与顶级交易所技术栈的并排架构、订单生命周期与一致性对比、组件数/成本分析，以及完整扩展路径，见 **[WHY.zh-CN.md](./docs/WHY.zh-CN.md)**。
 
 ## 功能清单
 
@@ -116,11 +116,11 @@ flowchart LR
 - **鉴权与安全：** OAuth2（GitHub/Google）+ 邮箱；全表 RLS；函数面默认拒绝。
 - **后台：** 审批队列、冻结/解冻、费率与风控配置、对账看板、审计日志。
 - **前端：** 「磷光终端」风格的 WASM 交易界面 + 管理后台。
-- **性能：** 按 symbol 的 advisory-lock 并发、trade/账本月度分区、UNLOGGED 内存盘口、WAL 缩减、合并式异步行情、可选原生 C 扩展、**组提交批量下单**（`submit_orders` —— N 笔订单一个事务；用 [`scripts/bench-batch.sh`](./scripts/bench-batch.sh) 调参，见 [TUNING.md](./TUNING.md)）。
+- **性能：** 按 symbol 的 advisory-lock 并发、trade/账本月度分区、UNLOGGED 内存盘口、WAL 缩减、合并式异步行情、可选原生 C 扩展、**组提交批量下单**（`submit_orders` —— N 笔订单一个事务；用 [`scripts/bench-batch.sh`](./scripts/bench-batch.sh) 调参，见 [TUNING.md](./docs/TUNING.zh-CN.md)）。
 
 ## 已验证
 
-仓库自带覆盖 **11 条端到端流程**的冒烟测试 —— 撮合、结算与冻结、实时成交带 + L2 广播、Auth+RLS 隔离、钱包（幂等 + 对账）、订单类型、止损触发、私有流 —— 在干净的 `supabase db reset` 后全部通过。见 [`scripts/`](./scripts) 与 [`DEVELOPMENT.md`](./DEVELOPMENT.md)。
+仓库自带覆盖 **11 条端到端流程**的冒烟测试 —— 撮合、结算与冻结、实时成交带 + L2 广播、Auth+RLS 隔离、钱包（幂等 + 对账）、订单类型、止损触发、私有流 —— 在干净的 `supabase db reset` 后全部通过。见 [`scripts/`](./scripts) 与 [`DEVELOPMENT.md`](./docs/DEVELOPMENT.zh-CN.md)。
 
 ## 基准测试
 
@@ -128,8 +128,8 @@ flowchart LR
 完全结算的双边记账成交**，引擎延迟 **p50 ≈ 3.5 ms**，6 个品种并行可扩展到 **每秒约 560–730 笔**（按品种
 advisory-lock 隔离）。这里的每一次「撮合」都是*持久、ACID、双边记账已结算*的成交 —— 不是内存盘口操作。自建
 性能档（`synchronous_commit=off`、原生 C `banker_round`、UNLOGGED 盘口）与 symbol 分片可把上限抬得更高。
-复现：`SERVICE=<key> ./scripts/bench.sh`。完整方法学见 [BENCH.md](./BENCH.md)；
-逐级调优、冲击上限的阶梯见 [TUNING.md](./TUNING.md)。
+复现：`SERVICE=<key> ./scripts/bench.sh`。完整方法学见 [BENCH.md](./docs/BENCH.zh-CN.md)；
+逐级调优、冲击上限的阶梯见 [TUNING.md](./docs/TUNING.zh-CN.md)。
 
 ## 从演示到生产
 
@@ -147,10 +147,10 @@ flowchart LR
 ```
 
 1. **试用** —— 打开[在线演示](https://xiongchenyu6.github.io/pg-outcry/?api=https://axtziasfallmdgssbgsl.supabase.co&anon=sb_publishable_j1Jr-NMeKb_P29JcBRhz6Q_0ZkbVzUc&demo=1)（交易）与[管理后台](https://xiongchenyu6.github.io/pg-outcry/admin.html?api=https://axtziasfallmdgssbgsl.supabase.co&anon=sb_publishable_j1Jr-NMeKb_P29JcBRhz6Q_0ZkbVzUc&demo=1)，无需安装。
-2. **本地运行** —— 见下方[快速开始](#快速开始)：`supabase start` + `supabase db reset` 即得到完整交易所（托管 Supabase 档见 [DEPLOY.md](./DEPLOY.md)）。
-3. **自建高性能档** —— 原生 C 热路径、WAL 调优、行情推送：`./scripts/perf-tune-local.sh` → [DEPLOY.md › 自建](./DEPLOY.md)。托管与自建之间「完全一致」的部分也在 [DEPLOY.md](./DEPLOY.md) 里写明。
-4. **调到上限** —— 走一遍[调优阶梯](./TUNING.md)，在你硬件上用 [`scripts/bench-ladder.sh`](./scripts/bench-ladder.sh) 与 [`scripts/bench-batch.sh`](./scripts/bench-batch.sh) 找到[批量大小](./TUNING.md)的吞吐/延迟拐点。
-5. **正式上线** —— 生产环境 = 自建 Supabase（或自管 PostgreSQL + PostgREST/Realtime/GoTrue）跑在你自己的基础设施上，**或**付费的托管 Supabase 项目。开启 `synchronous_commit=off` + 复制/PITR 以兼顾持久与吞吐，按 [symbol 分片](./PERFORMANCE.md)横向扩展，并在托管真实资金前完成运营[加固清单](./SECURITY.md)。
+2. **本地运行** —— 见下方[快速开始](#快速开始)：`supabase start` + `supabase db reset` 即得到完整交易所（托管 Supabase 档见 [DEPLOY.md](./docs/DEPLOY.zh-CN.md)）。
+3. **自建高性能档** —— 原生 C 热路径、WAL 调优、行情推送：`./scripts/perf-tune-local.sh` → [DEPLOY.md › 自建](./docs/DEPLOY.zh-CN.md)。托管与自建之间「完全一致」的部分也在 [DEPLOY.md](./docs/DEPLOY.zh-CN.md) 里写明。
+4. **调到上限** —— 走一遍[调优阶梯](./docs/TUNING.zh-CN.md)，在你硬件上用 [`scripts/bench-ladder.sh`](./scripts/bench-ladder.sh) 与 [`scripts/bench-batch.sh`](./scripts/bench-batch.sh) 找到[批量大小](./docs/TUNING.zh-CN.md)的吞吐/延迟拐点。
+5. **正式上线** —— 生产环境 = 自建 Supabase（或自管 PostgreSQL + PostgREST/Realtime/GoTrue）跑在你自己的基础设施上，**或**付费的托管 Supabase 项目。开启 `synchronous_commit=off` + 复制/PITR 以兼顾持久与吞吐，按 [symbol 分片](./docs/PERFORMANCE.zh-CN.md)横向扩展，并在托管真实资金前完成运营[加固清单](./SECURITY.zh-CN.md)。
 
 ## 快速开始
 
@@ -186,7 +186,7 @@ cd web && npm install && npm run build:wasm && python3 -m http.server 4173
 | `supabase/migrations/` | 生成的引擎 schema + `9xxx` 平台层（API、RLS、钱包、风控、实时、分区、锁定） |
 | `ext/oc_fastmath/` | 自定义 **C 扩展**（原生银行家舍入）+ 构建脚本 |
 | `scripts/` | 冒烟测试、灌数据、基准、性能调优 |
-| `DEPLOY.md` · `BENCH.md` · `PERFORMANCE.md` · `DEVELOPMENT.md` · `WHY.zh-CN.md` | 部署档 · 基准 · 扩展方案 · 开发参考 · 架构对比 |
+| [`docs/`](./docs/) | 全部深入文档（双语）：为什么 · 部署 · 基准 · 调优 · 性能 · 开发 |
 
 ## 角色与安全模型
 

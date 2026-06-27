@@ -5,7 +5,7 @@
 # Tuning ladder — from the baseline to the ceiling
 
 How throughput climbs as you apply each optimization. Reproduce on your own hardware:
-**[`scripts/bench-ladder.sh`](./scripts/bench-ladder.sh)** · [← BENCH.md](./BENCH.md) · [← README](./README.md)
+**[`scripts/bench-ladder.sh`](../scripts/bench-ladder.sh)** · [← BENCH.md](./BENCH.md) · [← README](../README.md)
 
 </div>
 
