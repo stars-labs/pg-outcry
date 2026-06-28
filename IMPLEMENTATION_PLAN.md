@@ -30,7 +30,13 @@ test seed; per-user determinism; addresses unique per (user,chain).
 - base58 + base58check encoders (Solana addr, Tron addr = base58check(0x41‖keccak-tail)).
 - `user_chain_wallet(app_entity_id, chain, address)`; RPC `my_deposit_address(chain)`
   derives+stores+registers into `watched_address` (reuses 9920 deposit model).
-**Status**: Not Started.
+**Status**: ✅ Complete — `supabase/migrations/9985_hd_custody.sql`. pgsodium + vault
+seed; base58/base58check; `_master_seed` / `_derive_secp_priv` / `_derive_ed25519_seed`;
+`evm_address` (9970) / `tron_address_from_priv` / `sol_address_from_eid`;
+`my_deposit_address(chain)` RPC. Validated: base58/base58check match bs58/bs58check (40
+inputs incl leading zeros); EVM addr == ethers.computeAddress(derived priv), Tron ==
+bs58check(0x41‖keccak), Solana == bs58(ed25519 pub) for 4 entities (92/92); live REST
+e2e (signup → 3 addresses, idempotent, watched). Applied to hosted.
 
 ## Stage 3: Deposits on testnet (in-DB watcher)
 **Goal**: funds sent to a user's assigned address are auto-credited, fully in-DB.
