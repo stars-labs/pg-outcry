@@ -53,13 +53,20 @@ lazily on each interaction — no accrual cron), unstake with an unbonding perio
   reward) + `stake_pools`. Verified in `scripts/smoke-features.mjs` (stake → ~10 reward at 10% APR →
   unstake → unbond release → **reconcile() all PASS**).
 
-## 2. Spot margin — planned (pure SQL)
+## 2. Spot margin — ✅ shipped (migration `9940`)
 
-Borrow against collateral → interest accrues (`pg_cron`) → `place_order` checks equity ≥ initial
-margin → a **liquidation engine** marks positions to the last trade / index and force-closes via
-market orders when equity < maintenance margin; insurance fund covers shortfalls. New pieces: borrow
-ledger, margin check, and the liquidation monitor (a **pgmq** work-queue drained by a worker). No new
-extension.
+Cross-margin, valued in the EUR quote via last trade prices. `borrow` against collateral (the house
+lends from MASTER) with a **max-leverage cap** (total debt ≤ equity·(L−1)); interest accrues lazily;
+`repay`; and a `pg_cron` **liquidation monitor** (`check_margin_liquidations`) that marks each account
+to the current price and **liquidates** when equity ≤ debt·maintenance_ratio. All money moves via
+`process_transfer` (borrow = DEPOSIT MASTER→user, repay/liquidation = user→MASTER), so reconciliation
+holds. RPCs `borrow` / `repay` / `my_margin_health` (authenticated); views `my_margin` + `margin_terms`.
+Verified in `scripts/smoke-features.mjs` (borrow 2x → over-leverage rejected → repay → interest-driven
+liquidation seizes collateral → **reconcile() all PASS**).
+
+**Simplified vs production:** liquidation is a forced settlement at the mark (seize collateral, clear
+debt, shortfall borne by the house) rather than routing a market order through the book; no partial
+liquidation / insurance fund / ADL. No new extension needed.
 
 ## 3. Perpetual futures — planned (large, pure SQL)
 
@@ -75,6 +82,6 @@ hot funding/liquidation loop is optional at scale.
 
 ## Roadmap
 
-`staking ✅ → spot margin → perpetual futures`. Each is opt-in and carries real financial risk — these
+`staking ✅ → spot margin ✅ → perpetual futures`. Each is opt-in and carries real financial risk — these
 sit at the regulated end ([WHY.md §9](./WHY.md#9-when-not-to-use-this)); pg-outcry's core remains a
 correctness-first **spot** exchange.

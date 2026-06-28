@@ -114,5 +114,21 @@ ok(Math.abs(await eur() - 1010) < 0.2, `principal returned (~EUR 1010, got ${awa
 const rec = (await svc("reconcile")).body;
 ok(Array.isArray(rec) && rec.filter((r) => r.status !== "PASS").length === 0, "ledger still reconciles after staking");
 
+console.log("── Spot margin (borrow / leverage cap / liquidation) ──");
+const MG = await signup("mg"); await fund(MG.pub, "EUR", 1000);
+const meur = async () => Number((await get(MG.token, "cash_balances?currency=eq.EUR&select=available"))[0]?.available || 0);
+ok((await rpc(MG.token, "borrow", { currency_param: "EUR", amount_param: 1000 })).status < 300, "borrow 1000 EUR (2x)");
+ok(await meur() === 2000, "borrowed funds received (EUR 2000)");
+ok((await rpc(MG.token, "borrow", { currency_param: "EUR", amount_param: 5000 })).status >= 400, "over-leverage borrow rejected");
+const mh = (await rpc(MG.token, "my_margin_health")).body;
+ok(mh && Math.abs(Number(mh.debt) - 1000) < 1, `my_margin_health debt ~1000 (equity ${mh?.equity})`);
+ok(Number((await rpc(MG.token, "repay", { currency_param: "EUR", amount_param: 400 })).body) > 0, "repay 400");
+execSync(`psql "${PGURL}" -tAqc "update margin_config set borrow_apr=5.0; update margin_loan set updated_at=now()-interval '5 years';"`);
+ok(Number((await svc("check_margin_liquidations")).body) >= 1, "liquidation engine liquidates the underwater account");
+ok((await get(MG.token, "my_margin?select=debt")).length === 0, "loan cleared after liquidation");
+ok(await meur() === 0, "collateral seized after liquidation (EUR 0)");
+const rec2 = (await svc("reconcile")).body;
+ok(Array.isArray(rec2) && rec2.filter((r) => r.status !== "PASS").length === 0, "ledger reconciles after margin + liquidation");
+
 console.log(failed ? `\n${failed} FAILED` : "\nall feature smokes passed");
 process.exit(failed ? 1 : 0);

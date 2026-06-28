@@ -30,7 +30,7 @@
 | 服务端 OHLCV/K线 | ✅ | ✅ | ✅ | ◐ 在 WASM 客户端计算 |
 | 管理 / 后台 | ✅ | ✅ | ✅ | ✅ 审批/冻结/费率/风控/对账/审计 |
 | 阶梯费率（按量） | ✅ | ◐ | ◐ | ◐ 固定 maker/taker |
-| 质押 / 保证金 / 合约 | 商业版（OpenDAX） | — | — | ◐ **质押 ✅ 纯 SQL** · 保证金/合约规划中（[DERIVATIVES.zh-CN.md](./DERIVATIVES.zh-CN.md)） |
+| 质押 / 保证金 / 合约 | 商业版（OpenDAX） | — | — | ◐ **质押 ✅ · 现货保证金 ✅ 纯 SQL** · 合约规划中（[DERIVATIVES.zh-CN.md](./DERIVATIVES.zh-CN.md)） |
 | **要运行的组件数** | Rails + Barong + Finex + RabbitMQ + DB | Django + Redis + RabbitMQ + 节点 | 约 11 个微服务 + Kafka + Redis + N×PG | ✅ **1 个 Postgres + Supabase** |
 
 ## 桶 A —— 外部集成（任何交易所都要在边缘接上）

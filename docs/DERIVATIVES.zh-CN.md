@@ -49,11 +49,17 @@
 - RPC：`stake` / `unstake` / `claim_stake_rewards`（认证）；视图 `my_stakes`（实时待领奖励）+ `stake_pools`。
   已在 `scripts/smoke-features.mjs` 验证（质押 → 10% APR 约 10 奖励 → 解质押 → 解锁返还 → **reconcile() 全 PASS**）。
 
-## 2. 现货保证金 —— 计划中（纯 SQL）
+## 2. 现货保证金 —— ✅ 已交付（迁移 `9940`）
 
-抵押借贷 → 计息（`pg_cron`）→ `place_order` 校验权益 ≥ 初始保证金 → **清算引擎**按最新成交/index 标记仓位，
-当权益 < 维持保证金时用市价单强平；保险基金兜底亏空。新增：借贷账本、保证金校验、清算监控
-（一个由 worker 消费的 **pgmq** 工作队列）。无需新扩展。
+跨保证金，以 EUR 计价（用最新成交价）。`borrow` 抵押借贷（由 house 从 MASTER 出借），带**最大杠杆上限**
+（总负债 ≤ 权益·(L−1)）；利息惰性计提；`repay`；以及一个 `pg_cron` **清算监控**
+（`check_margin_liquidations`）按当前价标记每个账户，当权益 ≤ 负债·维持率时**清算**。所有资金流动经
+`process_transfer`（借 = DEPOSIT MASTER→user，还/清算 = user→MASTER），因此对账成立。RPC：`borrow` /
+`repay` / `my_margin_health`（认证）；视图 `my_margin` + `margin_terms`。已在 `scripts/smoke-features.mjs`
+验证（2 倍借贷 → 超杠杆被拒 → 还款 → 利息驱动清算并没收抵押 → **reconcile() 全 PASS**）。
+
+**相比生产的简化：** 清算是按标记价的强制结算（没收抵押、清零负债、亏空由 house 承担），而非把市价单走订单簿；
+无部分清算 / 保险基金 / ADL。无需新扩展。
 
 ## 3. 永续合约 —— 计划中（大、纯 SQL）
 
@@ -68,5 +74,5 @@
 
 ## 路线图
 
-`质押 ✅ → 现货保证金 → 永续合约`。每一项都可选且带真实金融风险 —— 它们处于受监管的一端
+`质押 ✅ → 现货保证金 ✅ → 永续合约`。每一项都可选且带真实金融风险 —— 它们处于受监管的一端
 （[WHY.zh-CN.md §9](./WHY.zh-CN.md#9-什么情况下别用它)）；pg-outcry 的核心仍是正确性优先的**现货**交易所。
