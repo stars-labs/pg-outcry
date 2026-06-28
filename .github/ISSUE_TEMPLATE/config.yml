@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Security vulnerability (private)
-    url: https://github.com/xiongchenyu6/pg-outcry/security/advisories/new
+    url: https://github.com/stars-labs/pg-outcry/security/advisories/new
     about: Report security issues privately — see SECURITY.md. Do not open a public issue.
   - name: Question / discussion
-    url: https://github.com/xiongchenyu6/pg-outcry/discussions
+    url: https://github.com/stars-labs/pg-outcry/discussions
     about: Ask questions and share ideas.

@@ -10,13 +10,13 @@
 
 `PostgreSQL` · `PostgREST` · `Supabase Realtime` · `Supabase Auth (GoTrue)` · `WebAssembly`
 
-[![ci](https://github.com/xiongchenyu6/pg-outcry/actions/workflows/ci.yml/badge.svg)](https://github.com/xiongchenyu6/pg-outcry/actions/workflows/ci.yml) [![license: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-4ef7a8)](./LICENSE)
+[![ci](https://github.com/stars-labs/pg-outcry/actions/workflows/ci.yml/badge.svg)](https://github.com/stars-labs/pg-outcry/actions/workflows/ci.yml) [![license: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-4ef7a8)](./LICENSE)
 
 > ⚠️ **参考与教育用途，未经独立审计。** 未经自审与合规审查请勿托管真实资金。见 [SECURITY.md](./SECURITY.zh-CN.md)。
 
-**[▶ 在线演示 · 交易终端](https://xiongchenyu6.github.io/pg-outcry/?api=https://axtziasfallmdgssbgsl.supabase.co&anon=sb_publishable_j1Jr-NMeKb_P29JcBRhz6Q_0ZkbVzUc&demo=1)** —— 真实托管后端。点开即用：注册（秒过）→ 点「💰 Demo funds」→ 对着真实盘口下单。**⚙ Account** 面板覆盖全部功能：API 密钥、推荐返佣、提现白名单、链上充值、质押、现货保证金、永续合约。
+**[▶ 在线演示 · 交易终端](https://stars-labs.github.io/pg-outcry/?api=https://axtziasfallmdgssbgsl.supabase.co&anon=sb_publishable_j1Jr-NMeKb_P29JcBRhz6Q_0ZkbVzUc&demo=1)** —— 真实托管后端。点开即用：注册（秒过）→ 点「💰 Demo funds」→ 对着真实盘口下单。**⚙ Account** 面板覆盖全部功能：API 密钥、推荐返佣、提现白名单、链上充值、质押、现货保证金、永续合约。
 
-**[▶ 在线演示 · 管理后台](https://xiongchenyu6.github.io/pg-outcry/admin.html?api=https://axtziasfallmdgssbgsl.supabase.co&anon=sb_publishable_j1Jr-NMeKb_P29JcBRhz6Q_0ZkbVzUc&demo=1)** —— 只读管理控制台：对账不变量、审批队列、账户、费率/风控、推荐返佣结算、衍生品与质押、审计日志，基于同一份真实数据。
+**[▶ 在线演示 · 管理后台](https://stars-labs.github.io/pg-outcry/admin.html?api=https://axtziasfallmdgssbgsl.supabase.co&anon=sb_publishable_j1Jr-NMeKb_P29JcBRhz6Q_0ZkbVzUc&demo=1)** —— 只读管理控制台：对账不变量、审批队列、账户、费率/风控、推荐返佣结算、衍生品与质押、审计日志，基于同一份真实数据。
 
 **[★ 为什么选 pg-outcry —— 与顶级交易所对比 · 中小所优势（配图）](./docs/WHY.zh-CN.md)**
 
@@ -147,7 +147,7 @@ flowchart LR
   style E fill:#1a1626,stroke:#9b8cff
 ```
 
-1. **试用** —— 打开[在线演示](https://xiongchenyu6.github.io/pg-outcry/?api=https://axtziasfallmdgssbgsl.supabase.co&anon=sb_publishable_j1Jr-NMeKb_P29JcBRhz6Q_0ZkbVzUc&demo=1)（交易）与[管理后台](https://xiongchenyu6.github.io/pg-outcry/admin.html?api=https://axtziasfallmdgssbgsl.supabase.co&anon=sb_publishable_j1Jr-NMeKb_P29JcBRhz6Q_0ZkbVzUc&demo=1)，无需安装。
+1. **试用** —— 打开[在线演示](https://stars-labs.github.io/pg-outcry/?api=https://axtziasfallmdgssbgsl.supabase.co&anon=sb_publishable_j1Jr-NMeKb_P29JcBRhz6Q_0ZkbVzUc&demo=1)（交易）与[管理后台](https://stars-labs.github.io/pg-outcry/admin.html?api=https://axtziasfallmdgssbgsl.supabase.co&anon=sb_publishable_j1Jr-NMeKb_P29JcBRhz6Q_0ZkbVzUc&demo=1)，无需安装。
 2. **本地运行** —— 见下方[快速开始](#快速开始)：`supabase start` + `supabase db reset` 即得到完整交易所（托管 Supabase 档见 [DEPLOY.md](./docs/DEPLOY.zh-CN.md)）。
 3. **自建高性能档** —— 原生 C 热路径、WAL 调优、行情推送：`./scripts/perf-tune-local.sh` → [DEPLOY.md › 自建](./docs/DEPLOY.zh-CN.md)。托管与自建之间「完全一致」的部分也在 [DEPLOY.md](./docs/DEPLOY.zh-CN.md) 里写明。
 4. **调到上限** —— 走一遍[调优阶梯](./docs/TUNING.zh-CN.md)，在你硬件上用 [`scripts/bench-ladder.sh`](./scripts/bench-ladder.sh) 与 [`scripts/bench-batch.sh`](./scripts/bench-batch.sh) 找到[批量大小](./docs/TUNING.zh-CN.md)的吞吐/延迟拐点。
