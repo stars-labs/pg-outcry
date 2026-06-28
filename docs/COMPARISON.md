@@ -31,7 +31,7 @@ and (B) things we can add **in pure SQL** while keeping the "whole exchange in P
 | Server-side OHLCV/candles | ✅ | ✅ | ✅ | ◐ computed client-side in WASM |
 | Admin / back-office | ✅ | ✅ | ✅ | ✅ approvals/suspend/fees/risk/recon/audit |
 | Fee tiers (volume-based) | ✅ | ◐ | ◐ | ◐ flat maker/taker |
-| Staking / margin / futures | commercial (OpenDAX) | — | — | ◐ **staking ✅ · spot margin ✅ pure SQL** · futures planned ([DERIVATIVES.md](./DERIVATIVES.md)) |
+| Staking / margin / futures | commercial (OpenDAX) | — | — | ◐ **staking ✅ · margin ✅ · perps ✅ pure SQL** ([DERIVATIVES.md](./DERIVATIVES.md)) |
 | **Moving parts to run** | Rails + Barong + Finex + RabbitMQ + DB | Django + Redis + RabbitMQ + nodes | ~11 microservices + Kafka + Redis + N×PG | ✅ **1 Postgres + Supabase** |
 
 ## Bucket A — external integrations (every exchange bolts these on)

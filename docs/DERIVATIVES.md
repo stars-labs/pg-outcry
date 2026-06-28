@@ -68,20 +68,27 @@ liquidation seizes collateral → **reconcile() all PASS**).
 debt, shortfall borne by the house) rather than routing a market order through the book; no partial
 liquidation / insurance fund / ADL. No new extension needed.
 
-## 3. Perpetual futures — planned (large, pure SQL)
+## 3. Perpetual futures — ✅ shipped (migration `9950`)
 
-Position-based, not balance-based:
-1. **Index + mark price** — index from external spot markets via `pg_net`/`wrappers` (the one external dependency).
-2. **Funding** — periodic long/short transfer (`pg_cron`).
-3. **uPnL / equity**, initial/maintenance margin.
-4. **Liquidation** (**pgmq** queue) + **insurance fund** + **ADL**.
-5. Matching stays an order book; settlement updates **positions + margin** (a new path alongside spot).
+Position-based linear perp (`BTC-PERP`, EUR-margined):
+- **Mark price** set by an oracle (`update_perp_mark`, `pg_cron`) from the spot last trade — or
+  overridable / fed externally via `pg_net` for a real index.
+- **`open_perp` / `close_perp`** — post margin, take a signed position with a **max-leverage cap**;
+  close realizes uPnL = size·(mark−entry); payout = margin+PnL (clamped ≥0), all via `process_transfer`.
+- **Funding** (`apply_perp_funding`, `pg_cron`) — longs pay shorts when the rate is positive (adjusts
+  the margin claim).
+- **Liquidation** (`check_perp_liquidations`, `pg_cron`) — seizes margin when equity ≤
+  size·mark·maintenance_ratio.
+- Views `my_perp` (live uPnL/equity) + `perp_markets`. Verified in `scripts/smoke-features.mjs`
+  (open 5x long → mark→130 uPnL 30 → close +30 → liquidation on a drop → funding charge →
+  **reconcile() all PASS**).
 
-All numeric math; **pg_partman** for the funding/mark-price time-series; a custom C extension for the
-hot funding/liquidation loop is optional at scale.
+**Simplified vs production:** one netted position per market, open-from-flat only; the house (MASTER)
+is the counterparty/insurance (PnL not netted long-vs-short); liquidation seizes margin at the mark
+(no partial close / book routing / ADL). `pg_partman` for funding/mark-price history at scale.
 
 ## Roadmap
 
-`staking ✅ → spot margin ✅ → perpetual futures`. Each is opt-in and carries real financial risk — these
+`staking ✅ → spot margin ✅ → perpetual futures ✅`. Each is opt-in and carries real financial risk — these
 sit at the regulated end ([WHY.md §9](./WHY.md#9-when-not-to-use-this)); pg-outcry's core remains a
 correctness-first **spot** exchange.
