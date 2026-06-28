@@ -24,7 +24,11 @@ We aim to acknowledge within a few days. Please include reproduction steps and i
 If you deploy this, at minimum:
 - Keep the `service_role` key server-side only; never ship it to browsers. The back-office
   console is an **operator tool** — run it on a trusted, access-controlled machine.
-- Front the API with TLS, rate limiting, and WAF; enable Supabase Auth MFA for operators.
+- Front the API with TLS, rate limiting, and WAF.
+- **2FA is delegated to the OAuth2 provider** (GitHub/Google enforce their own 2FA at login), so
+  pg-outcry doesn't ship a separate TOTP system. To *mandate* 2FA, restrict login to OAuth (disable
+  email/password signup) so every account authenticates through an IdP that enforces it; require it
+  on operator accounts.
 - Review and tighten every RLS policy and the `9900_lockdown` function whitelist for your schema.
 - Configure real OAuth providers + email; disable open signups if you require KYC-first onboarding.
 - Set per-role `statement_timeout`, connection limits, backups/PITR, and monitoring.

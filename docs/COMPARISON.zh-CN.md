@@ -19,7 +19,7 @@
 | 链上充提 | ✅ 热/温/冷 | ✅ BTC/ETH/BNB/TRX/USDT | ✅ Blockchain Gateway | ◐ **充值在库内**（pg_cron+pg_net；Sepolia/Tron-Nile/Solana）+ **提现队列** → 外部签名器（[CHAIN.zh-CN.md](./CHAIN.zh-CN.md)） |
 | KYC / 身份 | ✅ Barong | ✅ Sumsub | ✅ Keycloak | ❌（有意跳过） |
 | KYT（交易筛查） | — | ✅ Scorechain | — | ❌ 外部供应商 |
-| 2FA / MFA | ✅ 短信+TOTP | ✅ 短信 | ✅ Keycloak | ◐ Supabase MFA 可用 |
+| 2FA / MFA | ✅ 短信+TOTP | ✅ 短信 | ✅ Keycloak | ✅ **委托 OAuth2 提供方**（GitHub/Google 2FA） |
 | 法币出入金 | ✅ | — | — | ❌ 外部（支付处理商） |
 | 用户 API key（HMAC） | ✅ | ◐ | ✅ | ✅ **纯 SQL** |
 | 推荐 / 返佣 | — | ✅ | ✅（Referral 服务） | ✅ **纯 SQL** |
@@ -63,7 +63,7 @@ OpenCEX 接 Twilio/Sumsub/Scorechain 的 key。pg-outcry 的赌注是：**账本
    一个 key→短时 JWT 兑换 RPC（在 SQL 里签发），按 读/交易 限定范围。
 2. **推荐 / 返佣** ✅ —— OPEX 为此专门做了一个微服务；这用纯 SQL 极其简单：推荐码、一次性归因、按真实账本分录计提佣金。
 3. **提现白名单 + 限额** ✅ —— 地址白名单（带冷却期）+ 在 `request_withdrawal` 里按时间窗限额。目前只有人工审批。
-4. **2FA/MFA** —— 接上 Supabase Auth TOTP + 前端注册流程。
+4. **2FA/MFA** ✅ —— 委托给 OAuth2 提供方（GitHub/Google 强制自家 2FA）；如需强制，把登录限制为仅 OAuth（禁用邮箱/密码注册）即可，无需自建 TOTP。
 5. **通知** —— 库内触发器 → `pg_net`/Edge Function，在成交、入金、提现状态变更时推送。
 6. **服务端 OHLCV** —— 一个连续聚合 / 视图 + RPC，让非 WASM 客户端（移动端、TradingView）也能拿到 K 线。
    目前 K 线只存在于 WASM 客户端。

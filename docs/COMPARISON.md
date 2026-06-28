@@ -20,7 +20,7 @@ and (B) things we can add **in pure SQL** while keeping the "whole exchange in P
 | On-chain deposits/withdrawals | ✅ hot/warm/cold | ✅ BTC/ETH/BNB/TRX/USDT | ✅ Blockchain Gateway | ◐ **deposits in-DB** (pg_cron+pg_net; Sepolia/Tron-Nile/Solana) + **withdrawal queue** → external signer ([CHAIN.md](./CHAIN.md)) |
 | KYC / identity | ✅ Barong | ✅ Sumsub | ✅ Keycloak | ❌ (intentionally skipped) |
 | KYT (tx screening) | — | ✅ Scorechain | — | ❌ external vendor |
-| 2FA / MFA | ✅ SMS+TOTP | ✅ SMS | ✅ Keycloak | ◐ Supabase MFA available |
+| 2FA / MFA | ✅ SMS+TOTP | ✅ SMS | ✅ Keycloak | ✅ **via OAuth2 IdP** (GitHub/Google 2FA) |
 | Fiat on/off-ramp | ✅ | — | — | ❌ external (payment processor) |
 | Per-user API keys (HMAC) | ✅ | ◐ | ✅ | ✅ **pure SQL** |
 | Referral / affiliate | — | ✅ | ✅ (Referral svc) | ✅ **pure SQL** |
@@ -72,7 +72,7 @@ Ordered by leverage. The first three are **shipped (pure SQL)** — see [DEVELOP
    referral codes, one-time attribution, commission accrued as real ledger entries.
 3. **Withdrawal whitelist + limits** ✅ — address allow-list (with a cooling period) + per-window
    limits enforced in `request_withdrawal`. Today it's manual-approval only.
-4. **2FA/MFA** — wire Supabase Auth TOTP + frontend enrollment.
+4. **2FA/MFA** ✅ — delegated to the OAuth2 provider (GitHub/Google enforce their own 2FA); mandate it by restricting login to OAuth (disable email/password signup). No separate TOTP to build.
 5. **Notifications** — DB triggers → `pg_net`/Edge Function on fills, deposits, withdrawal status.
 6. **Server-side OHLCV** — a continuous aggregate / view + RPC so non-WASM clients (mobile,
    TradingView) get candles. Today candles exist only in the WASM client.

@@ -113,7 +113,7 @@ Big exchanges can afford a bespoke C++ matching engine and a 50-person platform 
 - **Wallet:** deposit/withdrawal requests with admin approval, idempotency keys, reservation on withdrawal.
 - **Risk:** per-instrument max order amount / notional / price-band (fat-finger) checks.
 - **Realtime:** public L2 + trade broadcast; private RLS-scoped order/fill/wallet feed.
-- **Auth & security:** OAuth2 (GitHub/Google) + email; full RLS; deny-by-default function surface.
+- **Auth & security:** OAuth2 (GitHub/Google) + email; **2FA delegated to the OAuth2 provider** (no separate TOTP); full RLS; deny-by-default function surface.
 - **API keys & growth (pure SQL):** per-user **API keys** (HMAC → in-DB-minted JWT, for bots/market-makers), a **referral/affiliate** program (codes, attribution, commission as ledger entries), and **withdrawal whitelist + rolling limits** (address cooling period). See [COMPARISON.md](./docs/COMPARISON.md).
 - **Back-office:** approvals queue, suspend/unsuspend, fee & risk config, reconciliation dashboard, audit log.
 - **Frontend:** "phosphor terminal" WASM trading UI + admin console.
