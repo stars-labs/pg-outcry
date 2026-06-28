@@ -74,18 +74,33 @@ every sighting (updating the confirmation count) but only books the ledger trans
 time it sees `confirmations ≥ N`. Re-seeing the same `(chain, txid, log_index)` returns `duplicate`
 and never double-credits — verified in `scripts/smoke-features.mjs`.
 
-## Withdrawals — the one external piece
+## Withdrawals — DB-owned queue + external signer
 
 To **send** a withdrawal you must build and **sign** a transaction with the hot key. `pgcrypto` has no
-secp256k1/keccak, so this can't be done in stock SQL. Options:
+secp256k1/keccak, so signing can't be done in stock SQL — but the **database still owns the queue and
+decides what to send**; the signer is a thin external worker whose only job is to sign + broadcast
+(its private key never touches the DB).
 
-- a **signing extension** (C / `plpython3u` / `plv8`) — keeps it in-DB, but hot keys live in the
-  database (a real security tradeoff); or
-- a **tiny external signer** — the DB owns the withdrawal queue and decides *what* to send; the signer
-  only signs; broadcasting the signed tx is a `pg_net` HTTP call.
+The send-queue (migration `9925`, service_role-only) sits on top of the approved-withdrawal flow:
 
-HD **address derivation** (per-user deposit addresses) similarly needs secp256k1/bip32 — an extension,
-or pre-generate addresses externally and load them into `watched_address`.
+```
+request_withdrawal_to → APPROVED (admin) → next_withdrawal_to_sign() → signer signs+broadcasts
+                                          → mark_withdrawal_broadcast(txid) → mark_withdrawal_confirmed()
+```
+
+- `next_withdrawal_to_sign()` atomically **claims** the next approved withdrawal that has a
+  `to_address` (`FOR UPDATE SKIP LOCKED` + stamps `signing_claimed_at`), so concurrent signers never
+  double-send — each withdrawal is handed out at most once.
+- `mark_withdrawal_broadcast(pub, txid)` / `mark_withdrawal_confirmed(pub)` are idempotent. Funds were
+  already debited at approval, so the queue touches no ledger rows — only send bookkeeping.
+- **[`examples/withdrawal-signer.mjs`](../examples/withdrawal-signer.mjs)** is an example EVM signer
+  (ethers v6): loop `next_withdrawal_to_sign` → sign with `HOT_KEY` → broadcast via `RPC_URL` →
+  `mark_withdrawal_broadcast`. Run it next to the DB; the key lives only in its env.
+
+Alternatively, a **signing extension** (C / `plpython3u` / `plv8`) keeps signing in-DB — but that puts
+hot keys in the database, a real security tradeoff. HD **address derivation** (per-user deposit
+addresses) similarly needs secp256k1/bip32 — an extension, or pre-generate addresses externally and
+load them into `watched_address`.
 
 > Net: **deposits are pure-Postgres; only withdrawal signing + address derivation are external.** That
 > already puts the database in charge of more of the wallet than peatio/OpenCEX/OPEX, which run a

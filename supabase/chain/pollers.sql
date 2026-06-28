@@ -28,6 +28,65 @@ create or replace function hex_to_numeric(h text) returns numeric
   from generate_series(1, length(h)) i;
 $$;
 
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Pure DECODERS (no network). The poll_* functions below do the HTTP call, then
+-- delegate JSON→deposit parsing to these so the fragile, chain-specific extraction
+-- is unit-testable from fixtures. See scripts/test-pollers-decode.sh.
+-- ─────────────────────────────────────────────────────────────────────────────
+
+-- ── EVM: decode an eth_getLogs `result` array of ERC-20 Transfer logs ────────────
+-- topics[2] is the 32-byte indexed `to` (address = last 20 bytes / 40 hex chars).
+-- `data` is the 256-bit uint256 amount — MUST be parsed with hex_to_numeric (int64
+-- ::bit(64) overflows and errors on real values). Returns raw `block` and a
+-- 10^decimals-scaled `amount`; the caller computes confirmations from block height.
+create or replace function decode_evm_logs(resp jsonb, token text, decimals int, watched_lower text[])
+  returns table(txid text, to_addr text, log_index int, amount numeric, block bigint)
+  language sql stable as $$
+  select lg->>'transactionHash',
+         '0x' || right(lg->'topics'->>2, 40),
+         hex_to_numeric(substr(lg->>'logIndex', 3))::int,
+         hex_to_numeric(substr(lg->>'data', 3)) / power(10, decimals),
+         hex_to_numeric(substr(lg->>'blockNumber', 3))::bigint
+  from jsonb_array_elements(resp->'result') as lg
+  where lower('0x' || right(lg->'topics'->>2, 40)) = any(watched_lower);
+$$;
+
+-- ── Tron: decode a TronGrid /transactions/trc20 response ─────────────────────────
+-- Real shape: {"data":[{"transaction_id":"..","token_info":{"address":"T..",
+--   "decimals":6,"symbol":"USDT"},"from":"T..","to":"T..","value":"1500000",
+--   "type":"Transfer"}]}. NOTE `value` is a STRING of the raw integer (can exceed
+-- int64) — read it with ->> and cast to numeric, never to bigint. Returns the RAW
+-- amount; the caller divides by 10^decimals. Only Transfer rows to a watched `to`.
+create or replace function decode_tron_trc20(resp jsonb, watched_lower text[])
+  returns table(txid text, to_addr text, token text, amount_raw numeric)
+  language sql immutable as $$
+  select d->>'transaction_id',
+         d->>'to',
+         lower(d->'token_info'->>'address'),
+         (d->>'value')::numeric
+  from jsonb_array_elements(resp->'data') as d
+  where d->>'type' = 'Transfer'
+    and lower(d->>'to') = any(watched_lower);
+$$;
+
+-- ── Solana: lamports gained by `address` in a getTransaction(jsonParsed) result ──
+-- In jsonParsed encoding result.transaction.message.accountKeys is an array of
+-- OBJECTS {"pubkey":..,"signer":..,"writable":..} — NOT plain strings — so the
+-- index must be found via elem->>'pubkey'. lamports = postBalances[i]-preBalances[i].
+-- Returns NULL when `address` is not in the account list. Raw lamports (caller /1e9).
+create or replace function decode_solana_credit(tx jsonb, address text) returns numeric
+  language sql immutable as $$
+  select (tx->'meta'->'postBalances'->>i.idx)::numeric
+       - (tx->'meta'->'preBalances'->>i.idx)::numeric
+  from (
+    select (ord - 1)::int as idx
+    from jsonb_array_elements(tx->'transaction'->'message'->'accountKeys')
+           with ordinality as e(elem, ord)
+    where elem->>'pubkey' = address
+    limit 1
+  ) i;
+$$;
+
 -- ── Ethereum (Sepolia) — ERC-20 Transfer logs via eth_getLogs ───────────────────
 -- Transfer(address,address,uint256) topic0:
 --   0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef
@@ -36,7 +95,7 @@ create or replace function poll_evm(chain_param text) returns int
 as $$
 declare
   cfg chain%rowtype; a chain_asset%rowtype; latest bigint; fromb bigint; nb int := 0;
-  body jsonb; resp jsonb; lg jsonb; topics jsonb; addr text; amt numeric; conf numeric;
+  body jsonb; resp jsonb; d record; watched text[];
 begin
   select * into cfg from chain where name = chain_param and enabled and kind = 'evm';
   if not found then return 0; end if;
@@ -48,23 +107,19 @@ begin
   select last_scanned::bigint into fromb from chain_cursor where chain = chain_param;
   fromb := greatest(coalesce(fromb, latest - 5000) + 1, 0);
 
+  select array_agg(lower(address)) into watched from watched_address where chain = chain_param;
+  watched := coalesce(watched, '{}');
+
   for a in select * from chain_asset where chain = chain_param and token <> 'native' loop
     body := jsonb_build_object('jsonrpc','2.0','id',1,'method','eth_getLogs','params',
       jsonb_build_array(jsonb_build_object(
         'fromBlock', to_hex(fromb), 'toBlock', to_hex(latest), 'address', a.token,
         'topics', jsonb_build_array('0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'))));
     resp := (extensions.http_post(cfg.rpc_url, body::text, 'application/json')).content::jsonb;
-    for lg in select * from jsonb_array_elements(resp->'result') loop
-      topics := lg->'topics';
-      addr := '0x' || right(topics->>2, 40);                       -- indexed `to`
-      if exists (select 1 from watched_address w where w.chain = chain_param and lower(w.address) = lower(addr)) then
-        amt  := hex_to_numeric(substr(lg->>'data', 3)) / power(10, a.decimals);
-        conf := latest - hex_to_numeric(substr(lg->>'blockNumber', 3));
-        perform credit_chain_deposit(chain_param, lg->>'transactionHash',
-                  hex_to_numeric(substr(lg->>'logIndex', 3))::int,
-                  addr, a.currency, amt, conf::int);
-        nb := nb + 1;
-      end if;
+    for d in select * from decode_evm_logs(resp, a.token, a.decimals, watched) loop
+      perform credit_chain_deposit(chain_param, d.txid, d.log_index,
+                d.to_addr, a.currency, d.amount, (latest - d.block)::int);
+      nb := nb + 1;
     end loop;
   end loop;
 
@@ -77,20 +132,24 @@ end $$;
 create or replace function poll_tron(chain_param text) returns int
   language plpgsql security definer set search_path = public, extensions, pg_temp
 as $$
-declare cfg chain%rowtype; w record; resp jsonb; tx jsonb; cur text; dec int; nb int := 0; amt numeric;
+declare cfg chain%rowtype; w record; resp jsonb; d record; cur text; dec int; nb int := 0; li int;
 begin
   select * into cfg from chain where name = chain_param and enabled and kind = 'tron';
   if not found then return 0; end if;
   for w in select address from watched_address where chain = chain_param loop
     resp := (extensions.http_get(cfg.rpc_url || '/v1/accounts/' || w.address ||
               '/transactions/trc20?only_confirmed=true&limit=50')).content::jsonb;
-    for tx in select * from jsonb_array_elements(resp->'data') loop
+    li := 0;
+    for d in select * from decode_tron_trc20(resp, array[lower(w.address)]) loop
       select currency, decimals into cur, dec from chain_asset
-        where chain = chain_param and token = lower(tx->'token_info'->>'address');
-      if cur is not null and lower(tx->>'to') = lower(w.address) then
-        amt := (tx->>'value')::numeric / power(10, dec);
-        perform credit_chain_deposit(chain_param, tx->>'transaction_id', 0, w.address, cur, amt, cfg.confirmations);
+        where chain = chain_param and token = d.token;
+      if cur is not null then
+        -- one tx can carry several TRC-20 transfers; index them so the (chain,txid,
+        -- log_index) idempotency key stays unique instead of colliding on 0.
+        perform credit_chain_deposit(chain_param, d.txid, li, w.address, cur,
+                  d.amount_raw / power(10, dec), cfg.confirmations);
         nb := nb + 1;
+        li := li + 1;
       end if;
     end loop;
   end loop;
@@ -101,7 +160,7 @@ end $$;
 create or replace function poll_solana(chain_param text) returns int
   language plpgsql security definer set search_path = public, extensions, pg_temp
 as $$
-declare cfg chain%rowtype; w record; a chain_asset%rowtype; sigs jsonb; s jsonb; tx jsonb; nb int := 0; amt numeric; idx int;
+declare cfg chain%rowtype; w record; a chain_asset%rowtype; sigs jsonb; s jsonb; tx jsonb; nb int := 0; lamports numeric; amt numeric;
 begin
   select * into cfg from chain where name = chain_param and enabled and kind = 'solana';
   if not found then return 0; end if;
@@ -119,9 +178,9 @@ begin
             'params', jsonb_build_array(s->>'signature', jsonb_build_object('encoding','jsonParsed','maxSupportedTransactionVersion',0)))::text,
           'application/json')).content::jsonb -> 'result';
         -- credit the net balance increase of the watched account (lamports → SOL)
-        idx := (select ordinality-1 from jsonb_array_elements_text(tx->'transaction'->'message'->'accountKeys') with ordinality where value = w.address limit 1);
-        if idx is not null then
-          amt := ((tx->'meta'->'postBalances'->>idx)::numeric - (tx->'meta'->'preBalances'->>idx)::numeric) / power(10, a.decimals);
+        lamports := decode_solana_credit(tx, w.address);
+        if lamports is not null then
+          amt := lamports / power(10, a.decimals);
           if amt > 0 then
             perform credit_chain_deposit(chain_param, s->>'signature', 0, w.address, a.currency, amt, cfg.confirmations);
             nb := nb + 1;

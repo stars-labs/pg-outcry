@@ -70,15 +70,27 @@ EVM 日志解码（`hex_to_numeric` + topic/data 解析）也用真实 Transfer 
 （更新确认数），但只在首次看到 `confirmations ≥ N` 时入账一次。再次看到相同的 `(chain, txid, log_index)`
 返回 `duplicate`，绝不重复入账 —— 已由 `scripts/smoke-features.mjs` 验证。
 
-## 提现 —— 唯一的外部件
+## 提现 —— 数据库持有队列 + 外部签名器
 
-要**发出**提现，必须用热私钥构造并**签名**交易。`pgcrypto` 没有 secp256k1/keccak，所以这无法用原生 SQL 完成。
-可选：
+要**发出**提现，必须用热私钥构造并**签名**交易。`pgcrypto` 没有 secp256k1/keccak，签名无法用原生 SQL 完成 ——
+但**数据库仍然持有队列、决定发什么**；签名器只是个薄薄的外部 worker，只负责签名 + 广播（私钥从不进数据库）。
 
-- 一个签名**扩展**（C / `plpython3u` / `plv8`）—— 留在库内，但热私钥在数据库里（真实的安全权衡）；或
-- 一个**极小的外部签名器** —— 数据库拥有提现队列、决定*发什么*；签名器只负责签名；广播签名后的交易是一次
-  `pg_net` HTTP 调用。
+发送队列（迁移 `9925`，仅 service_role）建立在已批准提现流之上：
 
+```
+request_withdrawal_to → APPROVED（管理员）→ next_withdrawal_to_sign() → 签名器签名+广播
+                                          → mark_withdrawal_broadcast(txid) → mark_withdrawal_confirmed()
+```
+
+- `next_withdrawal_to_sign()` 原子地**认领**下一笔有 `to_address` 的已批准提现（`FOR UPDATE SKIP LOCKED`
+  + 打上 `signing_claimed_at`），因此并发签名器不会重复发送 —— 每笔最多发出一次。
+- `mark_withdrawal_broadcast(pub, txid)` / `mark_withdrawal_confirmed(pub)` 幂等。资金在批准时已扣减，
+  队列不触碰任何账本行 —— 只做发送记账。
+- **[`examples/withdrawal-signer.mjs`](../examples/withdrawal-signer.mjs)** 是一个示例 EVM 签名器（ethers v6）：
+  循环 `next_withdrawal_to_sign` → 用 `HOT_KEY` 签名 → 经 `RPC_URL` 广播 → `mark_withdrawal_broadcast`。
+  把它跑在数据库旁边；私钥只在它的环境变量里。
+
+或者用一个签名**扩展**（C / `plpython3u` / `plv8`）把签名留在库内 —— 但这会把热私钥放进数据库，是真实的安全权衡。
 HD **地址派生**（每用户充值地址）同样需要 secp256k1/bip32 —— 用扩展，或在外部预生成地址再载入 `watched_address`。
 
 > 总之：**充值是纯 Postgres 的；只有提现签名 + 地址派生是外部的。** 这已经让数据库掌管了比

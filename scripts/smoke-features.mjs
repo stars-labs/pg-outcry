@@ -78,5 +78,26 @@ ok((await svc("credit_chain_deposit", { chain_param: "ethereum-sepolia", txid_pa
 const dep = await get(C.token, "my_chain_deposits?select=txid,amount,credited_at");
 ok(Array.isArray(dep) && dep.some(d => d.txid === "0xT1" && d.credited_at), "deposit visible to owner via RLS view");
 
+console.log("── Withdrawal send queue ──");
+// Simulate the external signer with service RPCs (no real chain in CI). The DB
+// hands out approved+whitelisted withdrawals once; a real signer would sign+broadcast.
+const S = await signup("S"); await fund(S.pub, "EUR", 100000);
+await rpc(S.token, "add_withdrawal_address", { currency_param: "EUR", address_param: "0xQUEUE", label_param: "hot" });
+execSync(`psql "${PGURL}" -tAqc "update withdrawal_address set active_at=now()-interval '1 min' where address='0xQUEUE';"`);
+const wreq = (await rpc(S.token, "request_withdrawal_to", { currency_param: "EUR", amount_param: 100, to_address_param: "0xQUEUE" })).body;
+ok(typeof wreq === "string" && wreq.length > 0, "request_withdrawal_to returns a request pub_id");
+ok((await svc("approve_wallet_request", { request_pub_param: wreq })).status < 300, "admin approves the withdrawal (ledger settled)");
+const claim1 = (await svc("next_withdrawal_to_sign")).body;
+ok(claim1 && claim1.pub_id === wreq && claim1.to_address === "0xQUEUE" && Number(claim1.amount) === 100,
+  "next_withdrawal_to_sign returns the approved withdrawal");
+const claim2 = (await svc("next_withdrawal_to_sign")).body;
+ok(claim2 === null || claim2 === "" , "second claim returns nothing (claimed-once, no double-send)");
+ok((await svc("mark_withdrawal_broadcast", { request_pub: wreq, txid: "0xDEADBEEF" })).body === true, "mark_withdrawal_broadcast records the txid");
+ok((await svc("mark_withdrawal_broadcast", { request_pub: wreq, txid: "0xOTHER" })).body === false, "mark_withdrawal_broadcast is idempotent (no clobber)");
+ok((await svc("mark_withdrawal_confirmed", { request_pub: wreq })).body === true, "mark_withdrawal_confirmed sets confirmed_at");
+ok((await svc("mark_withdrawal_confirmed", { request_pub: wreq })).body === false, "mark_withdrawal_confirmed is idempotent");
+const wrow = (await get(S.token, `wallet_request?pub_id=eq.${wreq}&select=broadcast_txid,confirmed_at`))[0];
+ok(wrow && wrow.broadcast_txid === "0xDEADBEEF" && wrow.confirmed_at, "owner sees broadcast txid + confirmation via RLS");
+
 console.log(failed ? `\n${failed} FAILED` : "\nall feature smokes passed");
 process.exit(failed ? 1 : 0);

@@ -17,7 +17,7 @@ and (B) things we can add **in pure SQL** while keeping the "whole exchange in P
 | Matching engine | ✅ Ruby/Go | ✅ Python | ✅ Kotlin | ✅ **PL/pgSQL** |
 | Double-entry ledger + reconciliation | ✅ | ✅ | ✅ (Accountant svc) | ✅ **in-DB, ACID, same tx** |
 | Order types | limit/market/stop | limit/market | limit/market | ✅ limit/market/stop-loss/stop-limit · GTC/IOC/FOK |
-| On-chain deposits/withdrawals | ✅ hot/warm/cold | ✅ BTC/ETH/BNB/TRX/USDT | ✅ Blockchain Gateway | ◐ **deposits in-DB** (pg_cron+pg_net; Sepolia/Tron-Nile/Solana testnets) — withdrawals need a signer ([CHAIN.md](./CHAIN.md)) |
+| On-chain deposits/withdrawals | ✅ hot/warm/cold | ✅ BTC/ETH/BNB/TRX/USDT | ✅ Blockchain Gateway | ◐ **deposits in-DB** (pg_cron+pg_net; Sepolia/Tron-Nile/Solana) + **withdrawal queue** → external signer ([CHAIN.md](./CHAIN.md)) |
 | KYC / identity | ✅ Barong | ✅ Sumsub | ✅ Keycloak | ❌ (intentionally skipped) |
 | KYT (tx screening) | — | ✅ Scorechain | — | ❌ external vendor |
 | 2FA / MFA | ✅ SMS+TOTP | ✅ SMS | ✅ Keycloak | ◐ Supabase MFA available |
@@ -54,9 +54,10 @@ database stays the system-of-record.
     building & **signing** a raw transaction (and deriving per-user addresses) can't be done in stock
     SQL. Either a signing **extension** (C / `plpython3u` / `plv8` — keeps it in-DB but puts hot keys
     in the database, a real security tradeoff) or a **tiny external signer** (the DB still decides
-    *what* to send; broadcasting is just `pg_net`). **Shipped:** the pure-PG deposit watcher —
-    migration `9920` (tested core) + opt-in pollers for Sepolia / Tron Nile / Solana testnet. Full
-    guide: **[CHAIN.md](./CHAIN.md)**.
+    *what* to send; broadcasting is just `pg_net`). **Shipped:** the pure-PG deposit watcher
+    (migration `9920` + opt-in Sepolia / Tron Nile / Solana pollers) **and** a DB-owned withdrawal
+    send-queue (`9925`: `next_withdrawal_to_sign` with `SKIP LOCKED` claim, `mark_withdrawal_broadcast/
+    confirmed`) with an example external signer. Full guide: **[CHAIN.md](./CHAIN.md)**.
 - **KYC / KYT / SMS / fiat** — vendor API integrations. pg-outcry exposes the *hooks* (account
   status, tiers, limits) and you plug a vendor into the status field. KYC itself is deliberately
   **out of scope** — small/mid venues this targets often don't need vendor KYC to start.
