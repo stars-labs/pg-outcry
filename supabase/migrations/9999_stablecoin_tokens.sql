@@ -250,6 +250,16 @@ create or replace view my_chain_deposits as
 alter view my_chain_deposits set (security_invoker = on);
 grant select on my_chain_deposits to authenticated;
 
+-- chain_deposit had RLS enabled out-of-band (Supabase advisor) with NO policy, so the
+-- security_invoker view returned nothing to anyone. Make it declarative: enable RLS +
+-- a per-user SELECT policy (own watched-address deposits OR own memo deposits).
+alter table chain_deposit enable row level security;
+drop policy if exists own_chain_deposit on chain_deposit;
+create policy own_chain_deposit on chain_deposit for select to authenticated
+  using (address in (select address from watched_address where app_entity_id = current_app_entity_id())
+         or address = 'oc' || current_app_entity_id());
+grant select on chain_deposit to authenticated;
+
 revoke execute on function
   public.evm_erc20_transfer_data(text,numeric), public.evm_build_signed_token_tx(bytea,numeric,numeric,numeric,text,text,numeric,int),
   public.sol_ed25519_on_curve(bytea), public.sol_ata(bytea,bytea),
