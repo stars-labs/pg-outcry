@@ -394,5 +394,37 @@ end $$;
 -- make all existing whitelisted addresses usable now (drop any pending cooling)
 update withdrawal_address set active_at = now() where active_at > now();
 
+-- ════════════════════════ explicit RLS policies (anti auto-RLS footgun) ═════════
+-- Supabase's security advisor enables RLS on tables out-of-band. Any security_invoker
+-- view reading a table with RLS-on-but-no-policy silently returns nothing (hit 4× now:
+-- stake_pool, perp_market, chain_deposit, my_chain_deposits). Make the intended policies
+-- explicit so a fresh DB == hosted and future auto-RLS can't break reads. Financial /
+-- ledger / engine-internal tables are deliberately left deny-by-default (users reach them
+-- only via SECURITY DEFINER RPCs), which is the correct locked-down posture.
+
+-- exchange-parameter tables: public read-only (non-sensitive; complements the *_terms views)
+do $$
+declare t text;
+begin
+  foreach t in array array['margin_config','stake_config','referral_config','instrument_risk','withdrawal_limit'] loop
+    execute format('alter table %I enable row level security', t);
+    execute format('drop policy if exists read_%1$s on %1$s', t);
+    execute format('create policy read_%1$s on %1$s for select to anon, authenticated using (true)', t);
+    execute format('grant select on %I to anon, authenticated', t);
+  end loop;
+end $$;
+
+-- per-user event logs: each user can read only their own rows
+do $$
+declare t text;
+begin
+  foreach t in array array['perp_event','margin_liquidation'] loop
+    execute format('alter table %I enable row level security', t);
+    execute format('drop policy if exists own_%1$s on %1$s', t);
+    execute format('create policy own_%1$s on %1$s for select to authenticated using (app_entity_id = current_app_entity_id())', t);
+    execute format('grant select on %I to authenticated', t);
+  end loop;
+end $$;
+
 grant execute on function add_withdrawal_address(text, text, text) to authenticated;
 revoke execute on function _addr_finality_seconds(text) from public, anon, authenticated;
