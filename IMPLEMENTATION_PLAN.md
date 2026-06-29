@@ -85,7 +85,11 @@ Tron create+sign+broadcast path reached on-chain validation (needs treasury acti
 **Goal**: Deposits tab shows the assigned per-chain address (QR/copy) + injected-wallet
 "send" helper; Withdraw tab targets the connected wallet address.
 **Tests**: chrome-devtools — connect flow, address shows, request submits.
-**Status**: Not Started.
+**Status**: ✅ Deposits Complete — `web/app.js` renderDeposits: per-chain in-DB HD address
+(my_deposit_address) + copy + injected-wallet send (MetaMask / TronLink / Phantom via
+@solana/web3.js); detected-deposits list. Live-verified on stars-labs.github.io: a fresh
+user derived EVM/Tron/Solana addresses, all 3 send buttons wired. Withdrawals use the
+existing Withdraw tab (request_withdrawal_to → admin approve → Stage-4 in-DB signer).
 
 ## Stage 6: Deploy + verify on testnet
 **Goal**: end-to-end on the hosted demo.
