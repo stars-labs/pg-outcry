@@ -153,9 +153,9 @@ begin
   nonce := hex_to_numeric(substr(_evm_rpc(cfg.rpc_url, 'eth_getTransactionCount', jsonb_build_array(from_addr, 'pending')) #>> '{}', 3));
   gas_price := hex_to_numeric(substr(_evm_rpc(cfg.rpc_url, 'eth_gasPrice', '[]'::jsonb) #>> '{}', 3));
   if token = 'native' then
-    raw := public.evm_build_signed_tx(priv, nonce, gas_price, 21000, wr.to_address, trunc(wr.amount * power(10, dec)), 11155111);
+    raw := public.evm_build_signed_tx(priv, nonce, gas_price, 21000, wr.to_address, trunc(wr.amount * power(10::numeric, dec)), 11155111);
   else
-    raw := public.evm_build_signed_token_tx(priv, nonce, gas_price, 100000, token, wr.to_address, trunc(wr.amount * power(10, dec)), 11155111);
+    raw := public.evm_build_signed_token_tx(priv, nonce, gas_price, 100000, token, wr.to_address, trunc(wr.amount * power(10::numeric, dec)), 11155111);
   end if;
   txhash := '0x' || encode(public.keccak256(decode(substr(raw, 3), 'hex')), 'hex');
   perform _evm_rpc(cfg.rpc_url, 'eth_sendRawTransaction', jsonb_build_array(raw));
@@ -185,10 +185,10 @@ begin
   bh := resp->'result'->'value'->>'blockhash';
   if bh is null then raise exception 'no_blockhash: %', resp; end if;
   if token = 'native' then
-    tx_b64 := public.sol_build_signed_tx(seed, public.base58_decode(wr.to_address), trunc(wr.amount * power(10, dec)), public.base58_decode(bh));
+    tx_b64 := public.sol_build_signed_tx(seed, public.base58_decode(wr.to_address), trunc(wr.amount * power(10::numeric, dec)), public.base58_decode(bh));
   else
     tx_b64 := public.sol_build_signed_token_tx(seed, public.base58_decode(token), public.base58_decode(wr.to_address),
-                trunc(wr.amount * power(10, dec)), dec, public.base58_decode(bh));
+                trunc(wr.amount * power(10::numeric, dec)), dec, public.base58_decode(bh));
   end if;
   resp := (extensions.http_post(cfg.rpc_url, jsonb_build_object('jsonrpc','2.0','id',1,'method','sendTransaction',
     'params', jsonb_build_array(tx_b64, jsonb_build_object('encoding','base64')))::text, 'application/json')).content::jsonb;
@@ -223,7 +223,7 @@ begin
       if ix->>'program' = 'spl-memo' then memo := ix->>'parsed'; exit; end if;
     end loop;
     if memo is null then continue; end if;
-    if credit_memo_deposit(chain_param, s->>'signature', 0, memo, cur, amt / power(10, dec), 1) = 'credited' then n := n + 1; end if;
+    if credit_memo_deposit(chain_param, s->>'signature', 0, memo, cur, amt / power(10::numeric, dec), 1) = 'credited' then n := n + 1; end if;
   end loop;
   return n;
 end $$;
@@ -235,6 +235,20 @@ insert into instrument(pub_id, name, quote_currency, fx_instrument, base_currenc
   (gen_random_uuid()::text, 'USDC_EUR', 'EUR', true, 'USDC', true),
   (gen_random_uuid()::text, 'USDT_EUR', 'EUR', true, 'USDT', true)
 on conflict (name) do nothing;
+
+-- MASTER needs USDT/USDC accounts to issue token deposits from (DEPOSIT MASTER→user).
+do $$ begin perform create_currency_account('MASTER', 'USDT'); exception when others then null; end $$;
+do $$ begin perform create_currency_account('MASTER', 'USDC'); exception when others then null; end $$;
+
+-- my_chain_deposits must also surface MEMO deposits (chain_deposit.address = the memo
+-- 'oc'||entity_id), not only deposits to watched (per-user derived) addresses.
+create or replace view my_chain_deposits as
+  select d.chain, d.txid, d.currency, d.amount, d.confirmations, d.credited_at, d.created_at
+  from chain_deposit d
+  where d.address in (select address from watched_address where app_entity_id = current_app_entity_id())
+     or d.address = 'oc' || current_app_entity_id();
+alter view my_chain_deposits set (security_invoker = on);
+grant select on my_chain_deposits to authenticated;
 
 revoke execute on function
   public.evm_erc20_transfer_data(text,numeric), public.evm_build_signed_token_tx(bytea,numeric,numeric,numeric,text,text,numeric,int),
@@ -254,30 +268,29 @@ create or replace function decode_tron_trigger_transfer(data text)
   where data ~* '^a9059cbb' and length(data) >= 136;
 $$;
 
+-- TRC-20 recipients appear in /transactions/trc20 (NOT /transactions, which is owner-
+-- indexed and returns hex addresses). That endpoint has no memo, so fetch each tx's
+-- raw_data.data (the memo) via /wallet/gettransactionbyid and attribute by it.
 create or replace function poll_tron_token_memo(chain_param text) returns int
   language plpgsql security definer set search_path = public, extensions, pg_temp as $$
-declare cfg chain%rowtype; shared text; shared_hex20 text; resp jsonb; t jsonb; c jsonb; cval jsonb;
-        contract text; cur text; dec int; d record; memo text; n int := 0;
+declare cfg chain%rowtype; shared text; resp jsonb; d jsonb; cur text; dec int; tx jsonb; memo text; n int := 0;
 begin
   select * into cfg from chain where name = chain_param and enabled and kind = 'tron' and rpc_url is not null;
   if not found then return 0; end if;
   shared := public.treasury_address(chain_param);
-  shared_hex20 := lower(encode(substr(public.base58_decode(shared), 2, 20), 'hex'));
-  resp := (extensions.http_get(cfg.rpc_url || '/v1/accounts/' || shared || '/transactions?limit=50&only_confirmed=true')).content::jsonb;
-  for t in select * from jsonb_array_elements(coalesce(resp->'data', '[]'::jsonb)) loop
-    c := t->'raw_data'->'contract'->0;
-    if c->>'type' <> 'TriggerSmartContract' then continue; end if;
-    if (t->'raw_data'->>'data') is null then continue; end if;
-    cval := c->'parameter'->'value';
-    contract := cval->>'contract_address';
-    select currency, decimals into cur, dec from chain_asset where chain = chain_param and token = contract;
+  resp := (extensions.http_get(cfg.rpc_url || '/v1/accounts/' || shared
+            || '/transactions/trc20?only_to=true&only_confirmed=true&limit=50')).content::jsonb;
+  for d in select * from jsonb_array_elements(coalesce(resp->'data', '[]'::jsonb)) loop
+    if d->>'type' <> 'Transfer' or d->>'to' <> shared then continue; end if;
+    select currency, decimals into cur, dec from chain_asset
+      where chain = chain_param and token = (d->'token_info'->>'address');
     if cur is null then continue; end if;
-    for d in select * from decode_tron_trigger_transfer(cval->>'data') loop
-      if d.to_hex <> shared_hex20 then continue; end if;
-      memo := convert_from(decode(t->'raw_data'->>'data', 'hex'), 'UTF8');
-      if credit_memo_deposit(chain_param, t->>'txID', 0, memo, cur, d.amount_raw / power(10, dec), 1) = 'credited'
-        then n := n + 1; end if;
-    end loop;
+    tx := (extensions.http_post(cfg.rpc_url || '/wallet/gettransactionbyid',
+            jsonb_build_object('value', d->>'transaction_id')::text, 'application/json')).content::jsonb;
+    if (tx->'raw_data'->>'data') is null then continue; end if;        -- no memo → can't attribute
+    memo := convert_from(decode(tx->'raw_data'->>'data', 'hex'), 'UTF8');
+    if credit_memo_deposit(chain_param, d->>'transaction_id', 0, memo, cur, (d->>'value')::numeric / power(10::numeric, dec), 1) = 'credited'
+      then n := n + 1; end if;
   end loop;
   return n;
 end $$;
@@ -314,7 +327,7 @@ begin
         if ix->>'program' = 'spl-memo' then memo := ix->>'parsed'; exit; end if;
       end loop;
       if memo is null then continue; end if;
-      if credit_memo_deposit(chain_param, s->>'signature', 0, memo, a.currency, amt / power(10, a.decimals), 1) = 'credited'
+      if credit_memo_deposit(chain_param, s->>'signature', 0, memo, a.currency, amt / power(10::numeric, a.decimals), 1) = 'credited'
         then n := n + 1; end if;
     end loop;
   end loop;
