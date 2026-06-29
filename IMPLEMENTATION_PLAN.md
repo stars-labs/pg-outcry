@@ -71,9 +71,15 @@ PL/pgSQL RLP + EIP-155 builder (`evm_build_signed_tx`) validated byte-identical 
 with 9970 secp256k1, broadcasts via eth_sendRawTransaction; `process_evm_withdrawals` +
 `process_evm_confirmations` cron drive the 9925 queue. `treasury_address(chain)` = HD
 index 0. LIVE-PROVEN on Sepolia: the node accepted the in-DB-signed tx, recovered the
-sender, rejected only for balance-0 (fund the treasury in Stage 6). **Remaining: Solana
-(ed25519 via pgsodium + tx serialize) + Tron (sign txID from TronGrid createtransaction)
-signers** — follow-up.
+sender, rejected only for balance-0 (fund the treasury in Stage 6).
+Solana + Tron: ✅ `supabase/migrations/9996_solana_tron_withdrawal.sql`. base58_decode;
+sol_build_signed_tx (ed25519 via pgsodium, serialized transfer — validated byte-identical
+to @solana/web3.js 30/30); tron_sign (secp over TronGrid createtransaction's txID —
+validated vs TronWeb 60/60, v=recid+27). sign_and_broadcast_{solana,tron}_withdrawal +
+process_{solana,tron}_withdrawals cron, routed by destination address. LIVE-PROVEN:
+Solana node accepted the in-DB-signed tx (rejected only "no prior credit" = unfunded);
+Tron create+sign+broadcast path reached on-chain validation (needs treasury activated).
+**Status: all 3 chains signing in-DB.** Remaining = Stage 5 (frontend) + Stage 6 (fund).
 
 ## Stage 5: Frontend — wallet connect + UX
 **Goal**: Deposits tab shows the assigned per-chain address (QR/copy) + injected-wallet
