@@ -65,7 +65,15 @@ testnet broadcast confirms (user-provided treasury funds).
 - Solana: build transfer + recent blockhash → ed25519 sign (pgsodium) → sendTransaction.
 - Wire into existing `next_withdrawal_to_sign`/`mark_withdrawal_broadcast` (9925), driven
   by pg_cron instead of the external signer.
-**Status**: Not Started.
+**Status**: 🟡 EVM Complete — `supabase/migrations/9995_evm_withdrawal_signer.sql`. Pure
+PL/pgSQL RLP + EIP-155 builder (`evm_build_signed_tx`) validated byte-identical to ethers
+(120/120); `sign_and_broadcast_evm_withdrawal` fetches nonce/gasPrice over http, signs
+with 9970 secp256k1, broadcasts via eth_sendRawTransaction; `process_evm_withdrawals` +
+`process_evm_confirmations` cron drive the 9925 queue. `treasury_address(chain)` = HD
+index 0. LIVE-PROVEN on Sepolia: the node accepted the in-DB-signed tx, recovered the
+sender, rejected only for balance-0 (fund the treasury in Stage 6). **Remaining: Solana
+(ed25519 via pgsodium + tx serialize) + Tron (sign txID from TronGrid createtransaction)
+signers** — follow-up.
 
 ## Stage 5: Frontend — wallet connect + UX
 **Goal**: Deposits tab shows the assigned per-chain address (QR/copy) + injected-wallet
