@@ -83,6 +83,11 @@ body::after {
 .stat-chip b { display: block; font-size: 18px; color: var(--phos); font-variant-numeric: tabular-nums; }
 .stat-chip span { font-size: 10px; color: var(--ink-dim); text-transform: uppercase; letter-spacing: .1em; }
 .acct .empty { color: var(--ink-faint); font-size: 12px; padding: 6px 0; }
+.pick { display: flex; flex-wrap: wrap; gap: 6px; }
+.pick-b { background: var(--bg-raised); border: 1px solid var(--line); color: var(--ink-dim);
+  padding: 7px 16px; cursor: pointer; font-family: var(--mono); font-size: 13px; letter-spacing: .04em; }
+.pick-b:hover { border-color: var(--phos-dim); color: var(--ink); }
+.pick-b.on { border-color: var(--phos); color: var(--phos); background: rgba(78,247,168,.08); }
 .x-btn { color: var(--coral); border: 1px solid rgba(255,93,108,.4); background: transparent;
   padding: 3px 8px; font-size: 11px; cursor: pointer; font-family: var(--mono); }
 .x-btn:hover { background: rgba(255,93,108,.12); }
