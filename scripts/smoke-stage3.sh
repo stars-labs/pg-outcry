@@ -8,7 +8,7 @@ SERVICE="${SERVICE:?set SERVICE to the service_role key}"
 PGURL="${PGURL:-postgresql://postgres:postgres@127.0.0.1:54322/postgres}"
 
 . "$(dirname "$0")/_lib.sh"
-if [ "${RESET:-1}" = "1" ]; then echo "(resetting db)"; supabase db reset >/dev/null 2>&1; fi
+if [ "${RESET:-1}" = "1" ]; then echo "(resetting db)"; bash "$(dirname "$0")/reset-db.sh"; fi
 wait_ready
 
 signup() { signup_jwt "$1"; }   # -> "access_token uid", with retries

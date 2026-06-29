@@ -58,7 +58,7 @@ jobs:
         run: supabase start
 
       - name: Apply migrations
-        run: supabase db reset
+        run: bash scripts/reset-db.sh
 
       - name: Export keys
         run: |
@@ -83,7 +83,7 @@ jobs:
       - name: Smoke — stop orders (stage9)
         run: RESET=1 bash scripts/smoke-stage9.sh
       - name: Smoke — API keys + referral + withdrawal whitelist + chain + send-queue
-        run: supabase db reset && node scripts/smoke-features.mjs
+        run: bash scripts/reset-db.sh && node scripts/smoke-features.mjs
       - name: Smoke — chain poller decoders (EVM/Tron/Solana fixtures)
         run: bash scripts/test-pollers-decode.sh
 

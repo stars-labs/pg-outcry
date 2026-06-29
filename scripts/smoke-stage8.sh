@@ -5,7 +5,7 @@ set -euo pipefail
 API="${API:-http://127.0.0.1:54321}"
 SERVICE="${SERVICE:?set SERVICE}"
 PGURL="${PGURL:-postgresql://postgres:postgres@127.0.0.1:54322/postgres}"
-if [ "${RESET:-1}" = "1" ]; then echo "(resetting db)"; supabase db reset >/dev/null 2>&1; fi
+if [ "${RESET:-1}" = "1" ]; then echo "(resetting db)"; bash "$(dirname "$0")/reset-db.sh"; fi
 
 arpc(){ curl -s -X POST "$API/rest/v1/rpc/$1" -H "apikey: $SERVICE" -H "Authorization: Bearer $SERVICE" -H "Content-Type: application/json" -d "$2"; }
 status(){ psql "$PGURL" -tAc "select status from trade_order where pub_id='$1'"; }

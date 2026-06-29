@@ -10,7 +10,7 @@ rpc(){ curl "${H[@]}" -X POST "$API/rest/v1/rpc/$1" -d "$2"; }
 get(){ curl "${H[@]}" "$API/rest/v1/$1"; }
 
 # deterministic assertions need an empty book
-if [ "${RESET:-1}" = "1" ]; then echo "(resetting db for clean state)"; supabase db reset >/dev/null 2>&1; fi
+if [ "${RESET:-1}" = "1" ]; then echo "(resetting db for clean state)"; bash "$(dirname "$0")/reset-db.sh"; fi
 
 S=$(date +%s)
 A=$(rpc create_client "{\"external_id_param\":\"a_$S\"}"|tr -d '"')

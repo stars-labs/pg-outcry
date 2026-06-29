@@ -748,16 +748,17 @@ async function sendEvmDeposit(toAddr, amount) {
   const txh = await window.ethereum.request({ method: "eth_sendTransaction", params: [{ from, to: toAddr, value: valueWei }] });
   toast(`Sent ${amount} ETH · tx ${txh.slice(0, 12)}…`);
 }
-async function sendTronDeposit(toAddr, amount) {
+async function sendTronDeposit(toAddr, amount, memo) {
   if (!window.tronLink) return toast("No TronLink detected", "err");
   await window.tronLink.request({ method: "tron_requestAccounts" });
   const tw = window.tronWeb;
   if (!tw?.defaultAddress?.base58) return toast("Unlock TronLink first", "err");
-  const tx = await tw.transactionBuilder.sendTrx(toAddr, Math.round(amount * 1e6), tw.defaultAddress.base58);
+  let tx = await tw.transactionBuilder.sendTrx(toAddr, Math.round(amount * 1e6), tw.defaultAddress.base58);
+  if (memo) tx = await tw.transactionBuilder.addUpdateData(tx, memo, "utf8");  // the per-user deposit tag
   const res = await tw.trx.sendRawTransaction(await tw.trx.sign(tx));
-  toast(`Sent ${amount} TRX · ${(res.txid || "").slice(0, 12)}…`);
+  toast(`Sent ${amount} TRX${memo ? " (memo " + memo + ")" : ""} · ${(res.txid || "").slice(0, 12)}…`);
 }
-async function sendSolDeposit(toAddr, amount) {
+async function sendSolDeposit(toAddr, amount, memo) {
   const p = window.solana;
   if (!p?.isPhantom) return toast("No Phantom wallet detected", "err");
   await p.connect();
@@ -766,31 +767,36 @@ async function sendSolDeposit(toAddr, amount) {
   const tx = new web3.Transaction().add(web3.SystemProgram.transfer({
     fromPubkey: p.publicKey, toPubkey: new web3.PublicKey(toAddr), lamports: Math.round(amount * 1e9),
   }));
+  if (memo) tx.add(new web3.TransactionInstruction({   // Memo program — the per-user deposit tag
+    keys: [], programId: new web3.PublicKey("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"),
+    data: new TextEncoder().encode(memo),
+  }));
   tx.feePayer = p.publicKey;
   tx.recentBlockhash = (await conn.getLatestBlockhash()).blockhash;
   const { signature } = await p.signAndSendTransaction(tx);
-  toast(`Sent ${amount} SOL · ${signature.slice(0, 12)}…`);
+  toast(`Sent ${amount} SOL${memo ? " (memo " + memo + ")" : ""} · ${signature.slice(0, 12)}…`);
 }
 
 async function renderDeposits(body) {
-  body.innerHTML = `<div class="acct"><div class="empty">Deriving your deposit addresses…</div></div>`;
-  // each user gets a unique in-DB-derived address per chain (keys never leave the DB)
-  const addrs = {};
+  body.innerHTML = `<div class="acct"><div class="empty">Resolving your deposit endpoints…</div></div>`;
+  // hybrid: EVM = unique derived address; Tron/Solana = one shared address + per-user memo
+  const info = {};
   await Promise.all(DEP_CHAINS.map(async (c) => {
     const { data, error } = await sb.rpc("my_deposit_address", { chain_param: c.chain });
-    addrs[c.chain] = error ? null : data?.address;
+    info[c.chain] = error ? null : data;
   }));
   const { data: deps } = await sb.from("my_chain_deposits")
     .select("chain,txid,currency,amount,confirmations,credited_at,created_at").order("created_at", { ascending: false }).limit(40);
 
   body.innerHTML = `<div class="acct">
-    <div class="empty">Each address below is derived for you <b>inside Postgres</b> (keys never leave the DB). Send testnet ${""}coins to it from any wallet — a pure-SQL watcher (pg_cron + http) credits it to your balance. Testnet only.</div>
-    ${DEP_CHAINS.map((c) => `<div class="acct-sec"><h4>${c.label} · deposit ${c.coin}</h4>
-      ${addrs[c.chain] ? `<div class="acct-row"><input class="grow mono-num" readonly value="${escH(addrs[c.chain])}"/>
-        <button class="btn" data-copy="${escH(addrs[c.chain])}">Copy</button></div>
+    <div class="empty">Addresses &amp; keys are managed <b>inside Postgres</b> (keys never leave the DB). EVM uses a unique address per user; Tron/Solana use one shared address + your <b>memo tag</b> — the send button attaches it automatically. A pure-SQL watcher credits deposits to your balance. Testnet only.</div>
+    ${DEP_CHAINS.map((c) => { const d = info[c.chain]; if (!d) return `<div class="acct-sec"><h4>${c.label}</h4><div class="empty">unavailable</div></div>`;
+      return `<div class="acct-sec"><h4>${c.label} · deposit ${c.coin} ${d.mode === "memo" ? '<span class="amber">(shared + memo)</span>' : ""}</h4>
+      <div class="acct-row"><input class="grow mono-num" readonly value="${escH(d.address)}"/><button class="btn" data-copy="${escH(d.address)}">Copy</button></div>
+      ${d.memo ? `<div class="acct-row"><span class="label">MEMO / TAG</span><input class="grow mono-num" readonly value="${escH(d.memo)}"/><button class="btn" data-copy="${escH(d.memo)}">Copy</button></div>
+        <div class="empty">⚠ External wallets must include this memo or the deposit can't be credited. The button below adds it for you.</div>` : ""}
       <div class="acct-row"><input id="amt-${c.chain}" type="number" step="0.0001" placeholder="amount ${c.coin}" style="max-width:140px"/>
-        <button class="btn" data-send="${c.chain}">Connect wallet &amp; send</button></div>`
-        : `<div class="empty">Could not derive address.</div>`}</div>`).join("")}
+        <button class="btn" data-send="${c.chain}">Connect wallet &amp; send</button></div></div>`; }).join("")}
     <div class="acct-sec"><h4>Detected deposits</h4>
       ${(deps && deps.length) ? `<table><thead><tr><th>Chain</th><th>Tx</th><th>Cur</th><th>Amount</th><th>Status</th></tr></thead><tbody>${
         deps.map((d) => `<tr><td>${escH(d.chain)}</td><td class="mono-num" title="${escH(d.txid)}">${escH((d.txid || "").slice(0, 12))}…</td>
@@ -799,13 +805,13 @@ async function renderDeposits(body) {
         : `<div class="empty">No deposits detected yet — send testnet funds above, then wait for the watcher.</div>`}</div>
   </div>`;
 
-  body.querySelectorAll("[data-copy]").forEach((b) => b.onclick = () => { navigator.clipboard?.writeText(b.dataset.copy); toast("Address copied"); });
+  body.querySelectorAll("[data-copy]").forEach((b) => b.onclick = () => { navigator.clipboard?.writeText(b.dataset.copy); toast("Copied"); });
   body.querySelectorAll("[data-send]").forEach((b) => b.onclick = async () => {
     const c = DEP_CHAINS.find((x) => x.chain === b.dataset.send);
     const amt = +el(`amt-${c.chain}`).value;
     if (!amt || amt <= 0) return toast("enter an amount", "err");
     b.disabled = true;
-    try { await c.send(addrs[c.chain], amt); } catch (e) { toast(e?.message?.slice(0, 80) || "wallet error", "err"); }
+    try { await c.send(info[c.chain].address, amt, info[c.chain].memo); } catch (e) { toast(e?.message?.slice(0, 80) || "wallet error", "err"); }
     b.disabled = false;
   });
 }
