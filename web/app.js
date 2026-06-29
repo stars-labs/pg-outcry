@@ -732,33 +732,82 @@ async function renderWithdraw(body) {
   };
 }
 
-// ---- Deposits (on-chain, in-DB watcher) ----
-const CHAINS = ["ethereum-sepolia", "tron-nile", "solana-testnet"];
+// ---- Deposits: in-DB HD addresses + injected-wallet send (testnet) ----
+const SOLANA_RPC = "https://api.devnet.solana.com";
+const DEP_CHAINS = [
+  { chain: "ethereum-sepolia", label: "Ethereum Sepolia", coin: "ETH",  send: sendEvmDeposit },
+  { chain: "tron-nile",        label: "Tron Nile",        coin: "TRX",  send: sendTronDeposit },
+  { chain: "solana-testnet",   label: "Solana devnet",    coin: "SOL",  send: sendSolDeposit },
+];
+
+async function sendEvmDeposit(toAddr, amount) {
+  if (!window.ethereum) return toast("No EVM wallet (MetaMask) detected", "err");
+  const [from] = await window.ethereum.request({ method: "eth_requestAccounts" });
+  try { await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0xaa36a7" }] }); } catch {} // Sepolia
+  const valueWei = "0x" + BigInt(Math.round(amount * 1e18)).toString(16);
+  const txh = await window.ethereum.request({ method: "eth_sendTransaction", params: [{ from, to: toAddr, value: valueWei }] });
+  toast(`Sent ${amount} ETH · tx ${txh.slice(0, 12)}…`);
+}
+async function sendTronDeposit(toAddr, amount) {
+  if (!window.tronLink) return toast("No TronLink detected", "err");
+  await window.tronLink.request({ method: "tron_requestAccounts" });
+  const tw = window.tronWeb;
+  if (!tw?.defaultAddress?.base58) return toast("Unlock TronLink first", "err");
+  const tx = await tw.transactionBuilder.sendTrx(toAddr, Math.round(amount * 1e6), tw.defaultAddress.base58);
+  const res = await tw.trx.sendRawTransaction(await tw.trx.sign(tx));
+  toast(`Sent ${amount} TRX · ${(res.txid || "").slice(0, 12)}…`);
+}
+async function sendSolDeposit(toAddr, amount) {
+  const p = window.solana;
+  if (!p?.isPhantom) return toast("No Phantom wallet detected", "err");
+  await p.connect();
+  const web3 = await import("https://esm.sh/@solana/web3.js@1");
+  const conn = new web3.Connection(SOLANA_RPC, "confirmed");
+  const tx = new web3.Transaction().add(web3.SystemProgram.transfer({
+    fromPubkey: p.publicKey, toPubkey: new web3.PublicKey(toAddr), lamports: Math.round(amount * 1e9),
+  }));
+  tx.feePayer = p.publicKey;
+  tx.recentBlockhash = (await conn.getLatestBlockhash()).blockhash;
+  const { signature } = await p.signAndSendTransaction(tx);
+  toast(`Sent ${amount} SOL · ${signature.slice(0, 12)}…`);
+}
+
 async function renderDeposits(body) {
-  const [{ data: addrs }, { data: deps }] = await Promise.all([
-    sb.from("my_deposit_addresses").select("chain,address,created_at").order("created_at", { ascending: false }),
-    sb.from("my_chain_deposits").select("chain,txid,currency,amount,confirmations,credited_at,created_at").order("created_at", { ascending: false }).limit(40),
-  ]);
+  body.innerHTML = `<div class="acct"><div class="empty">Deriving your deposit addresses…</div></div>`;
+  // each user gets a unique in-DB-derived address per chain (keys never leave the DB)
+  const addrs = {};
+  await Promise.all(DEP_CHAINS.map(async (c) => {
+    const { data, error } = await sb.rpc("my_deposit_address", { chain_param: c.chain });
+    addrs[c.chain] = error ? null : data?.address;
+  }));
+  const { data: deps } = await sb.from("my_chain_deposits")
+    .select("chain,txid,currency,amount,confirmations,credited_at,created_at").order("created_at", { ascending: false }).limit(40);
+
   body.innerHTML = `<div class="acct">
-    <div class="acct-sec"><h4>Register a deposit address</h4>
-      <div class="acct-row"><select id="depChain">${CHAINS.map((c) => `<option>${escH(c)}</option>`).join("")}</select>
-        <input id="depAddr" class="grow" placeholder="your address on this chain"/><button class="btn" id="depAdd">Watch</button></div>
-      <div class="empty">A pure-SQL watcher (pg_cron + pg_net) credits inbound transfers to this address after N confirmations — no app server in the path.</div></div>
-    <div class="acct-sec"><h4>Watched addresses</h4>
-      ${(addrs && addrs.length) ? `<table><thead><tr><th>Chain</th><th>Address</th><th>Since</th></tr></thead><tbody>${
-        addrs.map((a) => `<tr><td>${escH(a.chain)}</td><td class="mono-num">${escH(a.address)}</td><td>${new Date(a.created_at).toLocaleDateString()}</td></tr>`).join("")}</tbody></table>`
-        : `<div class="empty">No watched addresses yet.</div>`}</div>
+    <div class="empty">Each address below is derived for you <b>inside Postgres</b> (keys never leave the DB). Send testnet ${""}coins to it from any wallet — a pure-SQL watcher (pg_cron + http) credits it to your balance. Testnet only.</div>
+    ${DEP_CHAINS.map((c) => `<div class="acct-sec"><h4>${c.label} · deposit ${c.coin}</h4>
+      ${addrs[c.chain] ? `<div class="acct-row"><input class="grow mono-num" readonly value="${escH(addrs[c.chain])}"/>
+        <button class="btn" data-copy="${escH(addrs[c.chain])}">Copy</button></div>
+      <div class="acct-row"><input id="amt-${c.chain}" type="number" step="0.0001" placeholder="amount ${c.coin}" style="max-width:140px"/>
+        <button class="btn" data-send="${c.chain}">Connect wallet &amp; send</button></div>`
+        : `<div class="empty">Could not derive address.</div>`}</div>`).join("")}
     <div class="acct-sec"><h4>Detected deposits</h4>
-      ${(deps && deps.length) ? `<table><thead><tr><th>Chain</th><th>Tx</th><th>Cur</th><th>Amount</th><th>Conf</th><th>Status</th></tr></thead><tbody>${
+      ${(deps && deps.length) ? `<table><thead><tr><th>Chain</th><th>Tx</th><th>Cur</th><th>Amount</th><th>Status</th></tr></thead><tbody>${
         deps.map((d) => `<tr><td>${escH(d.chain)}</td><td class="mono-num" title="${escH(d.txid)}">${escH((d.txid || "").slice(0, 12))}…</td>
-          <td>${escH(d.currency)}</td><td class="mono-num">${fmt(d.amount, 6)}</td><td class="mono-num">${d.confirmations}</td>
+          <td>${escH(d.currency)}</td><td class="mono-num">${fmt(d.amount, 6)}</td>
           <td>${d.credited_at ? '<span class="up">credited</span>' : '<span class="amber">pending…</span>'}</td></tr>`).join("")}</tbody></table>`
-        : `<div class="empty">No deposits detected yet.</div>`}</div>
+        : `<div class="empty">No deposits detected yet — send testnet funds above, then wait for the watcher.</div>`}</div>
   </div>`;
-  el("depAdd").onclick = async () => {
-    const { error } = await sb.rpc("register_deposit_address", { chain_param: el("depChain").value, address_param: el("depAddr").value.trim() });
-    if (error) toast(error.message.replace(/_/g, " "), "err"); else { toast("Address registered — watcher is live"); renderAcct(); }
-  };
+
+  body.querySelectorAll("[data-copy]").forEach((b) => b.onclick = () => { navigator.clipboard?.writeText(b.dataset.copy); toast("Address copied"); });
+  body.querySelectorAll("[data-send]").forEach((b) => b.onclick = async () => {
+    const c = DEP_CHAINS.find((x) => x.chain === b.dataset.send);
+    const amt = +el(`amt-${c.chain}`).value;
+    if (!amt || amt <= 0) return toast("enter an amount", "err");
+    b.disabled = true;
+    try { await c.send(addrs[c.chain], amt); } catch (e) { toast(e?.message?.slice(0, 80) || "wallet error", "err"); }
+    b.disabled = false;
+  });
 }
 
 // ---- Staking (reward-per-token, pgmq unbonding) ----
