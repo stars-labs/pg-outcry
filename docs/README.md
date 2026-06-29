@@ -16,6 +16,7 @@ Every doc is bilingual: an English file and a `*.zh-CN.md` mirror with a languag
 | **Deploy** — hosted-Supabase demo & self-host high-performance / 托管演示与自建高性能 | [DEPLOY.md](./DEPLOY.md) | [DEPLOY.zh-CN.md](./DEPLOY.zh-CN.md) |
 | **Performance & scaling** — sharding, partitioning, async market data, WAL / 分片、分区、异步行情、WAL | [PERFORMANCE.md](./PERFORMANCE.md) | [PERFORMANCE.zh-CN.md](./PERFORMANCE.zh-CN.md) |
 | **Development** — repo map, smoke tests, dev workflow / 仓库结构、冒烟测试、开发流程 | [DEVELOPMENT.md](./DEVELOPMENT.md) | [DEVELOPMENT.zh-CN.md](./DEVELOPMENT.zh-CN.md) |
+| **Row-Level Security** — table policy model, the auto-RLS footgun, CI guard / RLS 策略模型、自动 RLS 坑、CI 守卫 | [RLS.md](./RLS.md) | [RLS.zh-CN.md](./RLS.zh-CN.md) |
 
 At the repo root: [README](../README.md) · [SECURITY](../SECURITY.md) · [CONTRIBUTING](../CONTRIBUTING.md) · [LICENSE](../LICENSE) · [NOTICE](../NOTICE).
 仓库根目录：[README](../README.zh-CN.md) · [安全](../SECURITY.zh-CN.md) · [贡献](../CONTRIBUTING.zh-CN.md) · [许可证](../LICENSE) · [NOTICE](../NOTICE)。
