@@ -691,42 +691,66 @@ async function renderReferral(body) {
   };
 }
 
+// Withdraw: coin → network → destination + amount. Coin maps to the debited currency
+// (native ETH/TRX/SOL pay out of the EUR balance; USDT/USDC are their own currency).
+const WITHDRAW_ASSETS = [
+  { coin: "USDT", currency: "USDT", chains: [{ chain: "tron-nile", net: "TRC-20 · Nile" }] },
+  { coin: "USDC", currency: "USDC", chains: [{ chain: "solana-testnet", net: "SPL · devnet" }, { chain: "ethereum-sepolia", net: "ERC-20 · Sepolia" }] },
+  { coin: "ETH",  currency: "EUR",  chains: [{ chain: "ethereum-sepolia", net: "Sepolia" }] },
+  { coin: "TRX",  currency: "EUR",  chains: [{ chain: "tron-nile", net: "Nile" }] },
+  { coin: "SOL",  currency: "EUR",  chains: [{ chain: "solana-testnet", net: "devnet" }] },
+];
+let wdCoin = null, wdNet = null;
+
 async function renderWithdraw(body) {
+  const asset = WITHDRAW_ASSETS.find((a) => a.coin === wdCoin);
+  const opt = asset?.chains.find((c) => c.chain === wdNet) || (asset && asset.chains.length === 1 ? asset.chains[0] : null);
+  if (asset && opt) wdNet = opt.chain;
   const [{ data: addrs }, { data: cash }] = await Promise.all([
     sb.from("withdrawal_addresses").select("id,currency,address,label,usable").order("currency"),
-    sb.from("cash_balances").select("currency,available").order("currency"),
+    sb.from("cash_balances").select("currency,available"),
   ]);
-  const usable = (addrs || []).filter((a) => a.usable);
-  body.innerHTML = `<div class="acct">
-    <div class="acct-sec"><h4>Whitelisted addresses</h4>
-      ${(addrs && addrs.length) ? `<table><thead><tr><th>Cur</th><th>Address</th><th>Label</th><th>Status</th><th></th></tr></thead><tbody>${
-        addrs.map((a) => `<tr><td>${escH(a.currency)}</td><td class="mono-num">${escH(a.address)}</td><td>${escH(a.label || "—")}</td>
-          <td>${a.usable ? '<span class="up">usable</span>' : '<span class="amber">cooling…</span>'}</td>
-          <td><button class="x-btn" data-rmaddr="${a.id}">remove</button></td></tr>`).join("")}</tbody></table>`
-        : `<div class="empty">No whitelisted addresses.</div>`}
-      <div class="acct-row"><select id="waCur">${(cash || []).map((c) => `<option>${escH(c.currency)}</option>`).join("") || "<option>EUR</option>"}</select>
-        <input id="waAddr" class="grow" placeholder="destination address"/><input id="waLabel" placeholder="label"/><button class="btn" id="waAdd">Add</button></div>
-      <div class="empty">New addresses have a 24h cooling period before they can be used.</div></div>
-    <div class="acct-sec"><h4>Request withdrawal</h4>
+  const cur = asset?.currency;
+  const bal = cur ? Number((cash || []).find((c) => c.currency === cur)?.available || 0) : 0;
+  const mine = cur ? (addrs || []).filter((a) => a.currency === cur) : [];
+  const usable = mine.filter((a) => a.usable);
+
+  const detail = (asset && opt) ? `<div class="acct-sec"><h4>3 · Withdraw ${wdCoin} · ${opt.net}</h4>
+      <div class="empty">Debits your <b>${cur}</b> balance · available <b>${fmt(bal, 6)}</b></div>
       <div class="acct-row">
-        <select id="wdCur">${(cash || []).map((c) => `<option value="${escH(c.currency)}">${escH(c.currency)} · avail ${fmt(c.available, 2)}</option>`).join("")}</select>
-        <input id="wdAmt" type="number" step="0.0001" placeholder="amount"/>
-        <select id="wdAddr">${usable.map((a) => `<option value="${escH(a.address)}">${escH(a.currency)} · ${escH(a.address)}</option>`).join("") || '<option value="">— add & cool an address first —</option>'}</select>
+        <select id="wdAddr" class="grow">${usable.map((a) => `<option value="${escH(a.address)}">${escH(a.address)}${a.label ? " · " + escH(a.label) : ""}</option>`).join("") || '<option value="">— whitelist & cool an address below —</option>'}</select>
+        <input id="wdAmt" type="number" step="0.0001" placeholder="amount" style="max-width:130px"/>
         <button class="btn" id="wdGo">Withdraw</button></div>
-      <div class="empty">Goes to a cooled whitelisted address; subject to rolling limits + admin approval.</div></div>
+      <div class="empty">Sends ${wdCoin} on ${opt.net} from the in-DB signer (testnet). Subject to rolling limits + admin approval.</div>
+      <div class="acct-row" style="margin-top:10px"><input id="waAddr" class="grow mono-num" placeholder="destination ${wdCoin} address"/><input id="waLabel" placeholder="label"/><button class="btn" id="waAdd">Whitelist</button></div>
+      ${mine.length ? `<table><thead><tr><th>Address</th><th>Status</th><th></th></tr></thead><tbody>${
+        mine.map((a) => `<tr><td class="mono-num">${escH(a.address)}</td><td>${a.usable ? '<span class="up">usable</span>' : '<span class="amber">cooling 24h…</span>'}</td><td><button class="x-btn" data-rmaddr="${a.id}">remove</button></td></tr>`).join("")}</tbody></table>`
+        : `<div class="empty">No whitelisted ${cur} addresses yet — add one (24h cooling).</div>`}</div>` : "";
+
+  body.innerHTML = `<div class="acct">
+    <div class="acct-sec"><h4>1 · Select coin</h4>
+      <div class="pick">${WITHDRAW_ASSETS.map((a) => `<button class="pick-b ${a.coin === wdCoin ? "on" : ""}" data-wcoin="${a.coin}">${a.coin}</button>`).join("")}</div></div>
+    ${asset ? `<div class="acct-sec"><h4>2 · Select network</h4>
+      <div class="pick">${asset.chains.map((c) => `<button class="pick-b ${c.chain === wdNet ? "on" : ""}" data-wnet="${c.chain}">${c.net}</button>`).join("")}</div></div>` : `<div class="empty">Pick a coin to begin.</div>`}
+    ${detail}
   </div>`;
+
+  body.querySelectorAll("[data-wcoin]").forEach((b) => b.onclick = () => { wdCoin = b.dataset.wcoin; wdNet = null; renderWithdraw(body); });
+  body.querySelectorAll("[data-wnet]").forEach((b) => b.onclick = () => { wdNet = b.dataset.wnet; renderWithdraw(body); });
   body.querySelectorAll("[data-rmaddr]").forEach((b) => b.onclick = async () => {
     const { error } = await sb.rpc("remove_withdrawal_address", { address_id_param: +b.dataset.rmaddr });
-    if (error) toast(error.message, "err"); else { toast("Address removed"); renderAcct(); }
+    if (error) toast(error.message, "err"); else { toast("Address removed"); renderWithdraw(body); }
   });
-  el("waAdd").onclick = async () => {
-    const { error } = await sb.rpc("add_withdrawal_address", { currency_param: el("waCur").value, address_param: el("waAddr").value.trim(), label_param: el("waLabel").value || null });
-    if (error) toast(error.message, "err"); else { toast("Address added — usable after 24h cooling", "warn"); renderAcct(); }
+  const wa = el("waAdd");
+  if (wa) wa.onclick = async () => {
+    const { error } = await sb.rpc("add_withdrawal_address", { currency_param: cur, address_param: el("waAddr").value.trim(), label_param: el("waLabel").value || null });
+    if (error) toast(error.message, "err"); else { toast("Address whitelisted — usable after 24h cooling", "warn"); renderWithdraw(body); }
   };
-  el("wdGo").onclick = async () => {
+  const wg = el("wdGo");
+  if (wg) wg.onclick = async () => {
     const addr = el("wdAddr").value;
-    if (!addr) return toast("add & cool a whitelisted address first", "err");
-    const { error } = await sb.rpc("request_withdrawal_to", { currency_param: el("wdCur").value, amount_param: +el("wdAmt").value, to_address_param: addr });
+    if (!addr) return toast("whitelist & cool an address first", "err");
+    const { error } = await sb.rpc("request_withdrawal_to", { currency_param: cur, amount_param: +el("wdAmt").value, to_address_param: addr });
     if (error) toast(error.message.replace(/_/g, " "), "err");
     else { toast("Withdrawal requested (pending approval)", "warn"); refreshBlotter(); }
   };
