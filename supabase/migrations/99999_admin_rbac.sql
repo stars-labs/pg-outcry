@@ -179,7 +179,7 @@ as $$
   select case
     when auth.role() = 'service_role' then array['service_role']::text[]
     when auth.uid() is null then '{}'::text[]
-    else coalesce((select roles from explicit), array['default_super_admin']::text[])
+    else coalesce((select roles from explicit), array['super_admin']::text[])
   end
 $$;
 
