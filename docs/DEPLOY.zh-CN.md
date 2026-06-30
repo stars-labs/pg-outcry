@@ -30,6 +30,32 @@ supabase link --project-ref <your-project-ref>
 supabase db push                 # applies every migration; privileged ops self-skip
 ```
 
+如果浏览器登录或 `supabase login --token ...` 流程卡住，可以绕过交互式登录，
+直接通过环境变量传入 Supabase Dashboard access token：
+
+```bash
+read -rs SUPABASE_ACCESS_TOKEN   # 粘贴 Supabase Dashboard access token
+export SUPABASE_ACCESS_TOKEN
+
+supabase link --project-ref <your-project-ref>
+supabase db push --yes
+```
+
+不要提交、粘贴或把 access token 留在 shell history 中。如果 token 在部署过程中暴露过，
+请立即 revoke 并重新生成。
+
+当前公开演示项目为：
+
+```bash
+PROJECT_REF=axtziasfallmdgssbgsl
+API=https://axtziasfallmdgssbgsl.supabase.co
+```
+
+托管演示已经应用到 `99999_admin_rbac.sql`。管理后台当前故意采用**测试开放模式**：
+每个已登录的 Supabase Auth 用户都会获得完整管理员权限，方便评审人员试用后台。
+上线生产前，应将 `admin_has_permission()` / `current_admin_permissions()` 收紧回
+基于 `admin_operator_role` 的 RBAC，并在需要预审批运营账号时关闭开放注册。
+
 然后在 Supabase 控制台中：
 1. **Database → Extensions**：启用 `pg_cron`（用于分区滚动 + 可选的 1 秒
    行情数据兜底）。可选启用 `pg_stat_statements`、`hypopg` 以便性能分析。

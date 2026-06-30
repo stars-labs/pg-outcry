@@ -22,6 +22,8 @@ pg-outcry 是**开源参考软件**。其核心流程（撮合、复式记账结
 如果你要部署本项目，请至少做到：
 - 上生产前关闭测试开放后台模式。当前托管测试版会给每个已登录的 Supabase Auth 用户完整后台权限，
   方便评审人员试用管理台。
+- 将 Supabase Dashboard access token 视为部署密钥。优先通过 `SUPABASE_ACCESS_TOKEN`
+  环境变量传入；如果 token 出现在聊天、日志、shell history 或进程列表中，请立即 revoke 并轮换。
 - 将 `service_role` 密钥仅保留在服务端；切勿将其下发到浏览器。后台管理控制台使用 Supabase Auth
   加数据库 RBAC（`admin_operator_role` / `admin_role_permission`）；`service_role` 只用于可信服务端、CI、
   脚本或首次授权流程。

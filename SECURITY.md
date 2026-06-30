@@ -24,6 +24,9 @@ We aim to acknowledge within a few days. Please include reproduction steps and i
 If you deploy this, at minimum:
 - Disable the test-open admin mode before production. The hosted test build grants every
   signed-in Supabase Auth user full back-office permissions so reviewers can try the console.
+- Treat Supabase dashboard access tokens as deploy secrets. Prefer `SUPABASE_ACCESS_TOKEN`
+  over pasting tokens into commands, and revoke/rotate any token that appears in chat,
+  logs, shell history, or process lists.
 - Keep the `service_role` key server-side only; never ship it to browsers. The back-office
   console uses Supabase Auth plus database RBAC (`admin_operator_role` / `admin_role_permission`);
   use `service_role` only from trusted servers, CI, scripts, or bootstrap flows.

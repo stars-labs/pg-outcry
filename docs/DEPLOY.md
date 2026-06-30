@@ -31,6 +31,35 @@ supabase link --project-ref <your-project-ref>
 supabase db push                 # applies every migration; privileged ops self-skip
 ```
 
+If the browser login or `supabase login --token ...` flow hangs, avoid the
+interactive login path and pass a dashboard access token through the environment
+instead:
+
+```bash
+read -rs SUPABASE_ACCESS_TOKEN   # paste a Supabase dashboard access token
+export SUPABASE_ACCESS_TOKEN
+
+supabase link --project-ref <your-project-ref>
+supabase db push --yes
+```
+
+Do not commit, paste, or leave access tokens in shell history. Revoke and rotate
+any token that was exposed during deployment.
+
+The public demo currently points at:
+
+```bash
+PROJECT_REF=axtziasfallmdgssbgsl
+API=https://axtziasfallmdgssbgsl.supabase.co
+```
+
+The hosted demo has the latest migrations applied through
+`99999_admin_rbac.sql`. The back-office is intentionally **test-open**: every
+signed-in Supabase Auth user receives full admin permissions so reviewers can try
+the console. Before production, tighten `admin_has_permission()` /
+`current_admin_permissions()` back to `admin_operator_role`-based RBAC and disable
+open signup if operator accounts must be pre-approved.
+
 Then in the Supabase dashboard:
 1. **Database → Extensions**: enable `pg_cron` (partition rolling + optional 1s
    market-data fallback). Optionally `pg_stat_statements`, `hypopg` for profiling.
