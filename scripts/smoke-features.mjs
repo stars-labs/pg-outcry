@@ -58,6 +58,13 @@ const sum = (await get(A.token, "referral_summary?select=referred_count,total_ea
 ok(sum && Number(sum.total_earned) > 0, `referrer earned commission (${JSON.stringify(sum)})`);
 ok(Number((await svc("pay_referral_earnings", { entity_pub: A.pub, currency_param: "EUR" })).body) > 0, "admin pays referral earnings");
 
+// --- server-side OHLCV (9965) — the BUY taker above produced a BTC_EUR trade @100 x3 ---
+const candles = (await rpc(ANON, "ohlcv", { p_instrument: "BTC_EUR", p_resolution: 60 })).body;
+const lastBar = Array.isArray(candles) ? candles.at(-1) : null;
+ok(lastBar && Number(lastBar.o) === 100 && Number(lastBar.h) === 100 && Number(lastBar.l) === 100 &&
+   Number(lastBar.c) === 100 && Number(lastBar.v) >= 3,
+   `ohlcv returns server-side candles (${JSON.stringify(lastBar)})`);
+
 console.log("── Withdrawal whitelist + limits ──");
 const W = await signup("W"); await fund(W.pub, "EUR", 100000);
 await rpc(W.token, "add_withdrawal_address", { currency_param: "EUR", address_param: "IBAN-OK", label_param: "bank" });
