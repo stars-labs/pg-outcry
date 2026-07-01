@@ -162,11 +162,15 @@ async function pollTape() {
 // of aggregating the last N raw trades client-side. Each server candle is rebuilt
 // exactly by replaying 4 synthetic trades into the same WASM bucket — open (carrying
 // the full volume), then high, low, close — so every WASM indicator keeps working.
+const MAX_BARS = 500;   // cap history so 1m over 7 days doesn't draw 10k candles
 async function loadCandles() {
   if (!W) return;
-  const { data, error } = await sb.rpc("ohlcv", { p_instrument: SYM, p_resolution: tf });
+  const to = new Date(), from = new Date(to.getTime() - tf * MAX_BARS * 1000);
+  const { data, error } = await sb.rpc("ohlcv",
+    { p_instrument: SYM, p_resolution: tf, p_from: from.toISOString(), p_to: to.toISOString() });
   W.candleReset(); W.candleSetInterval(tf);
-  if (!error && Array.isArray(data)) {
+  if (error) { console.warn("ohlcv load failed:", error.message); }
+  else if (Array.isArray(data)) {
     for (const k of data) {
       const t = +k.t, v = +k.v;
       W.addTrade(t, +k.o, v); W.addTrade(t, +k.h, 0);
@@ -175,11 +179,19 @@ async function loadCandles() {
   }
   renderChart();
 }
+// Coalesce chart repaints to one per animation frame: a burst of live trades
+// updates the WASM candle each time but only repaints the SVG once per frame.
+let chartDirty = false;
+function scheduleChartRender() {
+  if (chartDirty) return;
+  chartDirty = true;
+  requestAnimationFrame(() => { chartDirty = false; renderChart(); });
+}
 function onLiveTrade(px, am, tsIso) {
   const ts = new Date(tsIso || Date.now()).getTime() / 1000;
   rawTrades.push({ ts, price: px, amount: am });
   if (rawTrades.length > 8000) rawTrades = rawTrades.slice(-6000);
-  if (W) { W.addTrade(ts, px, am); renderChart(); }
+  if (W) { W.addTrade(ts, px, am); scheduleChartRender(); }
 }
 function renderChart() {
   if (!W) return;
@@ -457,9 +469,9 @@ function drawDepth() {
     return pts + `${150 + dir * 150},${H}`;
   };
   svg.innerHTML =
-    `<polygon points="${stepPts(nb, (i) => W.cumBid(i), -1)}" fill="rgba(78,247,168,.12)" stroke="#4ef7a8" stroke-width="1"/>` +
-    `<polygon points="${stepPts(na, (i) => W.cumAsk(i), 1)}" fill="rgba(255,93,108,.10)" stroke="#ff5d6c" stroke-width="1"/>` +
-    `<line x1="150" y1="0" x2="150" y2="${H}" stroke="rgba(120,150,138,.2)" stroke-dasharray="2 3"/>`;
+    `<polygon points="${stepPts(nb, (i) => W.cumBid(i), -1)}" fill="var(--up)" fill-opacity=".12" stroke="var(--up)" stroke-width="1"/>` +
+    `<polygon points="${stepPts(na, (i) => W.cumAsk(i), 1)}" fill="var(--down)" fill-opacity=".12" stroke="var(--down)" stroke-width="1"/>` +
+    `<line x1="150" y1="0" x2="150" y2="${H}" stroke="var(--ink)" stroke-opacity=".4" stroke-dasharray="2 3"/>`;
 }
 
 // ---------- tape ----------
@@ -750,6 +762,10 @@ async function renderReferral(body) {
 
 // Withdraw: coin → network → destination + amount. Coin maps to the debited currency
 // (native ETH/TRX/SOL pay out of the EUR balance; USDT/USDC are their own currency).
+const COIN_NAMES = { USDT: "Tether", USDC: "USD Coin", ETH: "Ethereum", TRX: "TRON", SOL: "Solana" };
+const coinLabel = (sym) =>
+  `<b>${sym}</b>${COIN_NAMES[sym] ? `<span class="coin-nm">${COIN_NAMES[sym]}</span>` : ""}`;
+
 const WITHDRAW_ASSETS = [
   { coin: "USDT", currency: "USDT", chains: [{ chain: "tron-nile", net: "TRC-20 · Nile" }] },
   { coin: "USDC", currency: "USDC", chains: [{ chain: "solana-testnet", net: "SPL · devnet" }, { chain: "ethereum-sepolia", net: "ERC-20 · Sepolia" }] },
@@ -786,7 +802,7 @@ async function renderWithdraw(body) {
 
   body.innerHTML = `<div class="acct">
     <div class="acct-sec"><h4>1 · Select coin</h4>
-      <div class="pick">${WITHDRAW_ASSETS.map((a) => `<button class="pick-b ${a.coin === wdCoin ? "on" : ""}" data-wcoin="${a.coin}">${a.coin}</button>`).join("")}</div></div>
+      <div class="pick">${WITHDRAW_ASSETS.map((a) => `<button class="pick-b ${a.coin === wdCoin ? "on" : ""}" data-wcoin="${a.coin}">${coinLabel(a.coin)}</button>`).join("")}</div></div>
     ${asset ? `<div class="acct-sec"><h4>2 · Select network</h4>
       <div class="pick">${asset.chains.map((c) => `<button class="pick-b ${c.chain === wdNet ? "on" : ""}" data-wnet="${c.chain}">${c.net}</button>`).join("")}</div></div>` : `<div class="empty">Pick a coin to begin.</div>`}
     ${detail}
@@ -839,7 +855,7 @@ async function renderDeposits(body) {
 
   body.innerHTML = `<div class="acct">
     <div class="acct-sec"><h4>1 · Select coin</h4>
-      <div class="pick">${DEPOSIT_ASSETS.map((a) => `<button class="pick-b ${a.coin === depCoin ? "on" : ""}" data-coin="${a.coin}">${a.coin}</button>`).join("")}</div></div>
+      <div class="pick">${DEPOSIT_ASSETS.map((a) => `<button class="pick-b ${a.coin === depCoin ? "on" : ""}" data-coin="${a.coin}">${coinLabel(a.coin)}</button>`).join("")}</div></div>
     ${asset ? `<div class="acct-sec"><h4>2 · Select network</h4>
       <div class="pick">${asset.chains.map((c) => `<button class="pick-b ${c.chain === depNet ? "on" : ""}" data-net="${c.chain}">${c.net}</button>`).join("")}</div></div>` : `<div class="empty">Pick a coin to begin.</div>`}
     ${detail}
