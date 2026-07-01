@@ -440,15 +440,25 @@ function renderBook() {
   updatePreview();
 }
 function drawDepth() {
-  const svg = el("depth"); const Wd = 300, H = 120;
+  const svg = el("depth"); const H = 120;
   const maxc = W.maxCum() || 1;
   const nb = Math.min(W.bidCount(), 30), na = Math.min(W.askCount(), 30);
-  let bid = "", ask = "";
-  for (let i = 0; i < nb; i++) { const x = 150 - (i + 1) / nb * 150; const y = H - (W.cumBid(i) / maxc) * H; bid += `${x},${y} `; }
-  for (let i = 0; i < na; i++) { const x = 150 + (i + 1) / na * 150; const y = H - (W.cumAsk(i) / maxc) * H; ask += `${x},${y} `; }
+  // Step-area polygon: each level fills its own x-slice at the cumulative height,
+  // so a shallow book renders as clean steps (a single level = a rectangle) rather
+  // than an ugly diagonal triangle. An empty side draws nothing.
+  const stepPts = (n, cum, dir) => {          // dir: -1 bids (left), +1 asks (right)
+    if (!n) return "";
+    let pts = `150,${H} `;
+    for (let i = 0; i < n; i++) {
+      const x0 = 150 + dir * (i / n) * 150, x1 = 150 + dir * ((i + 1) / n) * 150;
+      const y = H - (cum(i) / maxc) * H;
+      pts += `${x0},${y} ${x1},${y} `;
+    }
+    return pts + `${150 + dir * 150},${H}`;
+  };
   svg.innerHTML =
-    `<polygon points="150,${H} ${bid} ${nb? (150-150)+','+H : ''}" fill="rgba(78,247,168,.12)" stroke="#4ef7a8" stroke-width="1"/>` +
-    `<polygon points="150,${H} ${ask} ${na? '300,'+H : ''}" fill="rgba(255,93,108,.10)" stroke="#ff5d6c" stroke-width="1"/>` +
+    `<polygon points="${stepPts(nb, (i) => W.cumBid(i), -1)}" fill="rgba(78,247,168,.12)" stroke="#4ef7a8" stroke-width="1"/>` +
+    `<polygon points="${stepPts(na, (i) => W.cumAsk(i), 1)}" fill="rgba(255,93,108,.10)" stroke="#ff5d6c" stroke-width="1"/>` +
     `<line x1="150" y1="0" x2="150" y2="${H}" stroke="rgba(120,150,138,.2)" stroke-dasharray="2 3"/>`;
 }
 

@@ -28,7 +28,7 @@ and (B) things we can add **in pure SQL** while keeping the "whole exchange in P
 | Notifications (email/SMS) | ✅ | ✅ | ✅ | ◐ via Supabase triggers |
 | Liquidity / market-making | via vendors | ◐ | — | ❌ demo seeder only |
 | Public REST/WS market-data API | ✅ v2 + WS + AMQP | ◐ | ✅ | ◐ PostgREST + Realtime (no FIX) |
-| Server-side OHLCV/candles | ✅ | ✅ | ✅ | ◐ computed client-side in WASM |
+| Server-side OHLCV/candles | ✅ | ✅ | ✅ | ✅ **pure-SQL `ohlcv()` RPC** (`date_bin` buckets) |
 | Admin / back-office | ✅ | ✅ | ✅ | ✅ approvals/suspend/fees/risk/recon/audit |
 | Fee tiers (volume-based) | ✅ | ◐ | ◐ | ◐ flat maker/taker |
 | Staking / margin / futures | commercial (OpenDAX) | — | — | ◐ **staking ✅ · margin ✅ · perps ✅ pure SQL** ([DERIVATIVES.md](./DERIVATIVES.md)) |
@@ -74,8 +74,9 @@ Ordered by leverage. The first three are **shipped (pure SQL)** — see [DEVELOP
    limits enforced in `request_withdrawal`. Today it's manual-approval only.
 4. **2FA/MFA** ✅ — delegated to the OAuth2 provider (GitHub/Google enforce their own 2FA); mandate it by restricting login to OAuth (disable email/password signup). No separate TOTP to build.
 5. **Notifications** — DB triggers → `pg_net`/Edge Function on fills, deposits, withdrawal status.
-6. **Server-side OHLCV** — a continuous aggregate / view + RPC so non-WASM clients (mobile,
-   TradingView) get candles. Today candles exist only in the WASM client.
+6. **Server-side OHLCV** ✅ — `ohlcv(instrument, resolution_s, from, to)` buckets `trade_history`
+   with `date_bin` into O/H/L/C/V (epoch-aligned), anon-callable, so non-WASM clients (mobile,
+   TradingView) get server-computed candles. The terminal chart now loads history from it.
 7. **Volume-based fee tiers & maker rebates** — extend the flat fee model.
 8. **Documented public API** — publish an OpenAPI for the PostgREST surface + the Realtime channel
    spec, so it's a *real* API, not just "views". (FIX stays out of scope.)

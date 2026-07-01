@@ -27,7 +27,7 @@
 | 通知（邮件/短信） | ✅ | ✅ | ✅ | ◐ 经 Supabase 触发器 |
 | 流动性 / 做市 | 经供应商 | ◐ | — | ❌ 仅演示灌单 |
 | 公共 REST/WS 行情 API | ✅ v2 + WS + AMQP | ◐ | ✅ | ◐ PostgREST + Realtime（无 FIX） |
-| 服务端 OHLCV/K线 | ✅ | ✅ | ✅ | ◐ 在 WASM 客户端计算 |
+| 服务端 OHLCV/K线 | ✅ | ✅ | ✅ | ✅ **纯 SQL `ohlcv()` RPC**（`date_bin` 分桶）|
 | 管理 / 后台 | ✅ | ✅ | ✅ | ✅ 审批/冻结/费率/风控/对账/审计 |
 | 阶梯费率（按量） | ✅ | ◐ | ◐ | ◐ 固定 maker/taker |
 | 质押 / 保证金 / 合约 | 商业版（OpenDAX） | — | — | ◐ **质押 ✅ · 保证金 ✅ · 永续 ✅ 纯 SQL**（[DERIVATIVES.zh-CN.md](./DERIVATIVES.zh-CN.md)） |
@@ -65,8 +65,9 @@ OpenCEX 接 Twilio/Sumsub/Scorechain 的 key。pg-outcry 的赌注是：**账本
 3. **提现白名单 + 限额** ✅ —— 地址白名单（带冷却期）+ 在 `request_withdrawal` 里按时间窗限额。目前只有人工审批。
 4. **2FA/MFA** ✅ —— 委托给 OAuth2 提供方（GitHub/Google 强制自家 2FA）；如需强制，把登录限制为仅 OAuth（禁用邮箱/密码注册）即可，无需自建 TOTP。
 5. **通知** —— 库内触发器 → `pg_net`/Edge Function，在成交、入金、提现状态变更时推送。
-6. **服务端 OHLCV** —— 一个连续聚合 / 视图 + RPC，让非 WASM 客户端（移动端、TradingView）也能拿到 K 线。
-   目前 K 线只存在于 WASM 客户端。
+6. **服务端 OHLCV** ✅ —— `ohlcv(instrument, resolution_s, from, to)` 用 `date_bin` 把 `trade_history`
+   分桶成 O/H/L/C/V（对齐 epoch）、anon 可调，让非 WASM 客户端（移动端、TradingView）也能拿到服务端
+   算好的 K 线。终端图表现已从它加载历史。
 7. **按量阶梯费率与 maker 返佣** —— 扩展固定费率模型。
 8. **文档化的公共 API** —— 为 PostgREST 接口出一份 OpenAPI + Realtime 频道规范，使其成为*真正的* API，而不只是「视图」。
    （FIX 仍不在范围。）
