@@ -135,7 +135,7 @@ async function selectSymbol(s) {
   rawTrades = []; loadDrawings(); if (W) { W.candleReset(); renderChart(); }
   if (mdChan) { sb.removeChannel(mdChan); mdChan = null; }
   if (pollTimer) clearInterval(pollTimer);
-  await pollBook(); await pollTape();
+  await pollBook(); await pollTape(); await loadCandles();
   subscribeMarketData();
   pollTimer = setInterval(() => { pollBook(); }, 1500); // fallback if no ticker running
 }
@@ -155,14 +155,24 @@ async function pollTape() {
   data.slice(0, 40).forEach((t) => addTape(+t.price, +t.amount, t.created_at, false));
   // chronological feed for the wasm candle engine
   rawTrades = data.map((t) => ({ ts: new Date(t.created_at).getTime() / 1000, price: +t.price, amount: +t.amount })).reverse();
-  aggregateCandles();
 }
 
-// ---------- candles (WASM) ----------
-function aggregateCandles() {
+// ---------- candles (server-side OHLCV → WASM candle engine) ----------
+// History comes from the pure-SQL `ohlcv` RPC (complete, multi-resolution) instead
+// of aggregating the last N raw trades client-side. Each server candle is rebuilt
+// exactly by replaying 4 synthetic trades into the same WASM bucket — open (carrying
+// the full volume), then high, low, close — so every WASM indicator keeps working.
+async function loadCandles() {
   if (!W) return;
+  const { data, error } = await sb.rpc("ohlcv", { p_instrument: SYM, p_resolution: tf });
   W.candleReset(); W.candleSetInterval(tf);
-  for (const t of rawTrades) W.addTrade(t.ts, t.price, t.amount);
+  if (!error && Array.isArray(data)) {
+    for (const k of data) {
+      const t = +k.t, v = +k.v;
+      W.addTrade(t, +k.o, v); W.addTrade(t, +k.h, 0);
+      W.addTrade(t, +k.l, 0); W.addTrade(t, +k.c, 0);
+    }
+  }
   renderChart();
 }
 function onLiveTrade(px, am, tsIso) {
@@ -455,11 +465,11 @@ function addTape(px, am, ts, flash) {
 function setLast(px) { lastTradePx = px; el("lastPx").textContent = fmt(px); el("lastPx").className = "px mono-num glow"; }
 function setConn(ok) { el("connDot").classList.toggle("off", !ok); el("connTxt").textContent = ok ? "live · realtime" : "polling"; }
 
-// timeframe picker -> re-aggregate in wasm
+// timeframe picker -> reload candles from server-side OHLCV at the new resolution
 document.querySelectorAll("#tf button[data-sec]").forEach((b) => b.onclick = () => {
   tf = +b.dataset.sec;
   document.querySelectorAll("#tf button[data-sec]").forEach((x) => x.classList.toggle("on", x === b));
-  aggregateCandles();
+  loadCandles();
 });
 // MA overlay toggles (wasm SMA/EMA/BOLL/VMA)
 document.querySelectorAll(".ma-t").forEach((b) => b.onclick = () => {
