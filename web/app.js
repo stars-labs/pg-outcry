@@ -17,6 +17,16 @@ const sb = createClient(CONFIG.API, CONFIG.ANON, { auth: { persistSession: true,
 const $ = (s) => document.querySelector(s);
 const el = (s) => document.getElementById(s);
 
+// theme (day / night) — persisted on <html data-theme>; night is the default.
+function applyTheme(t) {
+  document.documentElement.setAttribute("data-theme", t);
+  try { localStorage.setItem("oc_theme", t); } catch {}
+  const b = el("themeBtn"); if (b) b.textContent = t === "light" ? "🌙" : "☀";
+}
+applyTheme(localStorage.getItem("oc_theme") || "dark");
+{ const b = el("themeBtn"); if (b) b.onclick = () =>
+    applyTheme(document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light"); }
+
 // ---------- WASM order-book engine ----------
 let W = null;
 async function loadWasm() {
@@ -469,8 +479,8 @@ function drawDepth() {
     return pts + `${150 + dir * 150},${H}`;
   };
   svg.innerHTML =
-    `<polygon points="${stepPts(nb, (i) => W.cumBid(i), -1)}" fill="var(--up)" fill-opacity=".12" stroke="var(--up)" stroke-width="1"/>` +
-    `<polygon points="${stepPts(na, (i) => W.cumAsk(i), 1)}" fill="var(--down)" fill-opacity=".12" stroke="var(--down)" stroke-width="1"/>` +
+    `<polygon points="${stepPts(nb, (i) => W.cumBid(i), -1)}" fill="var(--phos)" fill-opacity=".12" stroke="var(--phos)" stroke-width="1"/>` +
+    `<polygon points="${stepPts(na, (i) => W.cumAsk(i), 1)}" fill="var(--coral)" fill-opacity=".12" stroke="var(--coral)" stroke-width="1"/>` +
     `<line x1="150" y1="0" x2="150" y2="${H}" stroke="var(--ink)" stroke-opacity=".4" stroke-dasharray="2 3"/>`;
 }
 

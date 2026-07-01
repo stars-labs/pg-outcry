@@ -87,6 +87,7 @@ body::after {
   padding: 7px 16px; cursor: pointer; font-family: var(--mono); font-size: 13px; letter-spacing: .04em; }
 .pick-b:hover { border-color: var(--phos-dim); color: var(--ink); }
 .pick-b.on { border-color: var(--phos); color: var(--phos); background: rgba(78,247,168,.08); }
+  .pick-b .coin-nm { margin-left: 6px; font-weight: 400; font-size: 11px; opacity: .55; }
 .x-btn { color: var(--coral); border: 1px solid rgba(255,93,108,.4); background: transparent;
   padding: 3px 8px; font-size: 11px; cursor: pointer; font-family: var(--mono); }
 .x-btn:hover { background: rgba(255,93,108,.12); }
@@ -398,3 +399,13 @@ tr:hover td { background: rgba(255,255,255,.02); }
   .chart-wrap { height: 40vh; min-height: 240px; }
   .preview { font-size: 10px; }
 }
+
+/* Daytime (light) theme — override real tokens; night is default. */
+:root[data-theme="light"] {
+  --bg: #f5f7fa; --bg-panel: #ffffff; --bg-raised: #eef2f6;
+  --grid: rgba(20,60,40,0.06); --line: rgba(30,50,40,0.16);
+  --phos: #0e9f6e; --phos-dim: #0b7a55; --amber: #b45309; --coral: #dc2626;
+  --ink: #14201a; --ink-dim: #55665e; --ink-faint: #93a29a;
+  --glow: none; --glow-amber: none;
+}
+:root[data-theme="light"] .scan { display: none; }
