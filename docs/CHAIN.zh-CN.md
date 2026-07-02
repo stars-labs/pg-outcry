@@ -18,8 +18,8 @@ flowchart LR
 
 - **核心（迁移 `9920`，完全测试、进 CI）：** `chain`、`chain_asset`、`watched_address`、`chain_cursor`、
   `chain_deposit` 表；`register_deposit_address()`（用户）；以及 `credit_chain_deposit()` ——
-  **按 `(chain, txid, log_index)` 幂等**，仅在达到 **N 个确认**后入账，并以从 MASTER 的 `DEPOSIT` 转账记账
-  （与人工审批同一路径，因此对账不变量成立）。RLS 限定的 `my_deposit_addresses` / `my_chain_deposits` 视图。
+  **按 `(chain, txid, log_index)` 幂等**，仅在达到 **N 个确认**后入账，并以从 MASTER 的 `DEPOSIT` 转账记账且保留链上证据。
+  钱包充值申请不能再直接铸造余额；custody 对账会报告任何缺少 `chain_deposit` 或 watcher 证明的用户资金。RLS 限定的 `my_deposit_addresses` / `my_chain_deposits` 视图。
 - **轮询器（可选 `supabase/chain/pollers.sql`，需要真实 RPC + 网络 —— 不进 CI/托管）：**
   `poll_evm`（Sepolia，ERC-20 `eth_getLogs`）、`poll_tron`（Nile，TronGrid TRC-20 REST）、
   `poll_solana`（testnet，`getSignaturesForAddress` + `getTransaction`）、调度函数 `poll_all_chains()`，

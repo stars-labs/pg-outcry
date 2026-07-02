@@ -110,7 +110,7 @@ flowchart LR
 
 - **引擎：** 限价/市价/止损/止损限价单；GTC/IOC/FOK；自成交防护；maker/taker 费率；价格-时间优先。
 - **结算：** 双边记账账本、资金冻结、多币种 + FX 品种、银行家舍入。
-- **钱包：** 充提申请 + 管理员审批、幂等键、提现即冻结。
+- **钱包：** 测试网链上充值、提现申请 + 管理员审批、幂等键、提现即冻结。
 - **风控：** 按品种的单笔/名义/价带（防胖手指）校验。
 - **实时：** 公共 L2 + 成交广播；私有 RLS 限定的订单/成交/钱包流。
 - **鉴权与安全：** OAuth2（GitHub/Google）+ 邮箱；**2FA 委托给 OAuth2 提供方**（无需自建 TOTP）；全表 RLS；函数面默认拒绝。
@@ -121,7 +121,7 @@ flowchart LR
 
 ## 已验证
 
-仓库自带覆盖 **11 条端到端流程**的冒烟测试 —— 撮合、结算与冻结、实时成交带 + L2 广播、Auth+RLS 隔离、钱包（幂等 + 对账）、订单类型、止损触发、私有流 —— 在干净的 `supabase db reset` 后全部通过。见 [`scripts/`](./scripts) 与 [`DEVELOPMENT.md`](./docs/DEVELOPMENT.zh-CN.md)。
+仓库自带覆盖 **11 条端到端流程**的冒烟测试 —— 撮合、结算与冻结、实时成交带 + L2 广播、Auth+RLS 隔离、链上充值、钱包（幂等 + 对账）、订单类型、止损触发、私有流 —— 在干净的 `supabase db reset` 后全部通过。见 [`scripts/`](./scripts) 与 [`DEVELOPMENT.md`](./docs/DEVELOPMENT.zh-CN.md)。
 
 ## 基准测试
 
@@ -194,7 +194,7 @@ cd web && npm install && npm run build:wasm && python3 -m http.server 4173
 ## 角色与安全模型
 
 - **anon** —— 仅公共行情（盘口、成交带、品种列表），无 RPC。
-- **authenticated**（用户 JWT）—— 自限定 API：`place_order`、`cancel_order`、`request_deposit`、`request_withdrawal`。RLS 把所有读取限定在调用者自己的实体上。
+- **authenticated**（用户 JWT）—— 自限定 API：`place_order`、`cancel_order`、`my_deposit_address`、`request_withdrawal`。RLS 把所有读取限定在调用者自己的实体上。
 - **authenticated operator**（用户 JWT）—— 当前测试版默认给每个已登录用户完整后台权限。`admin_operator_role` / `admin_role_permission` 仍保留在 schema 中，后续收紧时可继续用；`treasury`、`risk`、`support`、`finance`、`security`、`auditor`、`super_admin` 等角色映射到细粒度权限（如 `wallet.approve`、`market.write`、`audit.read`）。
 - **service_role**（仅服务端 root）—— 用于 CI、可信后端任务、首次授权以及批量路径 `submit_orders(account, instrument, jsonb[])`。不要下发到浏览器。
 - `9900_lockdown.sql` 撤销 public/anon/authenticated 对每个引擎函数的 EXECUTE，只重新放行白名单，因此内部辅助函数（`create_trade`、`update_price_level` 等）客户端无法调用。

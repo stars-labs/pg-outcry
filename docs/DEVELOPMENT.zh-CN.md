@@ -52,12 +52,12 @@
 | `scripts/smoke-stage2.sh` | 咨询锁下单 + 读 API（部分成交、结算、冻结）；需要 `SERVICE` |
 | `scripts/smoke-marketdata.mjs` | 断言 L2 `price_level` 更新通过 realtime 推送 |
 | `scripts/smoke-stage3.sh` | GoTrue 注册 → 自动建账户、JWT 交易、RLS 隔离、API 白名单强制 |
-| `scripts/smoke-stage4.sh` | 钱包充值/提现/拒绝账本 + 资金冻结 + 测试开放后台权限 |
+| `scripts/smoke-stage4.sh` | 链上充值入账 + 钱包提现/拒绝账本 + 资金冻结 + 测试开放后台权限 |
 | `scripts/smoke-stage5.sh` | 风控（价格带/限额）+ 后台（停用/费率/风控/审计） |
 | `scripts/smoke-stage6.mjs` | 认证后的私有实时推送流（自己的订单/成交/钱包，无泄漏） |
 | `examples/private-feed.mjs` | 可直接复制粘贴的私有推送流前端客户端 |
 | `examples/md-ticker.mjs` | 100ms 行情打点器（刷新合并后的 L2 广播） |
-| `scripts/smoke-stage7.sh` | 钱包幂等 + 对账报告 + 仅追加账本 |
+| `scripts/smoke-stage7.sh` | 链上充值幂等 + 钱包幂等 + 核心/custody 对账报告 + 仅追加账本 |
 | `scripts/smoke-stage8.sh` | 订单类型：MARKET / IOC / FOK 执行 + 终态 |
 | `scripts/smoke-stage9.sh` | 止损单：STOPLOSS→MARKET / STOPLIMIT→LIMIT 触发激活 |
 
@@ -94,7 +94,7 @@ node scripts/smoke-marketdata.mjs
 ## 角色与安全模型
 
 - **anon** —— 仅公开行情（通过表 SELECT 访问 `price_level`、`trade`、`instrument`、`currency`）。无 RPC。
-- **authenticated**（用户 JWT）—— 自作用域 API：`place_order`、`cancel_order`、`request_deposit`、`request_withdrawal`、`current_app_entity_*`。RLS 将所有读取限制在调用者自身实体范围内。
+- **authenticated**（用户 JWT）—— 自作用域 API：`place_order`、`cancel_order`、`my_deposit_address`、`request_withdrawal`、`current_app_entity_*`。RLS 将所有读取限制在调用者自身实体范围内。
 - **authenticated operator**（用户 JWT）—— 当前托管测试版默认给每个已登录用户完整后台权限。`admin_operator_role` / `admin_role_permission` 保留用于后续收紧审批、账户、市场/风控、衍生品、安全与审计权限。
 - **service_role** —— 仅服务端 root，用于 CI、可信任务、首次授权和原始引擎操作；浏览器后台不再需要它。
 - `9900_lockdown.sql` 从 public/anon/authenticated 收回每个引擎函数的 EXECUTE 权限，并仅重新授予白名单，因此内部辅助函数（`create_trade`、`update_price_level`……）对客户端不可达。后续迁移会对自己新增的 RPC 显式 revoke/grant。
@@ -111,7 +111,8 @@ node scripts/smoke-marketdata.mjs
   拥有字面量 pub_id（`'MASTER'`）的实体。
 - `create_client` 只会开一个 **EUR** 货币账户；其他货币用
   `create_currency_account(pub_id, currency)` 开通。
-- 通过 `process_transfer('DEPOSIT','MASTER', amount, currency, to_pub_id, ref, details, fee_type)` 入金。
+- 用户资金通过链上充值路径入账（`my_deposit_address` + watcher；确定性测试可用 service-role `credit_chain_deposit`）。
+- service-role 仍可为本地 seed/benchmark 直接调用 `process_transfer('DEPOSIT','MASTER', ...)`，但除内部产品结算外，这类用户入金会被 custody 对账报告为未上链资金。
   传 `fee_type=null` 可跳过手续费（未预置任何手续费行）。
 - `process_trade_order`：`amount_param` 是**双边的基础（base）数量**；
   BUY 会在计价（quote）货币中冻结 `amount * price`。（Go 文档注释里说

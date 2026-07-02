@@ -110,7 +110,7 @@ Big exchanges can afford a bespoke C++ matching engine and a 50-person platform 
 
 - **Engine:** limit / market / stop-loss / stop-limit orders; GTC / IOC / FOK; self-trade prevention; maker/taker fees; price-time priority.
 - **Settlement:** double-entry ledger, fund reservation/freeze, multi-currency + FX instruments, banker's rounding.
-- **Wallet:** deposit/withdrawal requests with admin approval, idempotency keys, reservation on withdrawal.
+- **Wallet:** testnet on-chain deposits, withdrawal requests with admin approval, idempotency keys, reservation on withdrawal.
 - **Risk:** per-instrument max order amount / notional / price-band (fat-finger) checks.
 - **Realtime:** public L2 + trade broadcast; private RLS-scoped order/fill/wallet feed.
 - **Auth & security:** OAuth2 (GitHub/Google) + email; **2FA delegated to the OAuth2 provider** (no separate TOTP); full RLS; deny-by-default function surface.
@@ -196,7 +196,7 @@ Run the verification suite (from repo root, with `ANON`/`SERVICE` exported): the
 ## Roles & security model
 
 - **anon** — public market data only (order book, tape, instruments). No RPCs.
-- **authenticated** (user JWT) — self-scoped API: `place_order`, `cancel_order`, `request_deposit`, `request_withdrawal`. RLS limits all reads to the caller's own entity.
+- **authenticated** (user JWT) — self-scoped API: `place_order`, `cancel_order`, `my_deposit_address`, `request_withdrawal`. RLS limits all reads to the caller's own entity.
 - **authenticated operator** (user JWT) — current test build grants every signed-in user full back-office permissions by default. `admin_operator_role` / `admin_role_permission` remain in the schema for later tightening; roles such as `treasury`, `risk`, `support`, `finance`, `security`, `auditor`, and `super_admin` map to granular permissions (`wallet.approve`, `market.write`, `audit.read`, etc.).
 - **service_role** (server-side root only) — full engine/admin capability for CI, trusted backend jobs, bootstrap, and the **batch** path `submit_orders(account, instrument, jsonb[])`. Never ship it to browsers.
 - `9900_lockdown.sql` revokes EXECUTE on every engine function from public/anon/authenticated and re-grants only the whitelist, so internal helpers (`create_trade`, `update_price_level`, …) are unreachable by clients.

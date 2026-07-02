@@ -88,7 +88,7 @@ Changes 中移除，其成交带改用 Broadcast——见 #4。
 
 ## 5. 仅追加账本 —— ✅ 已完成
 
-`9630_reconciliation.sql`：`transfer_ledger_entry` 和 `instrument_account_ledger_entry` 上的 `BEFORE UPDATE OR DELETE` 触发器会抛出 `append_only_ledger`。引擎只会 INSERT 账目，因此这对正常运行不可见，并保证余额始终可重新派生。`reconcile()` 审计 5 项不变量（现金==账本、复式记账平衡、预留合理、已批准钱包有转账、发行量守恒）。已由 `scripts/smoke-stage7.sh` 验证。
+`9630_reconciliation.sql`：`transfer_ledger_entry` 和 `instrument_account_ledger_entry` 上的 `BEFORE UPDATE OR DELETE` 触发器会抛出 `append_only_ledger`。引擎只会 INSERT 账目，因此这对正常运行不可见，并保证余额始终可重新派生。`reconcile()` 审计 5 项核心账本不变量（现金==账本、复式记账平衡、预留合理、已批准钱包有转账、发行量守恒）。`custody_reconcile()` 额外检查用户资金是否有链上充值证据，以及钱包充值申请是否已禁用。已由 `scripts/smoke-stage7.sh` 验证。
 
 ## 6. 降低 WAL 压力 —— ✅（第一轮）
 

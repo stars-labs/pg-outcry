@@ -20,8 +20,9 @@ flowchart LR
 - **Core (migration `9920`, fully tested, in CI):** `chain`, `chain_asset`, `watched_address`,
   `chain_cursor`, `chain_deposit` tables; `register_deposit_address()` (user); and
   `credit_chain_deposit()` — **idempotent by `(chain, txid, log_index)`**, credits only past **N
-  confirmations**, and books the deposit as a `DEPOSIT` transfer from MASTER (same path as a manual
-  approval, so reconciliation invariants hold). RLS-scoped `my_deposit_addresses` /
+  confirmations**, and books the deposit as a `DEPOSIT` transfer from MASTER with chain evidence.
+  Wallet deposit requests cannot mint balances; custody reconciliation reports any customer funding
+  that lacks a credited `chain_deposit` or watcher proof. RLS-scoped `my_deposit_addresses` /
   `my_chain_deposits` views.
 - **Pollers (opt-in `supabase/chain/pollers.sql`, needs a live RPC + network — not in CI/hosted):**
   `poll_evm` (Sepolia, ERC-20 `eth_getLogs`), `poll_tron` (Nile, TronGrid TRC-20 REST), `poll_solana`

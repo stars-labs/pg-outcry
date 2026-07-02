@@ -90,7 +90,7 @@ market data — message rate is now bounded by the tick interval. Clients subscr
 
 ## 5. Append-only ledger — ✅ DONE
 
-`9630_reconciliation.sql`: `BEFORE UPDATE OR DELETE` triggers on `transfer_ledger_entry` and `instrument_account_ledger_entry` raise `append_only_ledger`. The engine only ever INSERTs entries, so this is invisible to normal operation and guarantees balances are always re-derivable. `reconcile()` audits 5 invariants (cash==ledger, double-entry balanced, reservations sane, approved-wallet-has-transfer, issuance conserved). Verified by `scripts/smoke-stage7.sh`.
+`9630_reconciliation.sql`: `BEFORE UPDATE OR DELETE` triggers on `transfer_ledger_entry` and `instrument_account_ledger_entry` raise `append_only_ledger`. The engine only ever INSERTs entries, so this is invisible to normal operation and guarantees balances are always re-derivable. `reconcile()` audits 5 core ledger invariants (cash==ledger, double-entry balanced, reservations sane, approved-wallet-has-transfer, issuance conserved). `custody_reconcile()` separately checks that customer funding is chain-backed and that wallet deposit requests are disabled. Verified by `scripts/smoke-stage7.sh`.
 
 ## 6. Reduce WAL pressure — ✅ (first pass)
 

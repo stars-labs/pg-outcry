@@ -336,6 +336,20 @@ body.admin #app.live { display: grid; }
 }
 .recon-row .v.PASS { color: var(--phos); }
 .recon-row .v.FAIL { color: var(--coral); }
+.recon-sub {
+  padding: 10px 14px 6px;
+  color: var(--ink-dim);
+  font-family: var(--cond);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  border-top: 1px solid rgba(120,150,138,.08);
+}
+.btn-sm.danger {
+  border-color: rgba(255,93,108,.5);
+  color: var(--coral);
+}
 
 body.admin table { font-size: 12px; }
 body.admin th {

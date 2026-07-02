@@ -17,7 +17,7 @@ const noPermCount = (id) => { const x = el(id); if (x) x.textContent = "restrict
 const disabledAttr = (permission) => can(permission) ? "" : ` disabled title="requires ${permission}"`;
 const ADMIN_SECTIONS = {
   overview: ["Operations overview", "Control room", "Live exchange health, treasury queues, account controls, product risk, security oversight, and audit evidence."],
-  treasury: ["Treasury operations", "Cash and custody", "Approve fiat-style wallet intents, run signer queues, configure chain assets, and inspect detected deposits."],
+  treasury: ["Treasury operations", "Cash and custody", "Run withdrawal signer queues, configure chain assets, inspect detected deposits, and clear unbacked funding exposure."],
   accounts: ["Client operations", "Accounts and payouts", "Review clients, suspend compromised accounts, restore cleared accounts, and settle referral liabilities."],
   markets: ["Market operations", "Products and risk", "Manage fee schedules, instrument risk limits, derivatives markets, margin terms, and staking pools."],
   security: ["Security operations", "Access oversight", "Review bot API access and revoke keys without entering the customer wallet surface."],
@@ -150,6 +150,7 @@ function loadStats() {
     ["suspended", S.suspended ?? "—", S.suspended ? "warn" : "ok"],
     ["pending wallet", S.pending ?? "—", S.pending ? "warn" : "ok"],
     ["recon fails", S.reconFails ?? "—", S.reconFails ? "bad" : "ok"],
+    ["funding exposure", S.fundingExposure ?? "—", S.fundingExposure ? "bad" : "ok"],
     ["ref. unpaid", S.refUnpaid ?? "—", S.refUnpaid ? "warn" : "ok"],
     ["audit (24h)", S.audit ?? "—", ""],
   ].map(([l, n, c]) => `<div class="stat"><div class="n ${c}">${n}</div><div class="l">${l}</div></div>`).join("");
@@ -164,14 +165,35 @@ async function loadRecon() {
     noPerm("recon", "recon.read");
     return;
   }
-  const { data } = await sb.from("reconciliation_report").select("check_name,failures,status");
-  const rows = data || [];
-  S.reconFails = rows.filter((r) => r.status !== "PASS").length;
+  const [coreRes, custodyRes, exposureRes] = await Promise.all([
+    sb.from("reconciliation_report").select("check_name,failures,status"),
+    sb.from("custody_reconciliation_report").select("check_name,failures,status"),
+    sb.from("custody_funding_exposure").select("entity_pub_id,external_id,currency,source_kinds,outstanding_amount,available_cash,blocked_amount").order("outstanding_amount", { ascending: false }).limit(20),
+  ]);
+  const rows = coreRes.data || [];
+  const custody = custodyRes.error ? [] : (custodyRes.data || []);
+  const exposure = exposureRes.error ? [] : (exposureRes.data || []);
+  const allRows = rows.concat(custody);
+  S.reconFails = allRows.filter((r) => r.status !== "PASS").length;
+  S.fundingExposure = exposure.length;
   el("reconBadge").textContent = S.reconFails ? `${S.reconFails} FAIL` : "ALL PASS";
   el("reconBadge").className = "" ; el("reconBadge").style.color = S.reconFails ? "var(--coral)" : "var(--phos)";
   el("reconWhen").textContent = new Date().toLocaleTimeString();
-  el("recon").innerHTML = rows.map((r) => `<div class="recon-row"><span class="nm">${r.check_name.replace(/_/g, " ")}</span><span class="v ${r.status}">${r.status}${r.failures ? " · " + r.failures : ""}</span></div>`).join("")
-    || `<div class="empty">no checks</div>`;
+  const renderChecks = (items) => items.map((r) => `<div class="recon-row"><span class="nm">${r.check_name.replace(/_/g, " ")}</span><span class="v ${r.status}">${r.status}${r.failures ? " · " + r.failures : ""}</span></div>`).join("");
+  const exposureHtml = exposure.length
+    ? `<div class="recon-sub">Unbacked funding exposure</div><table><thead><tr><th>Entity</th><th>Cur</th><th>Source</th><th>Open</th><th>Available</th><th>Blocked</th></tr></thead><tbody>${
+        exposure.map((r) => `<tr><td title="${escH(r.entity_pub_id)}">${escH((r.external_id || r.entity_pub_id || "—").slice(0, 18))}</td><td>${escH(r.currency)}</td><td>${escH(r.source_kinds)}</td><td class="mono-num down">${fmt(r.outstanding_amount, 6)}</td><td class="mono-num">${fmt(r.available_cash, 6)}</td><td class="mono-num ${Number(r.blocked_amount) ? "down" : "up"}">${fmt(r.blocked_amount, 6)}</td></tr>`).join("")}</tbody></table>${
+        can("wallet.approve") ? `<div class="adm-form"><button class="btn-sm danger" data-reverse-unbacked="1">Reverse available unbacked cash</button></div>` : ""}`
+    : `<div class="empty">No unbacked customer funding exposure.</div>`;
+  el("recon").innerHTML =
+    `<div class="recon-sub">Core ledger</div>${renderChecks(rows) || `<div class="empty">no core checks</div>`}` +
+    `<div class="recon-sub">Custody funding</div>${renderChecks(custody) || `<div class="empty">custody checks unavailable</div>`}` +
+    exposureHtml;
+  document.querySelectorAll("[data-reverse-unbacked]").forEach((b) => b.onclick = async () => {
+    const rows = await rpc("admin_reverse_unbacked_cash", { dry_run_param: false, entity_pub_param: null });
+    toast(rows?.length ? `Reversed ${rows.length} exposure rows` : "No reversible available cash", rows?.length ? "warn" : "");
+    refreshAll();
+  });
 }
 
 // ---- approvals ----
@@ -192,7 +214,9 @@ async function loadApprovals() {
   el("approvals").innerHTML = rows.length ? `<table><thead><tr><th>When</th><th>Entity</th><th>Dir</th><th>Cur</th><th>Amount</th><th>Action</th></tr></thead><tbody>${
     rows.map((r) => `<tr><td>${new Date(r.created_at).toLocaleTimeString()}</td><td>${(r.app_entity?.external_id || "—").slice(0, 14)}</td>
       <td class="${r.direction === "DEPOSIT" ? "up" : "down"}">${r.direction}</td><td>${r.currency}</td><td class="mono-num">${fmt(r.amount)}</td>
-      <td>${canApprove ? `<div class="act"><button class="ok" data-appr="${r.pub_id}">approve</button><button class="no" data-rej="${r.pub_id}">reject</button></div>` : `<span class="label">read only</span>`}</td></tr>`).join("")}</tbody></table>`
+      <td>${canApprove ? (r.direction === "DEPOSIT"
+        ? `<div class="act"><span class="label">chain credit only</span><button class="no" data-rej="${r.pub_id}">reject</button></div>`
+        : `<div class="act"><button class="ok" data-appr="${r.pub_id}">approve</button><button class="no" data-rej="${r.pub_id}">reject</button></div>`) : `<span class="label">read only</span>`}</td></tr>`).join("")}</tbody></table>`
     : `<div class="empty">No pending wallet requests</div>`;
   mirrorText("apprCount", "apprCount2");
   mirrorHtml("approvals", "approvalsMirror");
@@ -375,7 +399,7 @@ async function loadChainOps() {
     (canWrite ? `<div class="adm-form">
       <div class="row3"><input id="depChain" placeholder="chain" /><input id="depTx" placeholder="txid" /><input id="depIdx" type="number" step="1" value="0" placeholder="log idx" /></div>
       <div class="row3"><input id="depAddr" placeholder="watched address" /><input id="depCur" placeholder="currency" /><input id="depAmt" type="number" step="0.000001" placeholder="amount" /></div>
-      <div class="row3"><input id="depConf" type="number" step="1" placeholder="confirmations" /><button class="btn-sm" id="manualCredit" style="grid-column:span 2">Manual credit deposit</button></div>
+      <div class="row3"><input id="depConf" type="number" step="1" placeholder="confirmations" /><button class="btn-sm" id="manualCredit" style="grid-column:span 2">Credit observed tx</button></div>
     </div>` : "") +
     ((deps && deps.length) ? `<table><thead><tr><th>When</th><th>Chain</th><th>Tx</th><th>Cur</th><th>Amount</th><th>Status</th></tr></thead><tbody>${
       deps.map((d) => `<tr><td>${new Date(d.created_at).toLocaleString()}</td><td>${escH(d.chain)}</td><td class="mono-num" title="${escH(d.txid)}">${escH((d.txid || "").slice(0, 12))}</td><td>${escH(d.currency)}</td><td class="mono-num">${fmt(d.amount, 6)}</td><td>${d.credited_at ? '<span class="up">credited</span>' : '<span class="amber">pending</span>'}</td></tr>`).join("")}</tbody></table>` : `<div class="empty">No detected chain deposits</div>`);

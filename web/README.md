@@ -17,7 +17,7 @@ A modern trading terminal for the pure-PG CEX. **Phosphor-terminal** aesthetic
   the private feed over **Postgres Changes** (`trade_order`, `wallet_request`) scoped to the
   logged-in user via `realtime.setAuth(jwt)` — RLS delivers only your own rows.
 - **No app server**: the browser talks straight to PostgREST (`place_order`, `cancel_order`,
-  `request_deposit/withdrawal`, and the `order_book_l2` / `open_orders` / `cash_balances` /
+  `my_deposit_address`, `request_withdrawal`, and the `order_book_l2` / `open_orders` / `cash_balances` /
   `instrument_balances` / `wallet_request` / `trade_history` views).
 
 ## Run locally
@@ -53,8 +53,9 @@ send testnet assets to the assigned address/memo; the SQL watcher credits detect
 testnet transfers. For demo K-line history (synthetic back-dated random walk):
 `./scripts/seed-candles.sh`.
 
-For local development only, you can also fund directly with the service key:
-`process_transfer('DEPOSIT','MASTER', amount, currency, <user app_entity pub_id>, 'r','d', null)`.
+For local development seeds only, service-role `process_transfer('DEPOSIT','MASTER', ...)`
+still exists for synthetic makers/tests. Customer funding that is not backed by `chain_deposit`
+is reported by `custody_funding_exposure` and can be reversed by `admin_reverse_unbacked_cash`.
 
 ## Back-office (admin)
 Open `http://127.0.0.1:4173/admin.html` and sign in with a Supabase Auth user plus the publishable/anon key. This test build is intentionally open: every signed-in user receives admin permissions. The RBAC tables (`admin_operator_role` / `admin_role_permission`) still exist so the hosted demo can be tightened later without rewriting the console.
