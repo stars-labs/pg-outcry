@@ -26,27 +26,27 @@ See [`PERFORMANCE.md`](./PERFORMANCE.md) for the scaling plan (sharding, partiti
 | `ext/oc_fastmath/` | Custom C extension (native banker's rounding, ~5.2× PL/pgSQL); `build.sh` builds+loads it |
 | `scripts/gen-migrations.sh` | Regenerates `supabase/migrations/0*_engine_*.sql` from `engine/` |
 | `supabase/migrations/0*_engine_*` | Generated engine schema + functions |
-| `supabase/migrations/9000_grants_security_definer.sql` | Make engine fns `SECURITY DEFINER` + grant EXECUTE to API roles |
-| `supabase/migrations/9001_realtime.sql` | Publish `trade` / `trade_order` / `book_order` to Realtime |
-| `supabase/migrations/9002_seed_dev.sql` | Currencies, MASTER funding entity, instruments |
-| `supabase/migrations/9003_api_helpers.sql` | Read grants + `find_instrument_account()` |
-| `supabase/migrations/9100_stage2_concurrency_and_reads.sql` | Stage 2: `submit_order`/`submit_cancel` (per-instrument advisory lock) + read views |
-| `supabase/migrations/9101_realtime_marketdata.sql` | Stage 2: publish L2 `price_level` to Realtime |
-| `supabase/migrations/9200_auth_rls.sql` | Stage 3: GoTrue→`app_entity` trigger, `place_order`/`cancel_order`, RLS, view `security_invoker` |
-| `supabase/migrations/9300_wallet.sql` | Stage 4: internal-ledger wallet (request/approve/reject deposit & withdrawal) |
-| `supabase/migrations/9500_risk_controls.sql` | Per-instrument risk (max amount/notional/price-band) enforced in `place_order` |
-| `supabase/migrations/9600_backoffice.sql` | Account status, admin RPCs (suspend/fee/risk), `admin_audit_log` |
-| `supabase/migrations/9310_realtime_wallet.sql` | Publish `wallet_request` for the private feed |
-| `supabase/migrations/9320_wallet_idempotency.sql` | Wallet idempotency keys |
-| `supabase/migrations/9330_reconciliation.sql` | Append-only ledger + `reconcile()` report |
-| `supabase/migrations/9700_platform.sql` | `statement_timeout` per role |
-| `supabase/migrations/9710_wal_reduction.sql` | Replica identity DEFAULT on hot tables (less WAL) |
-| `supabase/migrations/9640_cold_partitioning.sql` | Monthly RANGE partitions for trade + ledgers (+ pg_cron roll) |
-| `supabase/migrations/9720_async_marketdata.sql` | Coalesced L2 + trade tape via realtime broadcast |
-| `supabase/migrations/9750_perf_indexes.sql` | Partial index killing the per-trade stop-order seq scan |
-| `supabase/migrations/9760_batch_settlement.sql` | Batched DEBIT+CREDIT ledger INSERT |
-| `supabase/migrations/9730_hot_data.sql` | UNLOGGED book_order + price_level (in-memory) + `rebuild_book()` |
-| `supabase/migrations/9900_lockdown.sql` | Deny-by-default on all engine functions; re-grant only the API whitelist (runs last) |
+| `supabase/migrations/00430_grants_security_definer.sql` | Make engine fns `SECURITY DEFINER` + grant EXECUTE to API roles |
+| `supabase/migrations/00440_realtime.sql` | Publish `trade` / `trade_order` / `book_order` to Realtime |
+| `supabase/migrations/00450_seed_dev.sql` | Currencies, MASTER funding entity, instruments |
+| `supabase/migrations/00460_api_helpers.sql` | Read grants + `find_instrument_account()` |
+| `supabase/migrations/00470_stage2_concurrency_and_reads.sql` | Stage 2: `submit_order`/`submit_cancel` (per-instrument advisory lock) + read views |
+| `supabase/migrations/00480_realtime_marketdata.sql` | Stage 2: publish L2 `price_level` to Realtime |
+| `supabase/migrations/00490_auth_rls.sql` | Stage 3: GoTrue→`app_entity` trigger, `place_order`/`cancel_order`, RLS, view `security_invoker` |
+| `supabase/migrations/00500_wallet.sql` | Stage 4: internal-ledger wallet (request/approve/reject deposit & withdrawal) |
+| `supabase/migrations/00520_risk_controls.sql` | Per-instrument risk (max amount/notional/price-band) enforced in `place_order` |
+| `supabase/migrations/00550_backoffice.sql` | Account status, admin RPCs (suspend/fee/risk), `admin_audit_log` |
+| `supabase/migrations/00510_realtime_wallet.sql` | Publish `wallet_request` for the private feed |
+| `supabase/migrations/00560_wallet_idempotency.sql` | Wallet idempotency keys |
+| `supabase/migrations/00570_reconciliation.sql` | Append-only ledger + `reconcile()` report |
+| `supabase/migrations/00590_platform.sql` | `statement_timeout` per role |
+| `supabase/migrations/00600_wal_reduction.sql` | Replica identity DEFAULT on hot tables (less WAL) |
+| `supabase/migrations/00580_cold_partitioning.sql` | Monthly RANGE partitions for trade + ledgers (+ pg_cron roll) |
+| `supabase/migrations/00610_async_marketdata.sql` | Coalesced L2 + trade tape via realtime broadcast |
+| `supabase/migrations/00630_perf_indexes.sql` | Partial index killing the per-trade stop-order seq scan |
+| `supabase/migrations/00640_batch_settlement.sql` | Batched DEBIT+CREDIT ledger INSERT |
+| `supabase/migrations/00620_hot_data.sql` | UNLOGGED book_order + price_level (in-memory) + `rebuild_book()` |
+| `supabase/migrations/00670_lockdown.sql` | Deny-by-default on all engine functions; re-grant only the API whitelist (runs last) |
 | `scripts/smoke-postgrest.sh` | Stage 1 engine test over HTTP `/rpc` (needs `SERVICE` key after lockdown) |
 | `scripts/smoke-realtime.mjs` | Asserts a trade is broadcast over websocket |
 | `scripts/smoke-stage2.sh` | Advisory-locked submit + read API (partial fill, settlement, reservation); needs `SERVICE` |
@@ -97,7 +97,7 @@ node scripts/smoke-marketdata.mjs
 - **authenticated** (user JWT) — self-scoped API: `place_order`, `cancel_order`, `my_deposit_address`, `request_withdrawal`, `current_app_entity_*`. RLS limits all reads to the caller's own entity.
 - **authenticated operator** (user JWT) — the current hosted test build grants every signed-in user full back-office permissions. `admin_operator_role` / `admin_role_permission` remain available for later tightening across approvals, accounts, market/risk, derivatives, security, and audit.
 - **service_role** — server-side root for CI, trusted jobs, bootstrap, and raw engine operations; never required by the browser back-office.
-- `9900_lockdown.sql` revokes EXECUTE on every engine function from public/anon/authenticated and re-grants only the whitelist, so internal helpers (`create_trade`, `update_price_level`, …) are unreachable by clients. Later migrations explicitly revoke/grant their own new RPCs.
+- `00670_lockdown.sql` revokes EXECUTE on every engine function from public/anon/authenticated and re-grants only the whitelist, so internal helpers (`create_trade`, `update_price_level`, …) are unreachable by clients. Later migrations explicitly revoke/grant their own new RPCs.
 
 ## Realtime feeds
 

@@ -13,7 +13,7 @@ Users never touch base tables directly. Everything a client does goes through:
   … They run as the owner, do their own authorization (`current_app_entity_id()`), and bypass RLS.
 - **A small set of views** granted to `anon` / `authenticated`.
 
-`9900_lockdown.sql` revokes `EXECUTE` on every function from `anon`/`authenticated` and re-grants only
+`00670_lockdown.sql` revokes `EXECUTE` on every function from `anon`/`authenticated` and re-grants only
 the whitelisted RPCs. Tables follow the same spirit: **RLS on, deny-by-default**, opened only where a
 client genuinely needs to read.
 

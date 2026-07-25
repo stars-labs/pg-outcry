@@ -197,7 +197,7 @@ cd web && npm install && npm run build:wasm && python3 -m http.server 4173
 - **authenticated**（用户 JWT）—— 自限定 API：`place_order`、`cancel_order`、`my_deposit_address`、`request_withdrawal`。RLS 把所有读取限定在调用者自己的实体上。
 - **authenticated operator**（用户 JWT）—— 当前测试版默认给每个已登录用户完整后台权限。`admin_operator_role` / `admin_role_permission` 仍保留在 schema 中，后续收紧时可继续用；`treasury`、`risk`、`support`、`finance`、`security`、`auditor`、`super_admin` 等角色映射到细粒度权限（如 `wallet.approve`、`market.write`、`audit.read`）。
 - **service_role**（仅服务端 root）—— 用于 CI、可信后端任务、首次授权以及批量路径 `submit_orders(account, instrument, jsonb[])`。不要下发到浏览器。
-- `9900_lockdown.sql` 撤销 public/anon/authenticated 对每个引擎函数的 EXECUTE，只重新放行白名单，因此内部辅助函数（`create_trade`、`update_price_level` 等）客户端无法调用。
+- `00670_lockdown.sql` 撤销 public/anon/authenticated 对每个引擎函数的 EXECUTE，只重新放行白名单，因此内部辅助函数（`create_trade`、`update_price_level` 等）客户端无法调用。
 
 ## 实时频道
 

@@ -26,27 +26,27 @@
 | `ext/oc_fastmath/` | 自研 C 扩展（原生银行家舍入，约 5.2× 于 PL/pgSQL）；`build.sh` 负责构建并加载 |
 | `scripts/gen-migrations.sh` | 从 `engine/` 重新生成 `supabase/migrations/0*_engine_*.sql` |
 | `supabase/migrations/0*_engine_*` | 生成的引擎 schema + 函数 |
-| `supabase/migrations/9000_grants_security_definer.sql` | 将引擎函数设为 `SECURITY DEFINER` 并向 API 角色授予 EXECUTE |
-| `supabase/migrations/9001_realtime.sql` | 将 `trade` / `trade_order` / `book_order` 发布到 Realtime |
-| `supabase/migrations/9002_seed_dev.sql` | 货币、MASTER 资金实体、交易标的 |
-| `supabase/migrations/9003_api_helpers.sql` | 读权限 + `find_instrument_account()` |
-| `supabase/migrations/9100_stage2_concurrency_and_reads.sql` | 阶段 2：`submit_order`/`submit_cancel`（按标的的咨询锁）+ 读视图 |
-| `supabase/migrations/9101_realtime_marketdata.sql` | 阶段 2：将 L2 `price_level` 发布到 Realtime |
-| `supabase/migrations/9200_auth_rls.sql` | 阶段 3：GoTrue→`app_entity` 触发器、`place_order`/`cancel_order`、RLS、视图 `security_invoker` |
-| `supabase/migrations/9300_wallet.sql` | 阶段 4：内部账本钱包（充值与提现的申请/批准/拒绝） |
-| `supabase/migrations/9500_risk_controls.sql` | 按标的的风控（最大数量/名义金额/价格带），在 `place_order` 中强制执行 |
-| `supabase/migrations/9600_backoffice.sql` | 账户状态、管理 RPC（停用/费率/风控）、`admin_audit_log` |
-| `supabase/migrations/9310_realtime_wallet.sql` | 为私有推送流发布 `wallet_request` |
-| `supabase/migrations/9320_wallet_idempotency.sql` | 钱包幂等键 |
-| `supabase/migrations/9330_reconciliation.sql` | 仅追加（append-only）账本 + `reconcile()` 对账报告 |
-| `supabase/migrations/9700_platform.sql` | 按角色的 `statement_timeout` |
-| `supabase/migrations/9710_wal_reduction.sql` | 热表上的 Replica identity DEFAULT（减少 WAL） |
-| `supabase/migrations/9640_cold_partitioning.sql` | trade 与各账本的按月 RANGE 分区（+ pg_cron 滚动） |
-| `supabase/migrations/9720_async_marketdata.sql` | 通过 realtime broadcast 实现合并后的 L2 + 成交带（tape） |
-| `supabase/migrations/9750_perf_indexes.sql` | 用于消除每笔成交时止损单顺序扫描的部分索引 |
-| `supabase/migrations/9760_batch_settlement.sql` | 批量 DEBIT+CREDIT 账本 INSERT |
-| `supabase/migrations/9730_hot_data.sql` | UNLOGGED 的 book_order + price_level（内存中）+ `rebuild_book()` |
-| `supabase/migrations/9900_lockdown.sql` | 对所有引擎函数默认拒绝；仅重新授予 API 白名单（最后运行） |
+| `supabase/migrations/00430_grants_security_definer.sql` | 将引擎函数设为 `SECURITY DEFINER` 并向 API 角色授予 EXECUTE |
+| `supabase/migrations/00440_realtime.sql` | 将 `trade` / `trade_order` / `book_order` 发布到 Realtime |
+| `supabase/migrations/00450_seed_dev.sql` | 货币、MASTER 资金实体、交易标的 |
+| `supabase/migrations/00460_api_helpers.sql` | 读权限 + `find_instrument_account()` |
+| `supabase/migrations/00470_stage2_concurrency_and_reads.sql` | 阶段 2：`submit_order`/`submit_cancel`（按标的的咨询锁）+ 读视图 |
+| `supabase/migrations/00480_realtime_marketdata.sql` | 阶段 2：将 L2 `price_level` 发布到 Realtime |
+| `supabase/migrations/00490_auth_rls.sql` | 阶段 3：GoTrue→`app_entity` 触发器、`place_order`/`cancel_order`、RLS、视图 `security_invoker` |
+| `supabase/migrations/00500_wallet.sql` | 阶段 4：内部账本钱包（充值与提现的申请/批准/拒绝） |
+| `supabase/migrations/00520_risk_controls.sql` | 按标的的风控（最大数量/名义金额/价格带），在 `place_order` 中强制执行 |
+| `supabase/migrations/00550_backoffice.sql` | 账户状态、管理 RPC（停用/费率/风控）、`admin_audit_log` |
+| `supabase/migrations/00510_realtime_wallet.sql` | 为私有推送流发布 `wallet_request` |
+| `supabase/migrations/00560_wallet_idempotency.sql` | 钱包幂等键 |
+| `supabase/migrations/00570_reconciliation.sql` | 仅追加（append-only）账本 + `reconcile()` 对账报告 |
+| `supabase/migrations/00590_platform.sql` | 按角色的 `statement_timeout` |
+| `supabase/migrations/00600_wal_reduction.sql` | 热表上的 Replica identity DEFAULT（减少 WAL） |
+| `supabase/migrations/00580_cold_partitioning.sql` | trade 与各账本的按月 RANGE 分区（+ pg_cron 滚动） |
+| `supabase/migrations/00610_async_marketdata.sql` | 通过 realtime broadcast 实现合并后的 L2 + 成交带（tape） |
+| `supabase/migrations/00630_perf_indexes.sql` | 用于消除每笔成交时止损单顺序扫描的部分索引 |
+| `supabase/migrations/00640_batch_settlement.sql` | 批量 DEBIT+CREDIT 账本 INSERT |
+| `supabase/migrations/00620_hot_data.sql` | UNLOGGED 的 book_order + price_level（内存中）+ `rebuild_book()` |
+| `supabase/migrations/00670_lockdown.sql` | 对所有引擎函数默认拒绝；仅重新授予 API 白名单（最后运行） |
 | `scripts/smoke-postgrest.sh` | 阶段 1 引擎测试，通过 HTTP `/rpc`（锁定后需要 `SERVICE` 密钥） |
 | `scripts/smoke-realtime.mjs` | 断言一笔成交通过 websocket 广播 |
 | `scripts/smoke-stage2.sh` | 咨询锁下单 + 读 API（部分成交、结算、冻结）；需要 `SERVICE` |
@@ -97,7 +97,7 @@ node scripts/smoke-marketdata.mjs
 - **authenticated**（用户 JWT）—— 自作用域 API：`place_order`、`cancel_order`、`my_deposit_address`、`request_withdrawal`、`current_app_entity_*`。RLS 将所有读取限制在调用者自身实体范围内。
 - **authenticated operator**（用户 JWT）—— 当前托管测试版默认给每个已登录用户完整后台权限。`admin_operator_role` / `admin_role_permission` 保留用于后续收紧审批、账户、市场/风控、衍生品、安全与审计权限。
 - **service_role** —— 仅服务端 root，用于 CI、可信任务、首次授权和原始引擎操作；浏览器后台不再需要它。
-- `9900_lockdown.sql` 从 public/anon/authenticated 收回每个引擎函数的 EXECUTE 权限，并仅重新授予白名单，因此内部辅助函数（`create_trade`、`update_price_level`……）对客户端不可达。后续迁移会对自己新增的 RPC 显式 revoke/grant。
+- `00670_lockdown.sql` 从 public/anon/authenticated 收回每个引擎函数的 EXECUTE 权限，并仅重新授予白名单，因此内部辅助函数（`create_trade`、`update_price_level`……）对客户端不可达。后续迁移会对自己新增的 RPC 显式 revoke/grant。
 
 ## 实时推送流
 

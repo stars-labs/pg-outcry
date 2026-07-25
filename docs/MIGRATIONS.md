@@ -1,30 +1,57 @@
+**English** · [中文](./MIGRATIONS.zh-CN.md)
+
 # Migration numbering
 
-The original scheme is 4-digit numeric prefixes (`0001_…` → `9999_…`). That space
-is **exhausted**: `9999_stablecoin_tokens.sql` holds the last clean slot.
+All migrations use a **5-digit, fixed-width, step-10 numeric prefix**:
+`00010_`, `00020_`, … `00910_`.
 
-Rules learned the hard way:
+```
+supabase/migrations/00010_engine_models_transfer_transfer_type.sql
+supabase/migrations/00020_engine_models_trade_order_order_fill.sql
+...
+supabase/migrations/00910_chain_backed_funding_reconcile.sql
+```
 
-- **Numeric prefixes only.** The Supabase CLI treats the digits before the first
-  `_` as the migration version; files with non-numeric prefixes (e.g. `A001_…`)
-  are skipped. Letter prefixes are NOT a valid escape hatch.
-- **Versions must be unique.** Two files sharing a digit prefix (`9999_a.sql`,
-  `9999_b.sql`, or `9999_x` vs a would-be `9999z_y`) collide on the
-  `schema_migrations` primary key and break `db reset`/`db push`.
-- **Apply order is lexical by filename**, and `'9' < '_'`, so 5-digit `9999N_…`
-  sorts *between* `9998_…` and `9999_…` (and `99991_…` < `99999_…`).
+## Why fixed-width
 
-## Current convention
+The Supabase CLI applies migrations in **lexical filename order**, and takes the
+digits before the first `_` as the migration **version** (the `schema_migrations`
+primary key). Two consequences bit us repeatedly under the old mixed-width scheme:
 
-New migrations use **5-digit `9999N_` prefixes** (`99991`–`99998`; `99999` is
-already taken by admin RBAC). They apply after `9998_` but **before**
-`99999_admin_rbac` and `9999_stablecoin_tokens`, so:
+- **Lexical ≠ numeric when widths differ.** `'9' (0x39) < '_' (0x5F)`, so
+  `99999_admin_rbac.sql` sorted *before* `9999_stablecoin_tokens.sql`, and
+  `100000_…` sorted near the *front* (`'1' < '9'`) rather than the end.
+- **Versions must be unique.** `9999_a.sql` and `9999_b.sql` both parse to version
+  `9999` and collide on the `schema_migrations` primary key, breaking
+  `db reset` / `db push`.
+- **Prefixes must be numeric.** A letter prefix (`A001_…`) is silently **skipped**
+  by the CLI — the migration never runs, with no error.
 
-- They may depend on anything up to `9998_…` at DDL time.
-- They must NOT reference objects created by `99999_…`/`9999_…` at DDL time
-  (runtime references from function bodies are fine — resolved at call time).
+With every prefix the same width, lexical order *is* numeric order, and the
+ordering surprises disappear.
 
-When `99991`–`99998` run out, the next step is a full switch to 14-digit
-timestamp prefixes — which requires renumbering awareness because timestamps
-(`2026…`) sort lexically before `3000_…`; plan that as a one-time migration-set
-reorganization, not an incremental add.
+## Adding a migration
+
+- **Append**: next multiple of 10 after the current last file.
+- **Insert between two migrations**: use a spare number in the gap (e.g. `00565_`
+  between `00560_` and `00570_`). The step-10 spacing exists for exactly this.
+- Never reuse a number, and never change the prefix of a migration that has
+  already been applied to a deployed database (see below).
+
+## Renumbering an already-deployed database
+
+Renaming a migration file changes its **version**, so the CLI would treat it as
+new and try to re-apply it. Several migrations are destructive on replay (e.g.
+`00580_cold_partitioning.sql` does `drop table if exists trade cascade`), so a
+blind re-apply **loses data**.
+
+The safe procedure is to rewrite the recorded versions instead of re-running
+anything:
+
+```sql
+-- inside a transaction, map every old version string to the new one
+update supabase_migrations.schema_migrations set version = '00010' where version = '0001';
+...
+```
+
+Local/CI databases are disposable — just `supabase db reset`.

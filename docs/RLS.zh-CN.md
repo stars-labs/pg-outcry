@@ -13,7 +13,7 @@ pg-outcry 如何保护表访问、为什么 RLS 要在迁移里**声明式**写�
   它们以属主身份运行、自行鉴权(`current_app_entity_id()`),绕过 RLS。
 - **一小撮授予 `anon` / `authenticated` 的视图**。
 
-`9900_lockdown.sql` 从 `anon`/`authenticated` 收回所有函数的 `EXECUTE`,只重新授予白名单 RPC。表遵循同样
+`00670_lockdown.sql` 从 `anon`/`authenticated` 收回所有函数的 `EXECUTE`,只重新授予白名单 RPC。表遵循同样
 精神:**RLS 开、默认拒绝**,仅在客户端确实需要读时才放开。
 
 ## 三类表

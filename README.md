@@ -199,7 +199,7 @@ Run the verification suite (from repo root, with `ANON`/`SERVICE` exported): the
 - **authenticated** (user JWT) — self-scoped API: `place_order`, `cancel_order`, `my_deposit_address`, `request_withdrawal`. RLS limits all reads to the caller's own entity.
 - **authenticated operator** (user JWT) — current test build grants every signed-in user full back-office permissions by default. `admin_operator_role` / `admin_role_permission` remain in the schema for later tightening; roles such as `treasury`, `risk`, `support`, `finance`, `security`, `auditor`, and `super_admin` map to granular permissions (`wallet.approve`, `market.write`, `audit.read`, etc.).
 - **service_role** (server-side root only) — full engine/admin capability for CI, trusted backend jobs, bootstrap, and the **batch** path `submit_orders(account, instrument, jsonb[])`. Never ship it to browsers.
-- `9900_lockdown.sql` revokes EXECUTE on every engine function from public/anon/authenticated and re-grants only the whitelist, so internal helpers (`create_trade`, `update_price_level`, …) are unreachable by clients.
+- `00670_lockdown.sql` revokes EXECUTE on every engine function from public/anon/authenticated and re-grants only the whitelist, so internal helpers (`create_trade`, `update_price_level`, …) are unreachable by clients.
 
 ## Realtime feeds
 

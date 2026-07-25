@@ -54,7 +54,7 @@ API=https://axtziasfallmdgssbgsl.supabase.co
 ```
 
 The hosted demo has the latest migrations applied through
-`99999_admin_rbac.sql`. The back-office is intentionally **test-open**: every
+`00890_admin_rbac.sql`. The back-office is intentionally **test-open**: every
 signed-in Supabase Auth user receives full admin permissions so reviewers can try
 the console. Before production, tighten `admin_has_permission()` /
 `current_admin_permissions()` back to `admin_operator_role`-based RBAC and disable
