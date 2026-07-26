@@ -1,0 +1,10 @@
+# Objects that legitimately exist on a deployed database but are not created by
+# any migration. One exact line per object, matching check-drift.sh output.
+# Anything NOT listed here that shows up as drift should be audited — this is how
+# a live demo_faucet() that minted balances, and a legacy 2-arg request_deposit()
+# that bypassed the chain-backed funding check, were both found.
+
+# Read-only aggregate for the public admin demo (supabase/demo/admin_demo.sql, used by web/admin.js)
+function demo_admin_overview()
+# One-off helper from the Supabase auto-RLS remediation; not executable by anon/authenticated
+function rls_auto_enable()

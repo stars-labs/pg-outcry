@@ -11,6 +11,7 @@ Every doc is bilingual: an English file and a `*.zh-CN.md` mirror with a languag
 | **Features** — on-chain custody in pure Postgres (derivation, signing, broadcast, pollers) and derivatives / staking / 纯 PG 链上托管（派生、签名、广播、轮询）与衍生品、质押 | [FEATURES.md](./FEATURES.md) | [FEATURES.zh-CN.md](./FEATURES.zh-CN.md) |
 | **Deploy** — hosted-Supabase demo & self-host high-performance / 托管演示与自建高性能 | [DEPLOY.md](./DEPLOY.md) | [DEPLOY.zh-CN.md](./DEPLOY.zh-CN.md) |
 | **Performance** — scaling plan, the tuning ladder, and honest benchmark numbers / 扩展方案、调优阶梯与诚实的基准数字 | [PERFORMANCE.md](./PERFORMANCE.md) | [PERFORMANCE.zh-CN.md](./PERFORMANCE.zh-CN.md) |
+| **Operations** — runbook: alerting, drift detection, backup/restore, incident response, upgrades / 运维手册：告警、漂移检测、备份恢复、事故处置、升级 | [OPERATIONS.md](./OPERATIONS.md) | [OPERATIONS.zh-CN.md](./OPERATIONS.zh-CN.md) |
 | **Development** — repo map, smoke tests, migration numbering, and the RLS policy model / 仓库结构、冒烟测试、迁移编号规范与 RLS 策略模型 | [DEVELOPMENT.md](./DEVELOPMENT.md) | [DEVELOPMENT.zh-CN.md](./DEVELOPMENT.zh-CN.md) |
 
 At the repo root: [README](../README.md) · [SECURITY](../SECURITY.md) · [CONTRIBUTING](../CONTRIBUTING.md) · [LICENSE](../LICENSE) · [NOTICE](../NOTICE).
