@@ -38,8 +38,8 @@ async function loadWasm() {
 }
 
 // ---------- state ----------
-let SYM = "BTC_EUR";
-let SYMBOLS = ["BTC_EUR"];
+let SYM = "BTC_USDT";
+let SYMBOLS = ["BTC_USDT"];
 let side = "BUY", otype = "LIMIT";
 let book = { bids: [], asks: [] };     // raw L2 from PostgREST/broadcast
 let mdChan = null, privChan = null, pollTimer = null;
@@ -55,7 +55,7 @@ let tool = "cursor";     // drawing tool
 let drawings = [];       // committed drawings (anchored in price+time), persisted per symbol
 let drag = null, lastMouse = null;
 
-const PREC = 2; // quote decimals for BTC_EUR (EUR)
+const PREC = 2; // quote decimals for BTC_USDT
 const fmt = (n, d = 2) => (n == null || isNaN(n)) ? "—" : Number(n).toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d });
 
 // ---------- toasts ----------
@@ -211,9 +211,13 @@ function renderChart() {
   // Reserve a minimum number of slots so a handful of candles render at normal
   // width anchored left, instead of one candle stretching across the whole plot
   // (a fresh market with a single bar used to paint the chart as a solid block).
+  // Anchor the newest candle at the right edge, like a real terminal: with sparse
+  // data the empty space belongs on the LEFT (before the market had history), not
+  // trailing off to the right.
   const SLOTS = Math.max(N, 40);
-  const x = (i) => (i / SLOTS) * plotW;
-  const cw = Math.max(2, plotW / SLOTS * 0.62);
+  const slotW = plotW / SLOTS;
+  const x = (i) => plotW - (N - i) * slotW;
+  const cw = Math.max(2, slotW * 0.62);
   const py = (p) => priceH - ((p - lo) / (hi - lo)) * priceH;
   const vy = (v) => H - (v / vmax) * (padB - 14);
 
@@ -298,8 +302,8 @@ function renderChart() {
 const VB = 460;  // #draw viewBox height matches #kline
 function p2y(p) { const v = chartView; return v.priceH - ((p - v.lo) / (v.hi - v.lo)) * v.priceH; }
 function y2p(y) { const v = chartView; return v.lo + (v.priceH - y) / v.priceH * (v.hi - v.lo); }
-function firstX() { return chartView.cw / 2; }
-function lastX() { const v = chartView; const s = v.slots ?? v.N; return ((v.N - 1) / s) * v.plotW + v.cw / 2; }
+function firstX() { const v = chartView; const s = v.slots ?? v.N; return v.plotW - v.N * (v.plotW / s) + v.cw / 2; }
+function lastX() { const v = chartView; const s = v.slots ?? v.N; return v.plotW - (v.plotW / s) + v.cw / 2; }
 function t2x(t) { const v = chartView; return v.t1 === v.t0 ? firstX() : firstX() + (t - v.t0) / (v.t1 - v.t0) * (lastX() - firstX()); }
 function x2t(x) { const v = chartView; return v.t1 === v.t0 ? v.t0 : v.t0 + (x - firstX()) / (lastX() - firstX()) * (v.t1 - v.t0); }
 function evToSvg(e) { const r = el("draw").getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * 1000, y: (e.clientY - r.top) / r.height * VB }; }
@@ -362,7 +366,8 @@ function renderOsc() {
   if (n === 0) { svg.innerHTML = ""; el("oscVal").innerHTML = ""; return; }
   const N = Math.min(n, 90), start = n - N, padR = 64, plotW = Wd - padR;
   const SLOTS = Math.max(N, 40);
-  const x = (i) => (i / SLOTS) * plotW, cw = Math.max(2, plotW / SLOTS * 0.62);
+  const slotW = plotW / SLOTS;
+  const x = (i) => plotW - (N - i) * slotW, cw = Math.max(2, slotW * 0.62);
   const gapLine = (atFn, yFn, cls) => {
     let d = "", pen = false;
     for (let i = 0; i < N; i++) { const v = atFn(start + i); if (isNaN(v)) { pen = false; continue; }

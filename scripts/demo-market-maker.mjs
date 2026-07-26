@@ -17,7 +17,7 @@ const API = process.env.API ?? "http://127.0.0.1:54321";
 const sb = createClient(API, process.env.SERVICE ?? "");
 if (!process.env.SERVICE) { console.error("set SERVICE=<service_role key>"); process.exit(2); }
 
-const SYMBOL   = process.env.SYMBOL   ?? "BTC_EUR";
+const SYMBOL   = process.env.SYMBOL   ?? "BTC_USDT";
 const QUOTE_MS = Number(process.env.QUOTE_MS ?? 5000);   // requote interval
 const LEVELS   = Number(process.env.LEVELS   ?? 5);      // levels per side
 const SPREAD   = Number(process.env.SPREAD   ?? 0.0008); // half-spread, fraction of mid
