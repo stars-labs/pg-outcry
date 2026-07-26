@@ -40,6 +40,8 @@ async function loadWasm() {
 // ---------- state ----------
 let SYM = "BTC_USDT";
 let SYMBOLS = ["BTC_USDT"];
+let QUOTE_OF = {};                      // instrument -> quote currency
+const quoteCur = () => QUOTE_OF[SYM] ?? SYM.split("_")[1] ?? "";
 let side = "BUY", otype = "LIMIT";
 let book = { bids: [], asks: [] };     // raw L2 from PostgREST/broadcast
 let mdChan = null, privChan = null, pollTimer = null;
@@ -110,9 +112,15 @@ async function enterTerminal(session) {
   await refreshBlotter();
 }
 
+// Instruments come from the database, filtered to the enabled ones — retiring a
+// pair (or listing a new one) is a data change, not a front-end release.
 async function loadSymbols() {
-  const { data } = await sb.from("instrument").select("name").order("name");
-  if (data?.length) SYMBOLS = data.map((r) => r.name);
+  const { data } = await sb.from("instrument")
+    .select("name,quote_currency").eq("enabled", true).order("name");
+  if (!data?.length) return;
+  SYMBOLS = data.map((r) => r.name);
+  QUOTE_OF = Object.fromEntries(data.map((r) => [r.name, r.quote_currency]));
+  if (!SYMBOLS.includes(SYM)) SYM = SYMBOLS[0];
 }
 function buildSymbolPicker() {
   el("symPick").innerHTML = "";
@@ -130,10 +138,15 @@ async function selectSymbol(s) {
   el("bookSym").textContent = s; el("ticketSym").textContent = s;
   const al = el("amtLabel"); if (al) al.textContent = `Amount (${s.split("_")[0]})`;
   const cs = el("chartSym"); if (cs) cs.textContent = s;
+  const pl = el("priceLabel"); if (pl) pl.textContent = `Limit Price (${quoteCur()})`;
   rawTrades = []; loadDrawings(); if (W) { W.candleReset(); renderChart(); }
   if (mdChan) { sb.removeChannel(mdChan); mdChan = null; }
   if (pollTimer) clearInterval(pollTimer);
   await pollBook(); await pollTape(); await loadCandles();
+  // Seed the ticket at the live price instead of a stale placeholder.
+  { const last = W && W.candleCount() ? W.candleClose(W.candleCount() - 1) : (book.asks[0]?.[0] ?? book.bids[0]?.[0]);
+    const inp = el("oPrice");
+    if (last && inp && !inp.dataset.touched) inp.value = last.toFixed(PREC); }
   subscribeMarketData();
   pollTimer = setInterval(() => { pollBook(); }, 1500); // fallback if no ticker running
 }
@@ -536,12 +549,14 @@ function updatePreview() {
   if (otype === "MARKET") {
     const vwap = W.marketBuyVwap(amt); // ask-side walk (demo: buy estimate)
     el("pvVwap").textContent = vwap ? fmt(vwap) : "—";
-    el("pvCost").textContent = vwap ? fmt(W.bankerRound(amt * vwap, PREC)) + " EUR" : "—";
+    el("pvCost").textContent = vwap ? fmt(W.bankerRound(amt * vwap, PREC)) + " " + quoteCur() : "—";
   } else {
     el("pvVwap").textContent = "—";
-    el("pvCost").textContent = fmt(W.quoteCost(amt, px, PREC)) + " EUR";
+    el("pvCost").textContent = fmt(W.quoteCost(amt, px, PREC)) + " " + quoteCur();
   }
 }
+
+el("oPrice").addEventListener("input", (e) => { e.target.dataset.touched = "1"; });
 
 el("place").onclick = async () => {
   const baseAmt = +el("oAmount").value;
