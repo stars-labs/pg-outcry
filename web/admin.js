@@ -124,7 +124,7 @@ async function bootSession() {
 async function refreshAll() {
   await Promise.all([
     loadRecon(), loadApprovals(), loadWithdrawQueue(), loadAccounts(), loadFees(), loadRisk(),
-    loadReferrals(), loadChainOps(), loadApiKeys(), loadDeriv(), loadAudit(),
+    loadReferrals(), loadChainOps(), loadApiKeys(), loadDeriv(), loadAudit(), loadReconAlerts(),
   ]);
   loadStats();
   syncActionState();
@@ -154,6 +154,24 @@ function loadStats() {
     ["ref. unpaid", S.refUnpaid ?? "—", S.refUnpaid ? "warn" : "ok"],
     ["audit (24h)", S.audit ?? "—", ""],
   ].map(([l, n, c]) => `<div class="stat"><div class="n ${c}">${n}</div><div class="l">${l}</div></div>`).join("");
+}
+
+// ---- reconcile alerts (recorded invariant breaks) ----
+// run_reconcile_monitor() (pg_cron, every 5min) appends a row per non-PASS
+// invariant, so a break that self-heals between manual reconcile() runs is still
+// visible here. Newest first.
+async function loadReconAlerts() {
+  if (!can("recon.read")) { noPermCount("alertCount"); noPerm("reconAlerts", "recon.read"); return; }
+  const { data, error } = await sb.from("reconcile_alert")
+    .select("check_name,failures,observed_at").order("observed_at", { ascending: false }).limit(50);
+  if (error) { el("reconAlerts").innerHTML = `<div class="empty">${escH(error.message)}</div>`; return; }
+  const rows = data || [];
+  el("alertCount").textContent = rows.length ? `${rows.length} recorded` : "clean";
+  el("alertCount").style.color = rows.length ? "var(--coral)" : "var(--phos)";
+  el("reconAlerts").innerHTML = rows.length
+    ? `<table><thead><tr><th>When</th><th>Check</th><th>Failures</th></tr></thead><tbody>${
+        rows.map((r) => `<tr><td>${new Date(r.observed_at).toLocaleString()}</td><td>${escH(r.check_name.replace(/_/g, " "))}</td><td class="mono-num down">${escH(r.failures)}</td></tr>`).join("")}</tbody></table>`
+    : `<div class="empty">No invariant breaks recorded. The monitor runs every 5 minutes.</div>`;
 }
 
 // ---- reconciliation ----

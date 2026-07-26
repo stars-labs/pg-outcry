@@ -51,10 +51,16 @@ PROJECT_REF=axtziasfallmdgssbgsl
 API=https://axtziasfallmdgssbgsl.supabase.co
 ```
 
-托管演示已经应用到 `00890_admin_rbac.sql`。管理后台当前故意采用**测试开放模式**：
-每个已登录的 Supabase Auth 用户都会获得完整管理员权限，方便评审人员试用后台。
-上线生产前，应将 `admin_has_permission()` / `current_admin_permissions()` 收紧回
-基于 `admin_operator_role` 的 RBAC，并在需要预审批运营账号时关闭开放注册。
+托管演示已应用最新迁移。管理后台当前故意采用**测试开放模式**：每个已登录的
+Supabase Auth 用户都会获得完整管理员权限，方便评审人员试用后台。这是一个配置开关而
+非代码分支 —— 上线生产前，先给自己授予运营角色，再关闭开放模式：
+
+```sql
+select admin_grant_operator_role_by_email('ops@example.com', 'super_admin');
+select admin_set_open_access(false);   -- 之后只有 admin_operator_role 授予的权限生效
+```
+
+如果运营账号需要预先审批，还应关闭开放注册。
 
 然后在 Supabase 控制台中：
 1. **Database → Extensions**：启用 `pg_cron`（用于分区滚动 + 可选的 1 秒

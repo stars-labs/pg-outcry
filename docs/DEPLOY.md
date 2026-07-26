@@ -53,12 +53,17 @@ PROJECT_REF=axtziasfallmdgssbgsl
 API=https://axtziasfallmdgssbgsl.supabase.co
 ```
 
-The hosted demo has the latest migrations applied through
-`00890_admin_rbac.sql`. The back-office is intentionally **test-open**: every
-signed-in Supabase Auth user receives full admin permissions so reviewers can try
-the console. Before production, tighten `admin_has_permission()` /
-`current_admin_permissions()` back to `admin_operator_role`-based RBAC and disable
-open signup if operator accounts must be pre-approved.
+The hosted demo has the latest migrations applied. The back-office is intentionally
+**test-open**: every signed-in Supabase Auth user receives full admin permissions so
+reviewers can try the console. This is a config flag, not a code path — before
+production, grant yourself an operator role and close it:
+
+```sql
+select admin_grant_operator_role_by_email('ops@example.com', 'super_admin');
+select admin_set_open_access(false);   -- now only admin_operator_role grants permissions
+```
+
+Also disable open signup if operator accounts must be pre-approved.
 
 Then in the Supabase dashboard:
 1. **Database → Extensions**: enable `pg_cron` (partition rolling + optional 1s
