@@ -16,7 +16,7 @@
 | 撮合引擎 | ✅ Ruby/Go | ✅ Python | ✅ Kotlin | ✅ **PL/pgSQL** |
 | 双边记账账本 + 对账 | ✅ | ✅ | ✅（Accountant 服务） | ✅ **库内、ACID、同一事务** |
 | 订单类型 | 限价/市价/止损 | 限价/市价 | 限价/市价 | ✅ 限价/市价/止损/止损限价 · GTC/IOC/FOK |
-| 链上充提 | ✅ 热/温/冷 | ✅ BTC/ETH/BNB/TRX/USDT | ✅ Blockchain Gateway | ◐ **充值在库内**（pg_cron+pg_net；Sepolia/Tron-Nile/Solana）+ **提现队列** → 外部签名器（[CHAIN.zh-CN.md](./CHAIN.zh-CN.md)） |
+| 链上充提 | ✅ 热/温/冷 | ✅ BTC/ETH/BNB/TRX/USDT | ✅ Blockchain Gateway | ✅ **全部在库内** —— HD 派生、签名、广播均为纯 PL/pgSQL（EVM/Tron/Solana；**仅测试网**，见下）（[CHAIN.zh-CN.md](./CHAIN.zh-CN.md)） |
 | KYC / 身份 | ✅ Barong | ✅ Sumsub | ✅ Keycloak | ❌（有意跳过） |
 | KYT（交易筛查） | — | ✅ Scorechain | — | ❌ 外部供应商 |
 | 2FA / MFA | ✅ 短信+TOTP | ✅ 短信 | ✅ Keycloak | ✅ **委托 OAuth2 提供方**（GitHub/Google 2FA） |
@@ -28,7 +28,8 @@
 | 流动性 / 做市 | 经供应商 | ◐ | — | ❌ 仅演示灌单 |
 | 公共 REST/WS 行情 API | ✅ v2 + WS + AMQP | ◐ | ✅ | ◐ PostgREST + Realtime（无 FIX） |
 | 服务端 OHLCV/K线 | ✅ | ✅ | ✅ | ✅ **纯 SQL `ohlcv()` RPC**（`date_bin` 分桶）|
-| 管理 / 后台 | ✅ | ✅ | ✅ | ✅ 审批/冻结/费率/风控/对账/审计 |
+| 管理 / 后台 | ✅ | ✅ | ✅ | ✅ 审批/冻结/费率/风控/对账/审计 · **基于角色的 RBAC**（演示模式为配置开关）|
+| 持续对账监控 | ◐ | ◐ | ✅ | ✅ **纯 SQL** `pg_cron` 不变量监控 → `reconcile_alert` |
 | 阶梯费率（按量） | ✅ | ◐ | ◐ | ◐ 固定 maker/taker |
 | 质押 / 保证金 / 合约 | 商业版（OpenDAX） | — | — | ◐ **质押 ✅ · 保证金 ✅ · 永续 ✅ 纯 SQL**（[DERIVATIVES.zh-CN.md](./DERIVATIVES.zh-CN.md)） |
 | **要运行的组件数** | Rails + Barong + Finex + RabbitMQ + DB | Django + Redis + RabbitMQ + 节点 | 约 11 个微服务 + Kafka + Redis + N×PG | ✅ **1 个 Postgres + Supabase** |
@@ -46,12 +47,20 @@ OpenCEX 接 Twilio/Sumsub/Scorechain 的 key。pg-outcry 的赌注是：**账本
     Tronscan）；下一拍把 `net._http_response` 当 `jsonb` 解析，对每笔**按 txid 幂等**、达到 **N 个确认**的
     新交易走入账路径。无需外部服务 —— 而 peatio/OpenCEX/OPEX 都跑一个独立网关。**用公开测试网**
     （BTC signet、以太坊 **Sepolia**、TRON **Shasta**）做免费、无真实资金的演示。
-  - **提现 + HD 地址派生 —— 需要签名器。** `pgcrypto` 没有 secp256k1/keccak，所以构造并**签名**原始交易
-    （以及派生每个用户的地址）无法用原生 SQL 完成。要么用一个签名**扩展**（C / `plpython3u` / `plv8`
-    —— 留在库内，但热私钥进了数据库，是真实的安全权衡），要么用一个**极小的外部签名器**（仍由数据库决定
-    *发什么*；广播只是 `pg_net`）。**已交付：** 纯 PG 充值监听（迁移 `9920` + 可选的
-    Sepolia / Tron Nile / Solana 轮询器）**以及**数据库持有的提现发送队列（`9925`：`next_withdrawal_to_sign`
-    用 `SKIP LOCKED` 认领、`mark_withdrawal_broadcast/confirmed`）+ 一个示例外部签名器。完整指南：**[CHAIN.zh-CN.md](./CHAIN.zh-CN.md)**。
+  - **提现 + HD 地址派生 —— 现在也是纯 Postgres。** `pgcrypto` 没有 secp256k1/keccak，
+    于是我们**用 PL/pgSQL 实现了它们**：`00780_crypto_secp256k1_keccak.sql` 提供 keccak256
+    （Keccak-f[1600]）与确定性 RFC-6979 secp256k1 签名，并与 ethers/js-sha3 对拍验证；
+    Solana 的 ed25519 由 `pgsodium` 提供。在此之上，`00810_hd_custody` 从 vault 主种子派生
+    每用户地址，`00830`/`00840`/`00900` 构造、签名并广播原始交易（EVM 的 RLP+EIP-155、
+    Tron 的 TronGrid txID、Solana 的 wire 格式；原生币**以及** ERC-20/TRC-20/SPL）。广播走
+    `http` 扩展，在托管 Supabase 上可用。完整的 USDT 充值→提现闭环已在 Tron Nile 上端到端跑通，
+    全程在 Postgres 内签名 —— 没有网关、没有外部签名器，这一点与 peatio/OpenCEX/OPEX 不同。
+  - **安全权衡是真实的，也正是它的边界。** 主种子存在数据库里，数据库被攻破就等于资金被攻破。
+    因此演示**仅限测试网**，且客户资金必须有链上背书（`request_deposit` 已禁用；
+    `00910_chain_backed_funding_reconcile` 会报告并反冲任何无背书余额）。要承载真实价值，
+    应保持数据库作为编排方，但把私钥托管移出去 —— HSM 或一个极小的外部签名器 ——
+    出金队列的设计（`00720`）本就为此预留了接缝。
+
 - **KYC / KYT / 短信 / 法币** —— 都是供应商 API 集成。pg-outcry 暴露*挂载点*（账户状态、等级、限额），
   你把供应商接到状态字段上即可。KYC 本身**有意不做** —— 它面向的中小交易所起步阶段往往用不到供应商 KYC。
 
@@ -79,6 +88,6 @@ OpenCEX 接 Twilio/Sumsub/Scorechain 的 key。pg-outcry 的赌注是：**账本
 
 ## 结论
 
-最关键的差距是**区块链托管**，而它有意做成外部组件（在已正确的账本之上加一个网关 worker，可在公开测试网上演示）。
+区块链托管已不再是最关键的差距：派生、签名、广播全部跑在 Postgres 内，并已在测试网上验证。现在真正的边界是**私钥托管的权衡**（种子在库内 ⇒ 仅测试网），以及任何交易所都要在边缘接上的产品级组件（KYC/KYT/法币）。
 在纯 SQL 哲学之内，杠杆最高的补齐是 **API key、推荐返佣、提现安全**，它们强化而非稀释「整个交易所跑在 Postgres 里」
 的故事 —— 也正是现已交付（并有 CI 冒烟覆盖）的内容。

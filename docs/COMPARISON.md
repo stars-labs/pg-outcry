@@ -17,7 +17,7 @@ and (B) things we can add **in pure SQL** while keeping the "whole exchange in P
 | Matching engine | ✅ Ruby/Go | ✅ Python | ✅ Kotlin | ✅ **PL/pgSQL** |
 | Double-entry ledger + reconciliation | ✅ | ✅ | ✅ (Accountant svc) | ✅ **in-DB, ACID, same tx** |
 | Order types | limit/market/stop | limit/market | limit/market | ✅ limit/market/stop-loss/stop-limit · GTC/IOC/FOK |
-| On-chain deposits/withdrawals | ✅ hot/warm/cold | ✅ BTC/ETH/BNB/TRX/USDT | ✅ Blockchain Gateway | ◐ **deposits in-DB** (pg_cron+pg_net; Sepolia/Tron-Nile/Solana) + **withdrawal queue** → external signer ([CHAIN.md](./CHAIN.md)) |
+| On-chain deposits/withdrawals | ✅ hot/warm/cold | ✅ BTC/ETH/BNB/TRX/USDT | ✅ Blockchain Gateway | ✅ **fully in-DB** — HD derivation, signing and broadcast in pure PL/pgSQL (EVM/Tron/Solana; **testnet only**, see below) ([CHAIN.md](./CHAIN.md)) |
 | KYC / identity | ✅ Barong | ✅ Sumsub | ✅ Keycloak | ❌ (intentionally skipped) |
 | KYT (tx screening) | — | ✅ Scorechain | — | ❌ external vendor |
 | 2FA / MFA | ✅ SMS+TOTP | ✅ SMS | ✅ Keycloak | ✅ **via OAuth2 IdP** (GitHub/Google 2FA) |
@@ -29,7 +29,8 @@ and (B) things we can add **in pure SQL** while keeping the "whole exchange in P
 | Liquidity / market-making | via vendors | ◐ | — | ❌ demo seeder only |
 | Public REST/WS market-data API | ✅ v2 + WS + AMQP | ◐ | ✅ | ◐ PostgREST + Realtime (no FIX) |
 | Server-side OHLCV/candles | ✅ | ✅ | ✅ | ✅ **pure-SQL `ohlcv()` RPC** (`date_bin` buckets) |
-| Admin / back-office | ✅ | ✅ | ✅ | ✅ approvals/suspend/fees/risk/recon/audit |
+| Admin / back-office | ✅ | ✅ | ✅ | ✅ approvals/suspend/fees/risk/recon/audit · **role-based RBAC** (config-flag demo mode) |
+| Continuous reconciliation monitor | ◐ | ◐ | ✅ | ✅ **pure-SQL** `pg_cron` invariant monitor → `reconcile_alert` |
 | Fee tiers (volume-based) | ✅ | ◐ | ◐ | ◐ flat maker/taker |
 | Staking / margin / futures | commercial (OpenDAX) | — | — | ◐ **staking ✅ · margin ✅ · perps ✅ pure SQL** ([DERIVATIVES.md](./DERIVATIVES.md)) |
 | **Moving parts to run** | Rails + Barong + Finex + RabbitMQ + DB | Django + Redis + RabbitMQ + nodes | ~11 microservices + Kafka + Redis + N×PG | ✅ **1 Postgres + Supabase** |
@@ -50,14 +51,24 @@ database stays the system-of-record.
     confirmations**, runs the deposit-credit path. No external service — unlike peatio/OpenCEX/OPEX,
     which all run a separate gateway. **Use public testnets** (BTC signet, Ethereum **Sepolia**,
     TRON **Shasta**) for a free, no-real-funds demo.
-  - **Withdrawals + HD address derivation — need a signer.** `pgcrypto` has no secp256k1/keccak, so
-    building & **signing** a raw transaction (and deriving per-user addresses) can't be done in stock
-    SQL. Either a signing **extension** (C / `plpython3u` / `plv8` — keeps it in-DB but puts hot keys
-    in the database, a real security tradeoff) or a **tiny external signer** (the DB still decides
-    *what* to send; broadcasting is just `pg_net`). **Shipped:** the pure-PG deposit watcher
-    (migration `9920` + opt-in Sepolia / Tron Nile / Solana pollers) **and** a DB-owned withdrawal
-    send-queue (`9925`: `next_withdrawal_to_sign` with `SKIP LOCKED` claim, `mark_withdrawal_broadcast/
-    confirmed`) with an example external signer. Full guide: **[CHAIN.md](./CHAIN.md)**.
+  - **Withdrawals + HD address derivation — also pure Postgres now.** `pgcrypto` has no
+    secp256k1/keccak, so we implemented them **in PL/pgSQL**: `00780_crypto_secp256k1_keccak.sql`
+    ships keccak256 (Keccak-f[1600]) and deterministic RFC-6979 secp256k1 signing, validated
+    against ethers/js-sha3; `pgsodium` covers ed25519 for Solana. On top of that,
+    `00810_hd_custody` derives per-user addresses from a vault master seed, and
+    `00830`/`00840`/`00900` build, sign and broadcast raw transactions (RLP+EIP-155 for EVM,
+    TronGrid txID for Tron, wire format for Solana; native **and** ERC-20/TRC-20/SPL). Broadcast
+    goes out over the `http` extension, which works from hosted Supabase. A full USDT
+    deposit→withdraw cycle has been proven end-to-end on Tron Nile, signed entirely inside
+    Postgres — no gateway, no external signer, unlike peatio/OpenCEX/OPEX.
+  - **The security tradeoff is real, and it bounds this.** The master seed lives in the database,
+    so compromising the database means compromising the funds. That is why the demo is
+    **testnet-only** and customer funding is chain-backed by enforcement
+    (`request_deposit` is disabled; `00910_chain_backed_funding_reconcile` reports and reverses
+    any unbacked balance). For real value, keep the DB as the orchestrator but move key custody
+    out — an HSM or a small external signer — which the send-queue design (`00720`) already
+    accommodates.
+
 - **KYC / KYT / SMS / fiat** — vendor API integrations. pg-outcry exposes the *hooks* (account
   status, tiers, limits) and you plug a vendor into the status field. KYC itself is deliberately
   **out of scope** — small/mid venues this targets often don't need vendor KYC to start.
@@ -88,7 +99,8 @@ Margin / futures (advanced, see [DERIVATIVES.md](./DERIVATIVES.md)) carry real r
 
 ## Bottom line
 
-The defining gap is **blockchain custody**, and that is intentionally external (a gateway worker on
-top of an already-correct ledger — demoable on public testnets). Within the pure-SQL philosophy, the
+Blockchain custody is no longer the defining gap: derivation, signing and broadcast all run inside
+Postgres and are proven on testnets. What bounds it now is the **key-custody tradeoff** (seed in the
+DB ⇒ testnet only) plus the product-level items every venue bolts on (KYC/KYT/fiat). Within the pure-SQL philosophy, the
 highest-leverage additions are **API keys, referral, and withdrawal security**, which reinforce
 rather than dilute the "whole exchange in Postgres" story — and are now shipped (with CI smoke coverage).

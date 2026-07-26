@@ -16,7 +16,7 @@ flowchart LR
 
 ## 内含什么
 
-- **核心（迁移 `9920`，完全测试、进 CI）：** `chain`、`chain_asset`、`watched_address`、`chain_cursor`、
+- **核心（迁移 `00710`，完全测试、进 CI）：** `chain`、`chain_asset`、`watched_address`、`chain_cursor`、
   `chain_deposit` 表；`register_deposit_address()`（用户）；以及 `credit_chain_deposit()` ——
   **按 `(chain, txid, log_index)` 幂等**，仅在达到 **N 个确认**后入账，并以从 MASTER 的 `DEPOSIT` 转账记账且保留链上证据。
   钱包充值申请不能再直接铸造余额；custody 对账会报告任何缺少 `chain_deposit` 或 watcher 证明的用户资金。RLS 限定的 `my_deposit_addresses` / `my_chain_deposits` 视图。
@@ -75,7 +75,7 @@ EVM 日志解码（`hex_to_numeric` + topic/data 解析）也用真实 Transfer 
 要**发出**提现，必须用热私钥构造并**签名**交易。`pgcrypto` 没有 secp256k1/keccak，签名无法用原生 SQL 完成 ——
 但**数据库仍然持有队列、决定发什么**；签名器只是个薄薄的外部 worker，只负责签名 + 广播（私钥从不进数据库）。
 
-发送队列（迁移 `9925`，仅 service_role）建立在已批准提现流之上：
+发送队列（迁移 `00720`，仅 service_role）建立在已批准提现流之上：
 
 ```
 request_withdrawal_to → APPROVED（管理员）→ next_withdrawal_to_sign() → 签名器签名+广播

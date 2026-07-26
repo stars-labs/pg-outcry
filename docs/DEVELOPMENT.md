@@ -46,7 +46,33 @@ See [`PERFORMANCE.md`](./PERFORMANCE.md) for the scaling plan (sharding, partiti
 | `supabase/migrations/00630_perf_indexes.sql` | Partial index killing the per-trade stop-order seq scan |
 | `supabase/migrations/00640_batch_settlement.sql` | Batched DEBIT+CREDIT ledger INSERT |
 | `supabase/migrations/00620_hot_data.sql` | UNLOGGED book_order + price_level (in-memory) + `rebuild_book()` |
-| `supabase/migrations/00670_lockdown.sql` | Deny-by-default on all engine functions; re-grant only the API whitelist (runs last) |
+| `supabase/migrations/00670_lockdown.sql` | Deny-by-default on all engine functions; re-grant only the API whitelist (later migrations grant their own RPCs) |
+| `supabase/migrations/00680_api_keys.sql` | Per-user API keys + in-DB JWT minting (`api_key_login`) |
+| `supabase/migrations/00690_referral.sql` | Referral codes, one-time attribution, taker-commission accrual |
+| `supabase/migrations/00700_withdrawal_whitelist.sql` | Withdrawal address allow-list + rolling per-window limits |
+| `supabase/migrations/00710_chain_deposits.sql` | Chain/asset/watched-address tables + idempotent `credit_chain_deposit` |
+| `supabase/migrations/00720_withdrawal_queue.sql` | DB-owned send queue (`SKIP LOCKED` claim → broadcast → confirm) |
+| `supabase/migrations/00730_staking.sql` | Staking pools, lazy reward accrual, pgmq-backed unbonding |
+| `supabase/migrations/00740_margin.sql` | Cross-margin borrow/repay + `pg_cron` liquidation checks |
+| `supabase/migrations/00750_perp.sql` | Linear perpetuals: mark price, funding, liquidation |
+| `supabase/migrations/00760_grant_banker_round.sql` | Grant `banker_round` + RLS policies on `stake_pool`/`perp_market` |
+| `supabase/migrations/00770_ohlcv.sql` | Server-side OHLCV candles RPC (`date_bin` buckets, guardrailed) |
+| `supabase/migrations/00780_crypto_secp256k1_keccak.sql` | Pure-PL/pgSQL keccak256 + secp256k1 (RFC6979) + `evm_address` |
+| `supabase/migrations/00790_admin_derivatives_controls.sql` | Admin RPCs for stake pools / margin terms / perp markets |
+| `supabase/migrations/00800_admin_wallet_chain_api_ops.sql` | Admin RPCs for chain config, chain assets, API-key revocation |
+| `supabase/migrations/00810_hd_custody.sql` | Vault master seed → per-user EVM/Tron/Solana deposit addresses |
+| `supabase/migrations/00820_chain_balance_poller.sql` | In-DB balance-delta deposit pollers (`http` + `pg_cron`) |
+| `supabase/migrations/00830_evm_withdrawal_signer.sql` | In-DB RLP/EIP-155 build + sign + broadcast for EVM |
+| `supabase/migrations/00840_solana_tron_withdrawal.sql` | In-DB Solana wire + Tron txID signing/broadcast |
+| `supabase/migrations/00850_token_assets_tron_trc20.sql` | USDT/USDC currencies + TRC-20 transfer signing |
+| `supabase/migrations/00860_hybrid_memo_deposits.sql` | Hybrid addressing: derived (EVM) vs shared-address+memo (Tron/Solana) |
+| `supabase/migrations/00870_reconcile_monitor.sql` | `run_reconcile_monitor()` records invariant breaks → `reconcile_alert` (cron 5min) |
+| `supabase/migrations/00880_candle_cache.sql` | Persistent `candle_1m` + incremental `refresh_candle_1m()` (cron 1min) |
+| `supabase/migrations/00890_admin_rbac.sql` | Back-office RBAC tables, audited admin RPCs, chain-backed funding enforcement |
+| `supabase/migrations/00900_stablecoin_tokens.sql` | ERC-20/SPL signing, token deposit detection, explicit RLS policies |
+| `supabase/migrations/00910_chain_backed_funding_reconcile.sql` | Custody reconciliation + reversal of unbacked customer funding |
+| `supabase/migrations/00920_ohlcv_from_cache.sql` | `ohlcv()` serves from `candle_1m` (cached history + live tail) |
+| `supabase/migrations/00930_admin_rbac_switch.sql` | `admin_config.open_access` — flip the demo-open console to real RBAC |
 | `scripts/smoke-postgrest.sh` | Stage 1 engine test over HTTP `/rpc` (needs `SERVICE` key after lockdown) |
 | `scripts/smoke-realtime.mjs` | Asserts a trade is broadcast over websocket |
 | `scripts/smoke-stage2.sh` | Advisory-locked submit + read API (partial fill, settlement, reservation); needs `SERVICE` |

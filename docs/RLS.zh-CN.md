@@ -74,3 +74,12 @@ PGURL=postgresql://user:pass@host:5432/db bash scripts/check-rls-policies.sh
 这里的一切都是 `supabase db reset`(或 `supabase db push`)应用的纯 SQL 迁移,所以自建 Postgres 得到**完全
 相同**的 RLS 姿态,没有任何仅限托管的步骤。CI 守卫对任意 `PGURL` 都能跑。唯一仅限托管的行为(Supabase 自动
 开 RLS)正是声明式做法所中和掉的,因此本地、CI、线上始终一致。见 [DEPLOY.md](./DEPLOY.zh-CN.md)。
+
+
+### 近期新增的表
+
+| 表 | 分类 | 策略 |
+|---|---|---|
+| `candle_1m` | 公开行情数据 | 对 `anon, authenticated` 开放 `select`，条件 `true` |
+| `reconcile_alert` | 运营证据 | 对 `authenticated` 开放 `select`（写入仅 service_role） |
+| `admin_config` | 运营配置 | 对 `authenticated` 开放 `select`；写入走 `admin_set_open_access()` |

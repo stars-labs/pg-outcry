@@ -47,6 +47,32 @@
 | `supabase/migrations/00640_batch_settlement.sql` | 批量 DEBIT+CREDIT 账本 INSERT |
 | `supabase/migrations/00620_hot_data.sql` | UNLOGGED 的 book_order + price_level（内存中）+ `rebuild_book()` |
 | `supabase/migrations/00670_lockdown.sql` | 对所有引擎函数默认拒绝；仅重新授予 API 白名单（最后运行） |
+| `supabase/migrations/00680_api_keys.sql` | 按用户 API key + 库内签发 JWT（`api_key_login`） |
+| `supabase/migrations/00690_referral.sql` | 推荐码、一次性归属、taker 佣金计提 |
+| `supabase/migrations/00700_withdrawal_whitelist.sql` | 提现地址白名单 + 滚动窗口限额 |
+| `supabase/migrations/00710_chain_deposits.sql` | 链/资产/监听地址表 + 幂等 `credit_chain_deposit` |
+| `supabase/migrations/00720_withdrawal_queue.sql` | 库内出金队列（`SKIP LOCKED` 认领 → 广播 → 确认） |
+| `supabase/migrations/00730_staking.sql` | 质押池、惰性收益结算、基于 pgmq 的解质押 |
+| `supabase/migrations/00740_margin.sql` | 全仓杠杆借还 + `pg_cron` 清算检查 |
+| `supabase/migrations/00750_perp.sql` | 线性永续：标记价格、资金费率、清算 |
+| `supabase/migrations/00760_grant_banker_round.sql` | 授权 `banker_round` + `stake_pool`/`perp_market` 的 RLS 策略 |
+| `supabase/migrations/00770_ohlcv.sql` | 服务端 OHLCV K 线 RPC（`date_bin` 分桶，带护栏） |
+| `supabase/migrations/00780_crypto_secp256k1_keccak.sql` | 纯 PL/pgSQL keccak256 + secp256k1（RFC6979）+ `evm_address` |
+| `supabase/migrations/00790_admin_derivatives_controls.sql` | 质押池 / 杠杆参数 / 永续市场的管理 RPC |
+| `supabase/migrations/00800_admin_wallet_chain_api_ops.sql` | 链配置、链上资产、API key 吊销的管理 RPC |
+| `supabase/migrations/00810_hd_custody.sql` | Vault 主种子 → 每用户 EVM/Tron/Solana 充值地址 |
+| `supabase/migrations/00820_chain_balance_poller.sql` | 库内余额增量充值轮询（`http` + `pg_cron`） |
+| `supabase/migrations/00830_evm_withdrawal_signer.sql` | 库内 RLP/EIP-155 构造 + 签名 + 广播（EVM） |
+| `supabase/migrations/00840_solana_tron_withdrawal.sql` | 库内 Solana wire 序列化 + Tron txID 签名广播 |
+| `supabase/migrations/00850_token_assets_tron_trc20.sql` | USDT/USDC 币种 + TRC-20 转账签名 |
+| `supabase/migrations/00860_hybrid_memo_deposits.sql` | 混合寻址：派生地址（EVM）vs 共享地址+memo（Tron/Solana） |
+| `supabase/migrations/00870_reconcile_monitor.sql` | `run_reconcile_monitor()` 记录不变量破坏 → `reconcile_alert`（cron 5 分钟） |
+| `supabase/migrations/00880_candle_cache.sql` | 持久化 `candle_1m` + 增量 `refresh_candle_1m()`（cron 1 分钟） |
+| `supabase/migrations/00890_admin_rbac.sql` | 后台 RBAC 表、带审计的管理 RPC、链上背书资金强制 |
+| `supabase/migrations/00900_stablecoin_tokens.sql` | ERC-20/SPL 签名、代币充值检测、显式 RLS 策略 |
+| `supabase/migrations/00910_chain_backed_funding_reconcile.sql` | 托管对账 + 无链上背书资金的反冲 |
+| `supabase/migrations/00920_ohlcv_from_cache.sql` | `ohlcv()` 改由 `candle_1m` 提供（缓存历史 + 实时尾部） |
+| `supabase/migrations/00930_admin_rbac_switch.sql` | `admin_config.open_access` —— 把演示开放模式切换为真实 RBAC |
 | `scripts/smoke-postgrest.sh` | 阶段 1 引擎测试，通过 HTTP `/rpc`（锁定后需要 `SERVICE` 密钥） |
 | `scripts/smoke-realtime.mjs` | 断言一笔成交通过 websocket 广播 |
 | `scripts/smoke-stage2.sh` | 咨询锁下单 + 读 API（部分成交、结算、冻结）；需要 `SERVICE` |

@@ -3,13 +3,13 @@
 # Migration numbering
 
 All migrations use a **5-digit, fixed-width, step-10 numeric prefix**:
-`00010_`, `00020_`, … `00910_`.
+`00010_`, `00020_` … `00930_`.
 
 ```
 supabase/migrations/00010_engine_models_transfer_transfer_type.sql
 supabase/migrations/00020_engine_models_trade_order_order_fill.sql
 ...
-supabase/migrations/00910_chain_backed_funding_reconcile.sql
+supabase/migrations/00930_admin_rbac_switch.sql
 ```
 
 ## Why fixed-width

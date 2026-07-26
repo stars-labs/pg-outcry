@@ -17,7 +17,7 @@ flowchart LR
 
 ## What's in the box
 
-- **Core (migration `9920`, fully tested, in CI):** `chain`, `chain_asset`, `watched_address`,
+- **Core (migration `00710`, fully tested, in CI):** `chain`, `chain_asset`, `watched_address`,
   `chain_cursor`, `chain_deposit` tables; `register_deposit_address()` (user); and
   `credit_chain_deposit()` — **idempotent by `(chain, txid, log_index)`**, credits only past **N
   confirmations**, and books the deposit as a `DEPOSIT` transfer from MASTER with chain evidence.
@@ -82,7 +82,7 @@ secp256k1/keccak, so signing can't be done in stock SQL — but the **database s
 decides what to send**; the signer is a thin external worker whose only job is to sign + broadcast
 (its private key never touches the DB).
 
-The send-queue (migration `9925`, service_role-only) sits on top of the approved-withdrawal flow:
+The send-queue (migration `00720`, service_role-only) sits on top of the approved-withdrawal flow:
 
 ```
 request_withdrawal_to → APPROVED (admin) → next_withdrawal_to_sign() → signer signs+broadcasts

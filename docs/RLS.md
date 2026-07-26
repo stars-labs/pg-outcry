@@ -81,3 +81,12 @@ Everything here is plain SQL migrations applied by `supabase db reset` (or `supa
 self-hosted Postgres gets the identical RLS posture — no hosted-only steps. The CI guard runs against any
 `PGURL`. The one hosted-specific behavior (Supabase auto-enabling RLS) is precisely what the declarative
 approach neutralizes, so local, CI, and hosted stay in lockstep. See [DEPLOY.md](./DEPLOY.md).
+
+
+### Recently added tables
+
+| Table | Class | Policy |
+|---|---|---|
+| `candle_1m` | public market data | `select` to `anon, authenticated` using `true` |
+| `reconcile_alert` | operator evidence | `select` to `authenticated` using `true` (writes are service_role only) |
+| `admin_config` | operator config | `select` to `authenticated`; writes go through `admin_set_open_access()` |

@@ -8,7 +8,7 @@
 supabase/migrations/00010_engine_models_transfer_transfer_type.sql
 supabase/migrations/00020_engine_models_trade_order_order_fill.sql
 ...
-supabase/migrations/00910_chain_backed_funding_reconcile.sql
+supabase/migrations/00930_admin_rbac_switch.sql
 ```
 
 ## 为什么要等宽
