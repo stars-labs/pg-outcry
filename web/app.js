@@ -208,8 +208,12 @@ function renderChart() {
   }
   const pad = (hi - lo) * 0.06 || hi * 0.01 || 1; lo -= pad; hi += pad;
   const vmax = W.candleVolMax(N) || 1;
-  const x = (i) => (i / N) * plotW;
-  const cw = Math.max(2, plotW / N * 0.62);
+  // Reserve a minimum number of slots so a handful of candles render at normal
+  // width anchored left, instead of one candle stretching across the whole plot
+  // (a fresh market with a single bar used to paint the chart as a solid block).
+  const SLOTS = Math.max(N, 40);
+  const x = (i) => (i / SLOTS) * plotW;
+  const cw = Math.max(2, plotW / SLOTS * 0.62);
   const py = (p) => priceH - ((p - lo) / (hi - lo)) * priceH;
   const vy = (v) => H - (v / vmax) * (padB - 14);
 
@@ -285,7 +289,7 @@ function renderChart() {
   const o = W.candleOpen(li), h = W.candleHigh(li), l = W.candleLow(li), c = W.candleClose(li);
   const cl = c >= o ? "up" : "down";
   el("ohlc").innerHTML = `<span>O <b class="${cl}">${fmt(o)}</b></span><span>H <b class="${cl}">${fmt(h)}</b></span><span>L <b class="${cl}">${fmt(l)}</b></span><span>C <b class="${cl}">${fmt(c)}</b></span>` + maLegend;
-  chartView = { lo, hi, priceH, plotW, cw, N, t0: W.candleTime(start), t1: W.candleTime(n - 1) };
+  chartView = { lo, hi, priceH, plotW, cw, N, slots: SLOTS, t0: W.candleTime(start), t1: W.candleTime(n - 1) };
   drawOverlay();
   renderOsc();
 }
@@ -295,7 +299,7 @@ const VB = 460;  // #draw viewBox height matches #kline
 function p2y(p) { const v = chartView; return v.priceH - ((p - v.lo) / (v.hi - v.lo)) * v.priceH; }
 function y2p(y) { const v = chartView; return v.lo + (v.priceH - y) / v.priceH * (v.hi - v.lo); }
 function firstX() { return chartView.cw / 2; }
-function lastX() { const v = chartView; return ((v.N - 1) / v.N) * v.plotW + v.cw / 2; }
+function lastX() { const v = chartView; const s = v.slots ?? v.N; return ((v.N - 1) / s) * v.plotW + v.cw / 2; }
 function t2x(t) { const v = chartView; return v.t1 === v.t0 ? firstX() : firstX() + (t - v.t0) / (v.t1 - v.t0) * (lastX() - firstX()); }
 function x2t(x) { const v = chartView; return v.t1 === v.t0 ? v.t0 : v.t0 + (x - firstX()) / (lastX() - firstX()) * (v.t1 - v.t0); }
 function evToSvg(e) { const r = el("draw").getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * 1000, y: (e.clientY - r.top) / r.height * VB }; }
@@ -357,7 +361,8 @@ function renderOsc() {
   const H = 130, Wd = 1000, n = W.candleCount();
   if (n === 0) { svg.innerHTML = ""; el("oscVal").innerHTML = ""; return; }
   const N = Math.min(n, 90), start = n - N, padR = 64, plotW = Wd - padR;
-  const x = (i) => (i / N) * plotW, cw = Math.max(2, plotW / N * 0.62);
+  const SLOTS = Math.max(N, 40);
+  const x = (i) => (i / SLOTS) * plotW, cw = Math.max(2, plotW / SLOTS * 0.62);
   const gapLine = (atFn, yFn, cls) => {
     let d = "", pen = false;
     for (let i = 0; i < N; i++) { const v = atFn(start + i); if (isNaN(v)) { pen = false; continue; }
