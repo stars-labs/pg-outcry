@@ -21,6 +21,11 @@ begin
   select demo_maker_account('DEMO_MM_B') into B;
   if A is null or B is null then return 0; end if;
 
+  -- Requote means cancel-then-place. Without this every tick's resting orders
+  -- stack up and their reservations eat the makers' balance until quoting fails
+  -- with insufficient_funds (which is exactly what happened on the demo).
+  perform demo_market_prune();
+
   -- walk from the last print, or start at a plausible BTC level
   select coalesce((select t.price from trade t join instrument i on i.id = t.instrument_id
                    where i.name = sym order by t.created_at desc limit 1), 64000) into m;
@@ -59,7 +64,8 @@ end $$;
 revoke execute on function demo_market_tick() from public, anon, authenticated;
 grant  execute on function demo_market_tick() to service_role;
 
--- Prune the demo's own resting orders so the book doesn't grow without bound.
+-- Cancel the makers' resting orders. Called at the start of every tick (requote)
+-- and on its own schedule as a safety net.
 create or replace function demo_market_prune()
   returns int
   language plpgsql
@@ -74,8 +80,7 @@ begin
     join app_entity e on e.id = ia.app_entity_id
     where e.pub_id in ('DEMO_MM_A','DEMO_MM_B')
       and o.status in ('OPEN','PARTIALLY_FILLED')
-      and o.created_at < now() - interval '10 minutes'
-    limit 200
+    limit 500
   loop
     begin perform submit_cancel(r.pub_id); n := n + 1; exception when others then null; end;
   end loop;
