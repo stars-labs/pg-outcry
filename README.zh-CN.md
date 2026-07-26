@@ -20,7 +20,7 @@
 
 **[★ 为什么选 pg-outcry —— 与顶级交易所对比 · 中小所优势（配图）](./docs/WHY.zh-CN.md)**
 
-[从演示到生产](#从演示到生产) · [快速开始](#快速开始) · [全部文档](./docs/) · [横向对比](./docs/COMPARISON.zh-CN.md) · [部署](./docs/DEPLOY.zh-CN.md) · [基准测试](./docs/BENCH.zh-CN.md) · [调优阶梯](./docs/TUNING.zh-CN.md) · [性能](./docs/PERFORMANCE.zh-CN.md) · [开发](./docs/DEVELOPMENT.zh-CN.md)
+[从演示到生产](#从演示到生产) · [快速开始](#快速开始) · [全部文档](./docs/) · [横向对比](./docs/WHY.zh-CN.md) · [部署](./docs/DEPLOY.zh-CN.md) · [基准测试](./docs/PERFORMANCE.zh-CN.md) · [调优阶梯](./docs/PERFORMANCE.zh-CN.md) · [性能](./docs/PERFORMANCE.zh-CN.md) · [开发](./docs/DEVELOPMENT.zh-CN.md)
 
 <img src="web/docs/hero.png" alt="OUTCRY 终端 —— 盘口、带 SMA/EMA/布林/VWAP 的蜡烛图、成交量、RSI（由实时 WASM 引擎渲染）" width="100%"/>
 
@@ -114,10 +114,10 @@ flowchart LR
 - **风控：** 按品种的单笔/名义/价带（防胖手指）校验。
 - **实时：** 公共 L2 + 成交广播；私有 RLS 限定的订单/成交/钱包流。
 - **鉴权与安全：** OAuth2（GitHub/Google）+ 邮箱；**2FA 委托给 OAuth2 提供方**（无需自建 TOTP）；全表 RLS；函数面默认拒绝。
-- **API key 与增长（纯 SQL）：** 用户 **API key**（HMAC → 库内签发 JWT，面向机器人/做市商）、**推荐返佣**程序（推荐码、归因、按账本分录计提佣金）、**提现白名单 + 滚动限额**（地址冷却期）。见 [COMPARISON.zh-CN.md](./docs/COMPARISON.zh-CN.md)。
+- **API key 与增长（纯 SQL）：** 用户 **API key**（HMAC → 库内签发 JWT，面向机器人/做市商）、**推荐返佣**程序（推荐码、归因、按账本分录计提佣金）、**提现白名单 + 滚动限额**（地址冷却期）。见 [COMPARISON.zh-CN.md](./docs/WHY.zh-CN.md)。
 - **后台：** 审批队列、冻结/解冻、费率与风控配置、对账看板、审计日志。
 - **前端：** 「磷光终端」风格的 WASM 交易界面 + 管理后台。
-- **性能：** 按 symbol 的 advisory-lock 并发、trade/账本月度分区、UNLOGGED 内存盘口、WAL 缩减、合并式异步行情、可选原生 C 扩展、**组提交批量下单**（`submit_orders` —— N 笔订单一个事务；用 [`scripts/bench-batch.sh`](./scripts/bench-batch.sh) 调参，见 [TUNING.md](./docs/TUNING.zh-CN.md)）。
+- **性能：** 按 symbol 的 advisory-lock 并发、trade/账本月度分区、UNLOGGED 内存盘口、WAL 缩减、合并式异步行情、可选原生 C 扩展、**组提交批量下单**（`submit_orders` —— N 笔订单一个事务；用 [`scripts/bench-batch.sh`](./scripts/bench-batch.sh) 调参，见 [TUNING.md](./docs/PERFORMANCE.zh-CN.md)）。
 
 ## 已验证
 
@@ -129,8 +129,8 @@ flowchart LR
 完全结算的双边记账成交**，引擎延迟 **p50 ≈ 3.5 ms**，6 个品种并行可扩展到 **每秒约 560–730 笔**（按品种
 advisory-lock 隔离）。这里的每一次「撮合」都是*持久、ACID、双边记账已结算*的成交 —— 不是内存盘口操作。自建
 性能档（`synchronous_commit=off`、原生 C `banker_round`、UNLOGGED 盘口）与 symbol 分片可把上限抬得更高。
-复现：`SERVICE=<key> ./scripts/bench.sh`。完整方法学见 [BENCH.md](./docs/BENCH.zh-CN.md)；
-逐级调优、冲击上限的阶梯见 [TUNING.md](./docs/TUNING.zh-CN.md)。
+复现：`SERVICE=<key> ./scripts/bench.sh`。完整方法学见 [BENCH.md](./docs/PERFORMANCE.zh-CN.md)；
+逐级调优、冲击上限的阶梯见 [TUNING.md](./docs/PERFORMANCE.zh-CN.md)。
 
 ## 从演示到生产
 
@@ -150,7 +150,7 @@ flowchart LR
 1. **试用** —— 打开[在线演示](https://stars-labs.github.io/pg-outcry/?api=https://axtziasfallmdgssbgsl.supabase.co&anon=sb_publishable_j1Jr-NMeKb_P29JcBRhz6Q_0ZkbVzUc)（交易）与[管理后台](https://stars-labs.github.io/pg-outcry/admin.html?api=https://axtziasfallmdgssbgsl.supabase.co&anon=sb_publishable_j1Jr-NMeKb_P29JcBRhz6Q_0ZkbVzUc)，无需安装；交易资金通过测试网充值进入。
 2. **本地运行** —— 见下方[快速开始](#快速开始)：`supabase start` + `supabase db reset` 即得到完整交易所（托管 Supabase 档见 [DEPLOY.md](./docs/DEPLOY.zh-CN.md)）。
 3. **自建高性能档** —— 原生 C 热路径、WAL 调优、行情推送：`./scripts/perf-tune-local.sh` → [DEPLOY.md › 自建](./docs/DEPLOY.zh-CN.md)。托管与自建之间「完全一致」的部分也在 [DEPLOY.md](./docs/DEPLOY.zh-CN.md) 里写明。
-4. **调到上限** —— 走一遍[调优阶梯](./docs/TUNING.zh-CN.md)，在你硬件上用 [`scripts/bench-ladder.sh`](./scripts/bench-ladder.sh) 与 [`scripts/bench-batch.sh`](./scripts/bench-batch.sh) 找到[批量大小](./docs/TUNING.zh-CN.md)的吞吐/延迟拐点。
+4. **调到上限** —— 走一遍[调优阶梯](./docs/PERFORMANCE.zh-CN.md)，在你硬件上用 [`scripts/bench-ladder.sh`](./scripts/bench-ladder.sh) 与 [`scripts/bench-batch.sh`](./scripts/bench-batch.sh) 找到[批量大小](./docs/PERFORMANCE.zh-CN.md)的吞吐/延迟拐点。
 5. **正式上线** —— 生产环境 = 自建 Supabase（或自管 PostgreSQL + PostgREST/Realtime/GoTrue）跑在你自己的基础设施上，**或**付费的托管 Supabase 项目。开启 `synchronous_commit=off` + 复制/PITR 以兼顾持久与吞吐，按 [symbol 分片](./docs/PERFORMANCE.zh-CN.md)横向扩展，并在托管真实资金前完成运营[加固清单](./SECURITY.zh-CN.md)。
 
 ## 快速开始
@@ -197,7 +197,7 @@ cd web && npm install && npm run build:wasm && python3 -m http.server 4173
 - **authenticated**（用户 JWT）—— 自限定 API：`place_order`、`cancel_order`、`my_deposit_address`、`request_withdrawal`。RLS 把所有读取限定在调用者自己的实体上。
 - **authenticated operator**（用户 JWT）—— 当前测试版默认给每个已登录用户完整后台权限。`admin_operator_role` / `admin_role_permission` 仍保留在 schema 中，后续收紧时可继续用；`treasury`、`risk`、`support`、`finance`、`security`、`auditor`、`super_admin` 等角色映射到细粒度权限（如 `wallet.approve`、`market.write`、`audit.read`）。
 - **service_role**（仅服务端 root）—— 用于 CI、可信后端任务、首次授权以及批量路径 `submit_orders(account, instrument, jsonb[])`。不要下发到浏览器。
-- `00670_lockdown.sql` 撤销 public/anon/authenticated 对每个引擎函数的 EXECUTE，只重新放行白名单，因此内部辅助函数（`create_trade`、`update_price_level` 等）客户端无法调用。
+- `00040_ledger_perf_lockdown.sql` 撤销 public/anon/authenticated 对每个引擎函数的 EXECUTE，只重新放行白名单，因此内部辅助函数（`create_trade`、`update_price_level` 等）客户端无法调用。
 
 ## 实时频道
 

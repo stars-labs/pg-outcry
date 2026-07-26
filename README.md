@@ -20,7 +20,7 @@ Matching · Settlement · Wallet · Risk · Realtime · Auth — **no applicatio
 
 **[★ Why pg-outcry — comparison vs top-tier exchanges & the SMB advantage (diagrams)](./docs/WHY.md)**
 
-[Demo → production](#from-demo-to-production) · [Quickstart](#quickstart) · [All docs](./docs/) · [Comparison](./docs/COMPARISON.md) · [Deploy](./docs/DEPLOY.md) · [Benchmark](./docs/BENCH.md) · [Tuning ladder](./docs/TUNING.md) · [Performance](./docs/PERFORMANCE.md) · [Dev](./docs/DEVELOPMENT.md)
+[Demo → production](#from-demo-to-production) · [Quickstart](#quickstart) · [All docs](./docs/) · [Comparison](./docs/WHY.md) · [Deploy](./docs/DEPLOY.md) · [Benchmark](./docs/PERFORMANCE.md) · [Tuning ladder](./docs/PERFORMANCE.md) · [Performance](./docs/PERFORMANCE.md) · [Dev](./docs/DEVELOPMENT.md)
 
 <img src="web/docs/hero.png" alt="OUTCRY terminal — order book, candlesticks with SMA/EMA/Bollinger/VWAP, volume, RSI (rendered from the live WASM engine)" width="100%"/>
 
@@ -114,10 +114,10 @@ Big exchanges can afford a bespoke C++ matching engine and a 50-person platform 
 - **Risk:** per-instrument max order amount / notional / price-band (fat-finger) checks.
 - **Realtime:** public L2 + trade broadcast; private RLS-scoped order/fill/wallet feed.
 - **Auth & security:** OAuth2 (GitHub/Google) + email; **2FA delegated to the OAuth2 provider** (no separate TOTP); full RLS; deny-by-default function surface.
-- **API keys & growth (pure SQL):** per-user **API keys** (HMAC → in-DB-minted JWT, for bots/market-makers), a **referral/affiliate** program (codes, attribution, commission as ledger entries), and **withdrawal whitelist + rolling limits** (address cooling period). See [COMPARISON.md](./docs/COMPARISON.md).
+- **API keys & growth (pure SQL):** per-user **API keys** (HMAC → in-DB-minted JWT, for bots/market-makers), a **referral/affiliate** program (codes, attribution, commission as ledger entries), and **withdrawal whitelist + rolling limits** (address cooling period). See [COMPARISON.md](./docs/WHY.md).
 - **Back-office:** approvals queue, suspend/unsuspend, fee & risk config, reconciliation dashboard, audit log.
 - **Frontend:** "phosphor terminal" WASM trading UI + admin console.
-- **Performance:** per-symbol advisory-lock concurrency, monthly partitioning of trade/ledger, UNLOGGED in-memory book, WAL reduction, coalesced async market data, optional native C extension, **group-commit batch order submission** (`submit_orders` — N orders in one transaction; tune the size with [`scripts/bench-batch.sh`](./scripts/bench-batch.sh), see [TUNING.md](./docs/TUNING.md)).
+- **Performance:** per-symbol advisory-lock concurrency, monthly partitioning of trade/ledger, UNLOGGED in-memory book, WAL reduction, coalesced async market data, optional native C extension, **group-commit batch order submission** (`submit_orders` — N orders in one transaction; tune the size with [`scripts/bench-batch.sh`](./scripts/bench-batch.sh), see [TUNING.md](./docs/PERFORMANCE.md)).
 
 ## Verified
 
@@ -130,8 +130,8 @@ double-entry trades/sec** per symbol at **~3.5 ms p50** engine latency, scaling 
 across 6 symbols in parallel (per-symbol advisory-lock isolation). Each "match" is a *durable, ACID,
 double-entry settled* trade — not an in-memory book op. The self-host perf profile
 (`synchronous_commit=off`, native C `banker_round`, UNLOGGED book) and symbol sharding raise the
-ceiling well beyond. Reproduce: `SERVICE=<key> ./scripts/bench.sh`. Full methodology → [BENCH.md](./docs/BENCH.md);
-step-by-step tuning ladder to the ceiling → [TUNING.md](./docs/TUNING.md).
+ceiling well beyond. Reproduce: `SERVICE=<key> ./scripts/bench.sh`. Full methodology → [BENCH.md](./docs/PERFORMANCE.md);
+step-by-step tuning ladder to the ceiling → [TUNING.md](./docs/PERFORMANCE.md).
 
 ## From demo to production
 
@@ -152,7 +152,7 @@ flowchart LR
 1. **Try it** — open the [live demo](https://stars-labs.github.io/pg-outcry/?api=https://axtziasfallmdgssbgsl.supabase.co&anon=sb_publishable_j1Jr-NMeKb_P29JcBRhz6Q_0ZkbVzUc) (trading) and the [back-office](https://stars-labs.github.io/pg-outcry/admin.html?api=https://axtziasfallmdgssbgsl.supabase.co&anon=sb_publishable_j1Jr-NMeKb_P29JcBRhz6Q_0ZkbVzUc). Nothing to install; trading funds come through testnet deposits.
 2. **Run it locally** — [Quickstart](#quickstart) below: `supabase start` + `supabase db reset` gives you the whole exchange (hosted-Supabase profile in [DEPLOY.md](./docs/DEPLOY.md#demo-deploy-to-hosted-supabase)).
 3. **Self-host the high-performance profile** — native C hot-path, WAL tunables, and the market-data ticker: `./scripts/perf-tune-local.sh` → [DEPLOY.md › Local high-performance](./docs/DEPLOY.md#local-high-performance-self-host). What's identical across hosted vs self-host is spelled out in [DEPLOY.md](./docs/DEPLOY.md#whats-identical-across-both).
-4. **Tune to the ceiling** — walk the [tuning ladder](./docs/TUNING.md) and pick the [batch size](./docs/TUNING.md#batch-order-submission-group-commit--tuning-the-batch-size) at your throughput/latency knee, measuring on your hardware with [`scripts/bench-ladder.sh`](./scripts/bench-ladder.sh) and [`scripts/bench-batch.sh`](./scripts/bench-batch.sh).
+4. **Tune to the ceiling** — walk the [tuning ladder](./docs/PERFORMANCE.md) and pick the [batch size](./docs/PERFORMANCE.md#batch-order-submission-group-commit--tuning-the-batch-size) at your throughput/latency knee, measuring on your hardware with [`scripts/bench-ladder.sh`](./scripts/bench-ladder.sh) and [`scripts/bench-batch.sh`](./scripts/bench-batch.sh).
 5. **Go live** — production = self-hosted Supabase (or managed PostgreSQL + PostgREST/Realtime/GoTrue) on your own infra, **or** a paid hosted Supabase project. Apply `synchronous_commit=off` + replication/PITR for durable throughput, [shard by symbol](./docs/PERFORMANCE.md#1-shard-by-symbol) to scale out, and complete the operator [hardening checklist](./SECURITY.md#hardening-checklist-for-operators) before custodying real funds.
 
 ## Quickstart
@@ -199,7 +199,7 @@ Run the verification suite (from repo root, with `ANON`/`SERVICE` exported): the
 - **authenticated** (user JWT) — self-scoped API: `place_order`, `cancel_order`, `my_deposit_address`, `request_withdrawal`. RLS limits all reads to the caller's own entity.
 - **authenticated operator** (user JWT) — current test build grants every signed-in user full back-office permissions by default. `admin_operator_role` / `admin_role_permission` remain in the schema for later tightening; roles such as `treasury`, `risk`, `support`, `finance`, `security`, `auditor`, and `super_admin` map to granular permissions (`wallet.approve`, `market.write`, `audit.read`, etc.).
 - **service_role** (server-side root only) — full engine/admin capability for CI, trusted backend jobs, bootstrap, and the **batch** path `submit_orders(account, instrument, jsonb[])`. Never ship it to browsers.
-- `00670_lockdown.sql` revokes EXECUTE on every engine function from public/anon/authenticated and re-grants only the whitelist, so internal helpers (`create_trade`, `update_price_level`, …) are unreachable by clients.
+- `00040_ledger_perf_lockdown.sql` revokes EXECUTE on every engine function from public/anon/authenticated and re-grants only the whitelist, so internal helpers (`create_trade`, `update_price_level`, …) are unreachable by clients.
 
 ## Realtime feeds
 

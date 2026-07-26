@@ -7,17 +7,11 @@ Every doc is bilingual: an English file and a `*.zh-CN.md` mirror with a languag
 
 | Topic / 主题 | English | 中文 |
 |---|---|---|
-| **Why pg-outcry** — architecture vs top-tier exchanges, SMB advantage (diagrams) / 架构对比与中小所优势 | [WHY.md](./WHY.md) | [WHY.zh-CN.md](./WHY.zh-CN.md) |
-| **Comparison** — vs peatio / OpenCEX / OPEX; gap analysis & roadmap / 与三个开源所对比、差距与路线图 | [COMPARISON.md](./COMPARISON.md) | [COMPARISON.zh-CN.md](./COMPARISON.zh-CN.md) |
-| **On-chain deposits** — watch a chain & credit deposits in pure Postgres (pg_cron+pg_net), testnets / 纯 PG 链上充值监听 | [CHAIN.md](./CHAIN.md) | [CHAIN.zh-CN.md](./CHAIN.zh-CN.md) |
-| **Derivatives & staking** — margin/futures/staking feasibility in pure PG + extension map / 衍生品与质押可行性 | [DERIVATIVES.md](./DERIVATIVES.md) | [DERIVATIVES.zh-CN.md](./DERIVATIVES.zh-CN.md) |
-| **Benchmark** — the two dimensions (engine vs API) + honest numbers / 两个维度与诚实数字 | [BENCH.md](./BENCH.md) | [BENCH.zh-CN.md](./BENCH.zh-CN.md) |
-| **Tuning ladder** — climb from baseline to the ceiling; batch sizing / 从基线到上限、批量调参 | [TUNING.md](./TUNING.md) | [TUNING.zh-CN.md](./TUNING.zh-CN.md) |
+| **Why pg-outcry** — architecture vs top-tier exchanges, SMB advantage, and how it compares to peatio / OpenCEX / OPEX with an honest gap analysis / 架构对比、中小所优势，以及与三个开源交易所的横向对比和差距分析 | [WHY.md](./WHY.md) | [WHY.zh-CN.md](./WHY.zh-CN.md) |
+| **Features** — on-chain custody in pure Postgres (derivation, signing, broadcast, pollers) and derivatives / staking / 纯 PG 链上托管（派生、签名、广播、轮询）与衍生品、质押 | [FEATURES.md](./FEATURES.md) | [FEATURES.zh-CN.md](./FEATURES.zh-CN.md) |
 | **Deploy** — hosted-Supabase demo & self-host high-performance / 托管演示与自建高性能 | [DEPLOY.md](./DEPLOY.md) | [DEPLOY.zh-CN.md](./DEPLOY.zh-CN.md) |
-| **Performance & scaling** — sharding, partitioning, async market data, WAL / 分片、分区、异步行情、WAL | [PERFORMANCE.md](./PERFORMANCE.md) | [PERFORMANCE.zh-CN.md](./PERFORMANCE.zh-CN.md) |
-| **Development** — repo map, smoke tests, dev workflow / 仓库结构、冒烟测试、开发流程 | [DEVELOPMENT.md](./DEVELOPMENT.md) | [DEVELOPMENT.zh-CN.md](./DEVELOPMENT.zh-CN.md) |
-| **Row-Level Security** — table policy model, the auto-RLS footgun, CI guard / RLS 策略模型、自动 RLS 坑、CI 守卫 | [RLS.md](./RLS.md) | [RLS.zh-CN.md](./RLS.zh-CN.md) |
-| **Migration numbering** — 5-digit fixed-width scheme, ordering pitfalls, renumbering a deployed DB / 迁移编号规范、排序陷阱、线上库重编号 | [MIGRATIONS.md](./MIGRATIONS.md) | [MIGRATIONS.zh-CN.md](./MIGRATIONS.zh-CN.md) |
+| **Performance** — scaling plan, the tuning ladder, and honest benchmark numbers / 扩展方案、调优阶梯与诚实的基准数字 | [PERFORMANCE.md](./PERFORMANCE.md) | [PERFORMANCE.zh-CN.md](./PERFORMANCE.zh-CN.md) |
+| **Development** — repo map, smoke tests, migration numbering, and the RLS policy model / 仓库结构、冒烟测试、迁移编号规范与 RLS 策略模型 | [DEVELOPMENT.md](./DEVELOPMENT.md) | [DEVELOPMENT.zh-CN.md](./DEVELOPMENT.zh-CN.md) |
 
 At the repo root: [README](../README.md) · [SECURITY](../SECURITY.md) · [CONTRIBUTING](../CONTRIBUTING.md) · [LICENSE](../LICENSE) · [NOTICE](../NOTICE).
 仓库根目录：[README](../README.zh-CN.md) · [安全](../SECURITY.zh-CN.md) · [贡献](../CONTRIBUTING.zh-CN.md) · [许可证](../LICENSE) · [NOTICE](../NOTICE)。
