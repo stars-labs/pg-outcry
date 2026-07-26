@@ -16,10 +16,10 @@ chk(){ if [ "$2" = "$3" ]; then echo "  ok: $1"; pass=$((pass+1)); else echo "  
 mkacc(){ local x="$1" pub;
   pub=$(arpc create_client "{\"external_id_param\":\"$x\"}" | tr -d '"')
   arpc create_currency_account "{\"app_entity_id_param\":\"$pub\",\"currency_param\":\"BTC\"}" >/dev/null
-  for c in EUR BTC; do arpc process_transfer "{\"type_param\":\"DEPOSIT\",\"from_customer_id_param\":\"MASTER\",\"amount_param\":100000,\"currency_param\":\"$c\",\"to_customer_id_param\":\"$pub\",\"reference_param\":\"s\",\"details_param\":\"s\",\"fee_type_param\":null}" >/dev/null; done
+  for c in USDT BTC; do arpc process_transfer "{\"type_param\":\"DEPOSIT\",\"from_customer_id_param\":\"MASTER\",\"amount_param\":100000,\"currency_param\":\"$c\",\"to_customer_id_param\":\"$pub\",\"reference_param\":\"s\",\"details_param\":\"s\",\"fee_type_param\":null}" >/dev/null; done
   arpc find_instrument_account "{\"external_id_param\":\"$x\"}" | tr -d '"'
 }
-ord(){ arpc submit_order "{\"instrument_account_id_param\":\"$1\",\"instrument_name_param\":\"BTC_EUR\",\"order_type_param\":\"$2\",\"side_param\":\"$3\",\"price_param\":$4,\"amount_param\":$5,\"time_in_force_param\":\"$6\"}" | tr -d '"'; }
+ord(){ arpc submit_order "{\"instrument_account_id_param\":\"$1\",\"instrument_name_param\":\"BTC_USDT\",\"order_type_param\":\"$2\",\"side_param\":\"$3\",\"price_param\":$4,\"amount_param\":$5,\"time_in_force_param\":\"$6\"}" | tr -d '"'; }
 S=$(date +%s)
 LP=$(mkacc "lp_$S"); ST=$(mkacc "st_$S"); TR=$(mkacc "tr_$S")
 

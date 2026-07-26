@@ -12,7 +12,7 @@ signup(){ signup_jwt "$1"; }
 urpc(){ curl -s -X POST "$API/rest/v1/rpc/$2" -H "apikey: $ANON" -H "Authorization: Bearer $1" -H "Content-Type: application/json" -d "$3"; }
 arpc(){ curl -s -X POST "$API/rest/v1/rpc/$1" -H "apikey: $SERVICE" -H "Authorization: Bearer $SERVICE" -H "Content-Type: application/json" -d "$2"; }
 msg(){ echo "$1" | jq -r '.message // .code // .'; }
-ord(){ urpc "$1" place_order "{\"instrument_name_param\":\"BTC_EUR\",\"side_param\":\"$2\",\"order_type_param\":\"LIMIT\",\"price_param\":$3,\"amount_param\":$4,\"time_in_force_param\":\"GTC\"}"; }
+ord(){ urpc "$1" place_order "{\"instrument_name_param\":\"BTC_USDT\",\"side_param\":\"$2\",\"order_type_param\":\"LIMIT\",\"price_param\":$3,\"amount_param\":$4,\"time_in_force_param\":\"GTC\"}"; }
 
 S=$(date +%s); pass=0; fail=0
 chk(){ if [ "$2" = "$3" ]; then echo "  ok: $1"; pass=$((pass+1)); else echo "  FAIL: $1 (got '$2' want '$3')"; fail=$((fail+1)); fi; }
@@ -22,7 +22,7 @@ read -r BT BU <<<"$(signup "rb_$S@ex.com")"
 for uid in "$AU" "$BU"; do
   pub=$(psql "$PGURL" -tAc "select pub_id from app_entity where external_id='$uid'")
   arpc create_currency_account "{\"app_entity_id_param\":\"$pub\",\"currency_param\":\"BTC\"}" >/dev/null
-  for c in EUR BTC; do arpc process_transfer "{\"type_param\":\"DEPOSIT\",\"from_customer_id_param\":\"MASTER\",\"amount_param\":1000,\"currency_param\":\"$c\",\"to_customer_id_param\":\"$pub\",\"reference_param\":\"s\",\"details_param\":\"s\",\"fee_type_param\":null}" >/dev/null; done
+  for c in USDT BTC; do arpc process_transfer "{\"type_param\":\"DEPOSIT\",\"from_customer_id_param\":\"MASTER\",\"amount_param\":1000,\"currency_param\":\"$c\",\"to_customer_id_param\":\"$pub\",\"reference_param\":\"s\",\"details_param\":\"s\",\"fee_type_param\":null}" >/dev/null; done
 done
 
 echo "== establish reference price (trade @100) =="
@@ -35,7 +35,7 @@ chk "price 150 rejected by band"      "$(msg "$(ord "$AT" SELL 150 1)")"   "risk
 chk "amount 1000 rejected by max amt" "$(msg "$(ord "$AT" SELL 100 1000)")" "risk_max_order_amount: 1000 > 100"
 
 echo "== admin widens band -> 150 now allowed =="
-arpc admin_set_instrument_risk '{"instrument_name_param":"BTC_EUR","max_amount":100,"max_notional":100000,"band_pct":60}' >/dev/null
+arpc admin_set_instrument_risk '{"instrument_name_param":"BTC_USDT","max_amount":100,"max_notional":100000,"band_pct":60}' >/dev/null
 R=$(ord "$AT" SELL 150 1); chk "price 150 accepted after widen" "$([ "${#R}" -ge 30 ] && echo ok || msg "$R")" "ok"
 
 echo "== suspend / unsuspend =="
@@ -46,8 +46,8 @@ arpc admin_unsuspend_entity "{\"entity_pub\":\"$APUB\"}" >/dev/null
 R=$(ord "$AT" BUY 100 1); chk "unsuspended user can trade" "$([ "${#R}" -ge 30 ] && echo ok || msg "$R")" "ok"
 
 echo "== fee management + audit log =="
-arpc admin_set_fee '{"fee_type":"TAKER_FEE","currency_param":"EUR","percentage_param":0.1}' >/dev/null
-chk "fee row persisted" "$(psql "$PGURL" -tAc "select percentage from fee where type='TAKER_FEE' and currency_name='EUR'")" "0.1"
+arpc admin_set_fee '{"fee_type":"TAKER_FEE","currency_param":"USDT","percentage_param":0.1}' >/dev/null
+chk "fee row persisted" "$(psql "$PGURL" -tAc "select percentage from fee where type='TAKER_FEE' and currency_name='USDT'")" "0.1"
 chk "audit log has 4 admin actions" "$(psql "$PGURL" -tAc "select count(*) from admin_audit_log")" "4"
 
 echo "== test-open RBAC: signed-in users can call admin RPC during demo =="

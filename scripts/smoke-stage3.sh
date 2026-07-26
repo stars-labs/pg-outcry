@@ -25,16 +25,16 @@ echo "== admin (service_role) funds both =="
 for uid in "$AUID" "$BUID"; do
   pub=$(psql "$PGURL" -tAc "select pub_id from app_entity where external_id='$uid'")
   admin_rpc create_currency_account "{\"app_entity_id_param\":\"$pub\",\"currency_param\":\"BTC\"}" >/dev/null
-  for c in EUR BTC; do
+  for c in USDT BTC; do
     admin_rpc process_transfer "{\"type_param\":\"DEPOSIT\",\"from_customer_id_param\":\"MASTER\",\"amount_param\":1000,\"currency_param\":\"$c\",\"to_customer_id_param\":\"$pub\",\"reference_param\":\"s\",\"details_param\":\"s\",\"fee_type_param\":null}" >/dev/null
   done
 done
 echo "funded alice & bob"
 
 echo "== alice places SELL 1@100 (her JWT, account resolved from auth.uid) =="
-user_rpc "$ATOK" place_order '{"instrument_name_param":"BTC_EUR","side_param":"SELL","order_type_param":"LIMIT","price_param":100,"amount_param":1,"time_in_force_param":"GTC"}'; echo
+user_rpc "$ATOK" place_order '{"instrument_name_param":"BTC_USDT","side_param":"SELL","order_type_param":"LIMIT","price_param":100,"amount_param":1,"time_in_force_param":"GTC"}'; echo
 echo "== bob places crossing BUY 1@100 =="
-user_rpc "$BTOK" place_order '{"instrument_name_param":"BTC_EUR","side_param":"BUY","order_type_param":"LIMIT","price_param":100,"amount_param":1,"time_in_force_param":"GTC"}'; echo
+user_rpc "$BTOK" place_order '{"instrument_name_param":"BTC_USDT","side_param":"BUY","order_type_param":"LIMIT","price_param":100,"amount_param":1,"time_in_force_param":"GTC"}'; echo
 
 echo "-- public trade tape (any authed user):"; user_get "$ATOK" "trade_history?select=price,amount&order=created_at.desc&limit=1"; echo
 echo "-- alice cash_balances (RLS: only her rows):"; user_get "$ATOK" "cash_balances?select=currency,amount,available&order=currency"; echo
@@ -46,7 +46,7 @@ BCNT=$(user_get "$BTOK" "cash_balances?select=app_entity" | jq 'length')
 ANON_CNT=$(curl -s "$API/rest/v1/cash_balances?select=app_entity" -H "apikey: $ANON" | jq 'length')
 echo "alice sees $ACNT balance rows, bob sees $BCNT, anon sees $ANON_CNT"
 echo "alice tries the admin funding RPC (must fail):"
-user_rpc "$ATOK" process_transfer '{"type_param":"DEPOSIT","from_customer_id_param":"MASTER","amount_param":999999,"currency_param":"EUR","to_customer_id_param":"MASTER","reference_param":"x","details_param":"x","fee_type_param":null}'; echo
+user_rpc "$ATOK" process_transfer '{"type_param":"DEPOSIT","from_customer_id_param":"MASTER","amount_param":999999,"currency_param":"USDT","to_customer_id_param":"MASTER","reference_param":"x","details_param":"x","fee_type_param":null}'; echo
 
 test "$ACNT" -ge 1 && test "$BCNT" -ge 1 && test "$ANON_CNT" -eq 0 \
   && echo "PASS: each user sees only their own balances; anon sees none" \

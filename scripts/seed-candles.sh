@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Demo-only: insert a back-dated random-walk of BTC_EUR trades so the K-line chart
+# Demo-only: insert a back-dated random-walk of BTC_USDT trades so the K-line chart
 # has history to render. These are SYNTHETIC visual rows (FKs point at one real
 # resting order); they don't correspond to real fills. For real candles, let the
 # market simulator / live trading populate the tape over time.
@@ -10,7 +10,7 @@ psql "$PGURL" -v ON_ERROR_STOP=1 <<SQL
 DO \$\$
 DECLARE iid bigint; oid bigint; px numeric := 100; i int;
 BEGIN
-  SELECT id INTO iid FROM instrument WHERE name='BTC_EUR';
+  SELECT id INTO iid FROM instrument WHERE name='BTC_USDT';
   SELECT id INTO oid FROM trade_order WHERE instrument_id=iid ORDER BY id LIMIT 1;
   IF oid IS NULL THEN RAISE EXCEPTION 'no trade_order to reference — run seed-demo.sh first'; END IF;
   FOR i IN 1..${N} LOOP
@@ -26,7 +26,7 @@ BEGIN
       now() - ((${N}-i) || ' minutes')::interval
     );
   END LOOP;
-  RAISE NOTICE 'inserted ${N} synthetic trades for BTC_EUR candles';
+  RAISE NOTICE 'inserted ${N} synthetic trades for BTC_USDT candles';
 END\$\$;
 SQL
 echo "done. K-line now has ~${N}m of history."

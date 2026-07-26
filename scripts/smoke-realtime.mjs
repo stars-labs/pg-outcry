@@ -9,9 +9,9 @@ const sb = createClient(API, KEY);
 const rpc = (fn, b) => sb.rpc(fn, b).then(({ data, error }) => { if (error) throw new Error(`${fn}: ${error.message}`); return data; });
 
 const got = new Promise((resolve) => {
-  sb.channel("md:BTC_EUR")
+  sb.channel("md:BTC_USDT")
     .on("broadcast", { event: "trade" }, ({ payload }) => resolve(payload))
-    .subscribe((s) => console.log("[realtime] md:BTC_EUR channel:", s));
+    .subscribe((s) => console.log("[realtime] md:BTC_USDT channel:", s));
 });
 await new Promise((r) => setTimeout(r, 3500));
 
@@ -23,12 +23,12 @@ const dep = (to, cur) => rpc("process_transfer", {
   type_param: "DEPOSIT", from_customer_id_param: "MASTER", amount_param: 1000,
   currency_param: cur, to_customer_id_param: to, reference_param: "rt", details_param: "rt", fee_type_param: null,
 });
-for (const id of [a, b]) { await dep(id, "EUR"); await dep(id, "BTC"); }
+for (const id of [a, b]) { await dep(id, "USDT"); await dep(id, "BTC"); }
 
 const sellIA = await rpc("find_instrument_account", { external_id_param: `rt_sell_${suffix}` });
 const buyIA = await rpc("find_instrument_account", { external_id_param: `rt_buy_${suffix}` });
 const order = (ia, side) => rpc("submit_order", {
-  instrument_account_id_param: ia, instrument_name_param: "BTC_EUR", order_type_param: "LIMIT",
+  instrument_account_id_param: ia, instrument_name_param: "BTC_USDT", order_type_param: "LIMIT",
   side_param: side, price_param: 100, amount_param: 1, time_in_force_param: "GTC",
 });
 await order(sellIA, "SELL");

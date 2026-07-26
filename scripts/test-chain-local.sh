@@ -54,7 +54,7 @@ psql "$PGURL" -q -f "$REPO/supabase/chain/pollers.sql" >/dev/null
 psql "$PGURL" -X -v ON_ERROR_STOP=1 -v tok="$(echo "$TOKEN" | tr 'A-Z' 'a-z')" -v rpc="$HOSTURL" -v acct1="$ACCT1" <<'SQL'
 update chain set rpc_url=:'rpc', confirmations=1, enabled=true where name='ethereum-sepolia';
 delete from chain_asset where chain='ethereum-sepolia';
-insert into chain_asset(chain,token,currency,decimals) values ('ethereum-sepolia', :'tok','EUR',18);
+insert into chain_asset(chain,token,currency,decimals) values ('ethereum-sepolia', :'tok','USDT',18);
 select set_config('t.eid', (select id::text from app_entity where pub_id=create_client('chain-local-test')), false);
 delete from watched_address where address=:'acct1';
 insert into watched_address(app_entity_id,chain,address) values (current_setting('t.eid')::bigint,'ethereum-sepolia',:'acct1');
@@ -62,11 +62,11 @@ delete from chain_cursor where chain='ethereum-sepolia';
 \echo --- before ---
 select currency_name, amount from currency_account where app_entity_id=current_setting('t.eid')::bigint;
 select 'poll_evm credited '||poll_evm('ethereum-sepolia')||' deposit(s)' as result;
-\echo --- after (expect EUR = 2.5) ---
+\echo --- after (expect USDT = 2.5) ---
 select currency_name, amount from currency_account where app_entity_id=current_setting('t.eid')::bigint;
 select chain, amount, confirmations, (credited_at is not null) as credited from chain_deposit where address=:'acct1';
 -- teardown config
 update chain set enabled=false, rpc_url=null where name='ethereum-sepolia';
 select cron.unschedule('poll-chain-deposits') where exists(select 1 from cron.job where jobname='poll-chain-deposits');
 SQL
-echo "✓ done — EUR should read 2.5 (2.5 tokens credited from the on-chain Transfer)"
+echo "✓ done — USDT should read 2.5 (2.5 tokens credited from the on-chain Transfer)"

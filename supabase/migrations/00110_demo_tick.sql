@@ -89,7 +89,30 @@ end $$;
 revoke execute on function demo_market_prune() from public, anon, authenticated;
 grant  execute on function demo_market_prune() to service_role;
 
-do $$ begin perform cron.unschedule('demo-market-tick'); exception when others then null; end $$;
-do $$ begin perform cron.schedule('demo-market-tick', '* * * * *', 'select demo_market_tick()'); exception when others then null; end $$;
+-- Opt-in, NOT scheduled by the migration: synthetic liquidity would otherwise run
+-- on every self-host and in CI, where it pollutes tests that assert on trade
+-- prices. The public demo turns it on explicitly.
+create or replace function demo_enable_liquidity() returns boolean
+  language plpgsql security definer set search_path = public, pg_temp as $$
+begin
+  perform cron.schedule('demo-market-tick',  '* * * * *',   'select demo_market_tick()');
+  perform cron.schedule('demo-market-prune', '*/10 * * * *','select demo_market_prune()');
+  return true;
+exception when others then
+  raise warning 'demo_enable_liquidity: %', sqlerrm; return false;
+end $$;
+
+create or replace function demo_disable_liquidity() returns boolean
+  language plpgsql security definer set search_path = public, pg_temp as $$
+begin
+  begin perform cron.unschedule('demo-market-tick');  exception when others then null; end;
+  begin perform cron.unschedule('demo-market-prune'); exception when others then null; end;
+  return true;
+end $$;
+
+revoke execute on function demo_enable_liquidity(), demo_disable_liquidity() from public, anon, authenticated;
+grant  execute on function demo_enable_liquidity(), demo_disable_liquidity() to service_role;
+
+-- a migration re-run must not silently re-arm it
+do $$ begin perform cron.unschedule('demo-market-tick');  exception when others then null; end $$;
 do $$ begin perform cron.unschedule('demo-market-prune'); exception when others then null; end $$;
-do $$ begin perform cron.schedule('demo-market-prune', '*/10 * * * *', 'select demo_market_prune()'); exception when others then null; end $$;

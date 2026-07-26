@@ -19,22 +19,22 @@ echo "cfg  : shared_buffers=$(psqlq 'show shared_buffers') synchronous_commit=$(
 echo "engine banker_round: $(psqlq "select l.lanname from pg_proc p join pg_language l on l.oid=p.prolang where proname='banker_round'")"
 echo
 
-# ---- funded maker/taker on BTC_EUR ----
+# ---- funded maker/taker on BTC_USDT ----
 mk(){ p=$(arpc create_client "{\"external_id_param\":\"$1\"}"|tr -d '"'); arpc create_currency_account "{\"app_entity_id_param\":\"$p\",\"currency_param\":\"BTC\"}">/dev/null
-  for c in EUR BTC; do arpc process_transfer "{\"type_param\":\"DEPOSIT\",\"from_customer_id_param\":\"MASTER\",\"amount_param\":1000000000,\"currency_param\":\"$c\",\"to_customer_id_param\":\"$p\",\"reference_param\":\"b\",\"details_param\":\"b\",\"fee_type_param\":null}">/dev/null; done
+  for c in USDT BTC; do arpc process_transfer "{\"type_param\":\"DEPOSIT\",\"from_customer_id_param\":\"MASTER\",\"amount_param\":1000000000,\"currency_param\":\"$c\",\"to_customer_id_param\":\"$p\",\"reference_param\":\"b\",\"details_param\":\"b\",\"fee_type_param\":null}">/dev/null; done
   arpc find_instrument_account "{\"external_id_param\":\"$1\"}"|tr -d '"'; }
 T=$(date +%s); M=$(mk "bM_$T"); K=$(mk "bK_$T")
 
-echo "── 1) sequential throughput + engine latency (BTC_EUR, $PAIRS matched pairs) ──"
+echo "── 1) sequential throughput + engine latency (BTC_USDT, $PAIRS matched pairs) ──"
 psql "$PGURL" -qX <<SQL
 CREATE TEMP TABLE _lat(us double precision);
 DO \$\$
 DECLARE i int; t0 timestamptz;
 BEGIN
   FOR i IN 1..$PAIRS LOOP
-    PERFORM submit_order('$M','BTC_EUR','LIMIT','SELL',100,1,'GTC');   -- resting maker (untimed)
+    PERFORM submit_order('$M','BTC_USDT','LIMIT','SELL',100,1,'GTC');   -- resting maker (untimed)
     t0 := clock_timestamp();
-    PERFORM submit_order('$K','BTC_EUR','LIMIT','BUY',100,1,'GTC');    -- taker: match + double-entry settle
+    PERFORM submit_order('$K','BTC_USDT','LIMIT','BUY',100,1,'GTC');    -- taker: match + double-entry settle
     INSERT INTO _lat VALUES (extract(epoch FROM clock_timestamp()-t0)*1e6);
   END LOOP;
 END\$\$;
@@ -52,7 +52,7 @@ echo
 echo "── 2) end-to-end latency over PostgREST/HTTP (100 orders) ──"
 M="$M" API="$API" SERVICE="$SERVICE" node -e '
   const API=process.env.API, KEY=process.env.SERVICE, IA=process.env.M;
-  const t=[]; const body=JSON.stringify({instrument_account_id_param:IA,instrument_name_param:"BTC_EUR",order_type_param:"LIMIT",side_param:"SELL",price_param:50,amount_param:1,time_in_force_param:"GTC"});
+  const t=[]; const body=JSON.stringify({instrument_account_id_param:IA,instrument_name_param:"BTC_USDT",order_type_param:"LIMIT",side_param:"SELL",price_param:50,amount_param:1,time_in_force_param:"GTC"});
   (async()=>{ for(let i=0;i<100;i++){ const s=performance.now();
       await fetch(`${API}/rest/v1/rpc/submit_order`,{method:"POST",headers:{apikey:KEY,Authorization:`Bearer ${KEY}`,"Content-Type":"application/json"},body}).then(r=>r.text());
       t.push(performance.now()-s); }
@@ -68,10 +68,10 @@ for n in $(seq 0 $((SHARDS-1))); do
   cur="Q${T}_$n"; inst="${cur}_EUR"
   psqlq "insert into currency(name,precision) values ('$cur',5) on conflict do nothing" >/dev/null
   arpc create_currency_account "{\"app_entity_id_param\":\"MASTER\",\"currency_param\":\"$cur\"}">/dev/null 2>&1 || true
-  psqlq "insert into instrument(name,base_currency,quote_currency,fx_instrument) values ('$inst','$cur','EUR',true) on conflict do nothing" >/dev/null
+  psqlq "insert into instrument(name,base_currency,quote_currency,fx_instrument) values ('$inst','$cur','USDT',true) on conflict do nothing" >/dev/null
   mm=$(arpc create_client "{\"external_id_param\":\"m${n}_$T\"}"|tr -d '"'); tk=$(arpc create_client "{\"external_id_param\":\"t${n}_$T\"}"|tr -d '"')
   for who in "$mm" "$tk"; do arpc create_currency_account "{\"app_entity_id_param\":\"$who\",\"currency_param\":\"$cur\"}">/dev/null
-    for c in EUR "$cur"; do arpc process_transfer "{\"type_param\":\"DEPOSIT\",\"from_customer_id_param\":\"MASTER\",\"amount_param\":1000000000,\"currency_param\":\"$c\",\"to_customer_id_param\":\"$who\",\"reference_param\":\"b\",\"details_param\":\"b\",\"fee_type_param\":null}">/dev/null; done; done
+    for c in USDT "$cur"; do arpc process_transfer "{\"type_param\":\"DEPOSIT\",\"from_customer_id_param\":\"MASTER\",\"amount_param\":1000000000,\"currency_param\":\"$c\",\"to_customer_id_param\":\"$who\",\"reference_param\":\"b\",\"details_param\":\"b\",\"fee_type_param\":null}">/dev/null; done; done
   echo "$(arpc find_instrument_account "{\"external_id_param\":\"m${n}_$T\"}"|tr -d '"') $(arpc find_instrument_account "{\"external_id_param\":\"t${n}_$T\"}"|tr -d '"') $inst" >> /tmp/bench_shards
 done
 run_shard(){ read -r mia tia inst <<<"$1"; psql "$PGURL" -qXc "DO \$\$ BEGIN FOR i IN 1..$SHARD_PAIRS LOOP PERFORM submit_order('$mia','$inst','LIMIT','SELL',100,1,'GTC'); PERFORM submit_order('$tia','$inst','LIMIT','BUY',100,1,'GTC'); END LOOP; END\$\$"; }

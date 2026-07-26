@@ -24,18 +24,18 @@ STAMP="$(date +%s)"
 ADDR="0xIDEM$STAMP"
 TXID="0xIDEM$STAMP"
 urpc "$TOK" register_deposit_address "{\"chain_param\":\"ethereum-sepolia\",\"address_param\":\"$ADDR\"}" >/dev/null
-C1=$(arpc credit_chain_deposit "{\"chain_param\":\"ethereum-sepolia\",\"txid_param\":\"$TXID\",\"log_index_param\":0,\"address_param\":\"$ADDR\",\"currency_param\":\"EUR\",\"amount_param\":500,\"confirmations_param\":20}" | tr -d '"')
-C2=$(arpc credit_chain_deposit "{\"chain_param\":\"ethereum-sepolia\",\"txid_param\":\"$TXID\",\"log_index_param\":0,\"address_param\":\"$ADDR\",\"currency_param\":\"EUR\",\"amount_param\":500,\"confirmations_param\":30}" | tr -d '"')
+C1=$(arpc credit_chain_deposit "{\"chain_param\":\"ethereum-sepolia\",\"txid_param\":\"$TXID\",\"log_index_param\":0,\"address_param\":\"$ADDR\",\"currency_param\":\"USDT\",\"amount_param\":500,\"confirmations_param\":20}" | tr -d '"')
+C2=$(arpc credit_chain_deposit "{\"chain_param\":\"ethereum-sepolia\",\"txid_param\":\"$TXID\",\"log_index_param\":0,\"address_param\":\"$ADDR\",\"currency_param\":\"USDT\",\"amount_param\":500,\"confirmations_param\":30}" | tr -d '"')
 chk "first credit succeeds" "$C1" "credited"
 chk "duplicate tx is ignored" "$C2" "duplicate"
 chk "only one chain_deposit row for tx" "$(psql "$PGURL" -tAc "select count(*) from chain_deposit where txid='$TXID' and address='$ADDR'")" "1"
-chk "credited once (EUR amount=500)" "$(psql "$PGURL" -tAc "select amount from currency_account where app_entity_id=$EID and currency_name='EUR'")" "500.00"
+chk "credited once (USDT amount=500)" "$(psql "$PGURL" -tAc "select amount from currency_account where app_entity_id=$EID and currency_name='USDT'")" "500.00"
 
 echo "== withdrawal idempotency: same key twice -> reserved once =="
-W1=$(urpc "$TOK" request_withdrawal '{"currency_param":"EUR","amount_param":200,"idempotency_key_param":"wd-001"}' | tr -d '"')
-W2=$(urpc "$TOK" request_withdrawal '{"currency_param":"EUR","amount_param":200,"idempotency_key_param":"wd-001"}' | tr -d '"')
+W1=$(urpc "$TOK" request_withdrawal '{"currency_param":"USDT","amount_param":200,"idempotency_key_param":"wd-001"}' | tr -d '"')
+W2=$(urpc "$TOK" request_withdrawal '{"currency_param":"USDT","amount_param":200,"idempotency_key_param":"wd-001"}' | tr -d '"')
 chk "same withdrawal pub_id" "$W1" "$W2"
-chk "reserved only once (=200)" "$(psql "$PGURL" -tAc "select amount_reserved from currency_account where app_entity_id=$EID and currency_name='EUR'")" "200.00"
+chk "reserved only once (=200)" "$(psql "$PGURL" -tAc "select amount_reserved from currency_account where app_entity_id=$EID and currency_name='USDT'")" "200.00"
 
 echo "== append-only ledger: UPDATE/DELETE rejected =="
 UPD=$(psql "$PGURL" -tAc "update transfer_ledger_entry set amount=amount+1 where id=(select id from transfer_ledger_entry limit 1)" 2>&1 || true)

@@ -25,7 +25,7 @@ const fund = async (uid) => {
   const { execSync } = await import("node:child_process");
   const pub = execSync(`psql "${PG}" -tAc "select pub_id from app_entity where external_id='${uid}'"`).toString().trim();
   await arpc("create_currency_account", { app_entity_id_param: pub, currency_param: "BTC" });
-  for (const c of ["EUR", "BTC"])
+  for (const c of ["USDT", "BTC"])
     await arpc("process_transfer", { type_param: "DEPOSIT", from_customer_id_param: "MASTER", amount_param: 1000, currency_param: c, to_customer_id_param: pub, reference_param: "s", details_param: "s", fee_type_param: null });
 };
 
@@ -57,7 +57,7 @@ const userRpc = (jwt, fn, b) => fetch(`${API}/rest/v1/rpc/${fn}`, {
   body: JSON.stringify(b),
 }).then((x) => x.json());
 const order = (jwt, side, price, amount) => userRpc(jwt, "place_order",
-  { instrument_name_param: "BTC_EUR", side_param: side, order_type_param: "LIMIT", price_param: price, amount_param: amount, time_in_force_param: "GTC" });
+  { instrument_name_param: "BTC_USDT", side_param: side, order_type_param: "LIMIT", price_param: price, amount_param: amount, time_in_force_param: "GTC" });
 
 const aSell = (await order(A.jwt, "SELL", 100, 1)).toString().replace(/"/g, "");
 const bBuy  = (await order(B.jwt, "BUY", 100, 1)).toString().replace(/"/g, "");  // fully crosses
@@ -86,7 +86,7 @@ await new Promise((res) => {
     .subscribe((s) => s === "SUBSCRIBED" && res());
 });
 await new Promise((r) => setTimeout(r, 1000));
-const wreq = (await userRpc(A.jwt, "request_withdrawal", { currency_param: "EUR", amount_param: 50 })).toString().replace(/"/g, "");
+const wreq = (await userRpc(A.jwt, "request_withdrawal", { currency_param: "USDT", amount_param: 50 })).toString().replace(/"/g, "");
 await arpc("approve_wallet_request", { request_pub_param: wreq });
 await new Promise((r) => setTimeout(r, 3500));
 const walletApproved = walletEvents.some((e) => e.pub_id === wreq && e.status === "APPROVED");

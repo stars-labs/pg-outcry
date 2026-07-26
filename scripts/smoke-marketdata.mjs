@@ -10,9 +10,9 @@ const sb = createClient(API, KEY);
 const rpc = (fn, b) => sb.rpc(fn, b).then(({ data, error }) => { if (error) throw new Error(`${fn}: ${error.message}`); return data; });
 
 const got = new Promise((res) => {
-  sb.channel("md:BTC_EUR")
+  sb.channel("md:BTC_USDT")
     .on("broadcast", { event: "l2" }, ({ payload }) => res(payload))
-    .subscribe((s) => console.log("[realtime] md:BTC_EUR channel:", s));
+    .subscribe((s) => console.log("[realtime] md:BTC_USDT channel:", s));
 });
 await new Promise((r) => setTimeout(r, 3500));
 
@@ -21,7 +21,7 @@ const a = await rpc("create_client", { external_id_param: `md_${s}` });
 await rpc("create_currency_account", { app_entity_id_param: a, currency_param: "BTC" });
 await rpc("process_transfer", { type_param: "DEPOSIT", from_customer_id_param: "MASTER", amount_param: 1000, currency_param: "BTC", to_customer_id_param: a, reference_param: "md", details_param: "md", fee_type_param: null });
 const ia = await rpc("find_instrument_account", { external_id_param: `md_${s}` });
-await rpc("submit_order", { instrument_account_id_param: ia, instrument_name_param: "BTC_EUR", order_type_param: "LIMIT", side_param: "SELL", price_param: 123, amount_param: 1, time_in_force_param: "GTC" });
+await rpc("submit_order", { instrument_account_id_param: ia, instrument_name_param: "BTC_USDT", order_type_param: "LIMIT", side_param: "SELL", price_param: 123, amount_param: 1, time_in_force_param: "GTC" });
 const flushed = await rpc("broadcast_md");   // ticker would do this every 100ms
 console.log(`[rpc] resting SELL @123 placed, broadcast_md flushed ${flushed} book(s)`);
 

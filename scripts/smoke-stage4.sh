@@ -14,30 +14,30 @@ signup(){ signup_jwt "$1" | cut -d" " -f1; }
 urpc(){ curl -s -X POST "$API/rest/v1/rpc/$2" -H "apikey: $ANON" -H "Authorization: Bearer $1" -H "Content-Type: application/json" -d "$3"; }
 uget(){ curl -s "$API/rest/v1/$2" -H "apikey: $ANON" -H "Authorization: Bearer $1"; }
 arpc(){ curl -s -X POST "$API/rest/v1/rpc/$1" -H "apikey: $SERVICE" -H "Authorization: Bearer $SERVICE" -H "Content-Type: application/json" -d "$2"; }
-eur(){ uget "$1" "cash_balances?currency=eq.EUR&select=amount,amount_reserved,available" | jq -c '.[0]'; }
+eur(){ uget "$1" "cash_balances?currency=eq.USDT&select=amount,amount_reserved,available" | jq -c '.[0]'; }
 
 TOK=$(signup "w_$(date +%s)@ex.com")
-echo "initial EUR: $(eur "$TOK")  (new account, expect zeros)"
+echo "initial USDT: $(eur "$TOK")  (new account, expect zeros)"
 
-echo "== deposit: register address, chain watcher credits 500 EUR =="
+echo "== deposit: register address, chain watcher credits 500 USDT =="
 STAMP="$(date +%s)"
 ADDR="0xSTAGE4$STAMP"
 urpc "$TOK" register_deposit_address "{\"chain_param\":\"ethereum-sepolia\",\"address_param\":\"$ADDR\"}" >/dev/null
-arpc credit_chain_deposit "{\"chain_param\":\"ethereum-sepolia\",\"txid_param\":\"0xSTAGE4$STAMP\",\"log_index_param\":0,\"address_param\":\"$ADDR\",\"currency_param\":\"EUR\",\"amount_param\":500,\"confirmations_param\":20}" >/dev/null
+arpc credit_chain_deposit "{\"chain_param\":\"ethereum-sepolia\",\"txid_param\":\"0xSTAGE4$STAMP\",\"log_index_param\":0,\"address_param\":\"$ADDR\",\"currency_param\":\"USDT\",\"amount_param\":500,\"confirmations_param\":20}" >/dev/null
 echo "after deposit:    $(eur "$TOK")  (expect amount 500, available 500)"
 
 echo "== legacy wallet deposit requests are disabled =="
-DISABLED=$(urpc "$TOK" request_deposit '{"currency_param":"EUR","amount_param":1}')
+DISABLED=$(urpc "$TOK" request_deposit '{"currency_param":"USDT","amount_param":1}')
 echo "$DISABLED"
 
-echo "== withdrawal: request 200 EUR (reserves), admin approves (debits) =="
-WREQ=$(urpc "$TOK" request_withdrawal '{"currency_param":"EUR","amount_param":200}' | tr -d '"')
+echo "== withdrawal: request 200 USDT (reserves), admin approves (debits) =="
+WREQ=$(urpc "$TOK" request_withdrawal '{"currency_param":"USDT","amount_param":200}' | tr -d '"')
 echo "after request:    $(eur "$TOK")  (expect amount 500, reserved 200, available 300)"
 arpc approve_wallet_request "{\"request_pub_param\":\"$WREQ\"}" >/dev/null
 echo "after approve:    $(eur "$TOK")  (expect amount 300, reserved 0, available 300)"
 
 echo "== withdrawal reject releases the reservation =="
-RREQ=$(urpc "$TOK" request_withdrawal '{"currency_param":"EUR","amount_param":100}' | tr -d '"')
+RREQ=$(urpc "$TOK" request_withdrawal '{"currency_param":"USDT","amount_param":100}' | tr -d '"')
 echo "after request:    $(eur "$TOK")  (expect amount 300, reserved 100, available 200)"
 arpc reject_wallet_request "{\"request_pub_param\":\"$RREQ\"}" >/dev/null
 echo "after reject:     $(eur "$TOK")  (expect amount 300, reserved 0, available 300)"
@@ -46,7 +46,7 @@ echo "== user sees own wallet history (RLS) =="
 uget "$TOK" "wallet_request?select=direction,currency,amount,status&order=created_at" ; echo
 
 echo "== test-open RBAC: signed-in users can approve during demo =="
-FRESH=$(urpc "$TOK" request_withdrawal '{"currency_param":"EUR","amount_param":1}' | tr -d '"')
+FRESH=$(urpc "$TOK" request_withdrawal '{"currency_param":"USDT","amount_param":1}' | tr -d '"')
 OPEN_APPROVE=$(urpc "$TOK" approve_wallet_request "{\"request_pub_param\":\"$FRESH\"}")
 echo "$OPEN_APPROVE"
 
