@@ -16,7 +16,7 @@
 | 提现签名与确认 | `pg_cron` | 按链 |
 | `roll-partitions` —— 建下个月的成交/账本分区 | `pg_cron` | 每天 |
 | `scripts/check-drift.sh` —— 线上库 vs 本仓库 | CI / 手动 | 每次部署 |
-| `mm_tick()` —— 锚定币安的房屋做市商（仅在有交易对启用时） | `pg_cron` | 5 秒 |
+| `mm_tick()` —— 锚定币安的做市商（仅在有交易对启用时） | `pg_cron` | 5 秒 |
 
 ### 接通告警（收真实充值之前必须做）
 
@@ -35,32 +35,39 @@ select ops_notify_alerts();          -- 期望返回 1，且频道里收到消�
 delete from reconcile_alert where check_name = 'test_page';
 ```
 
-## 房屋做市商（锚定币安）
+## 做市商（锚定币安）
 
-`mm_tick()` 用房屋账户 `HOUSE_MM` 的自有资金，以币安盘口
-（`data-api.binance.vision` bookTicker，库内用 `http` 扩展拉取）为中心挂一组梯度报价。
-用户成交的对手是真实的自有资金；锚定价同时作为限价带、永续指数价和保证金估值的参考。
+`mm_tick()` 以币安盘口（`data-api.binance.vision` bookTicker，库内用 `http` 扩展拉取）
+为中心挂一组梯度报价。它用一个**普通客户账户**交易，资金由你真实充值；不从 MASTER
+转出任何钱，所以做市商不能凭空产生余额，`custody_funding_exposure` 像检查其他客户一样检查它。
+锚定价同时作为限价带、永续指数价和保证金估值的参考。
 
 ```mermaid
 flowchart LR
   B["币安 bookTicker"] -->|"http_get，每 5 秒"| R["mm_state.ref_bid / ref_ask"]
   R --> Q["mm_quote：先撤单，再按库存偏移挂梯度"]
+  W["做市账户<br/>（链上充值入金）"] --> Q
   Q --> OB["订单簿"]
   U["偏离锚定价的用户挂单"] --> OB
   OB -->|"重新报价时吃掉它"| Q
   R --> P["reference_price → 限价带 · 永续标记价 · 保证金"]
 ```
 
-在后台（**Markets → Market Maker**）操作，或以 service_role 执行 SQL：
+开通步骤：
+
+1. 在交易终端注册一个**专用**账户（如 `mm@yourdomain`）。不要用它手动下单：每一轮都会撤掉它在该交易对上的所有挂单。
+2. 登录该账户，**Wallet → Deposit**，把 USDT 和 BTC 链上转到它的充值地址，链上确认后到账。
+3. 后台 **Markets → Market Maker**：按邮箱指定该账户、调参数、**Enable**。或以 service_role 执行：
 
 ```sql
-select admin_mm_fund('USDT', 200000);                    -- 注入自有资金（负数为取回）
-select admin_mm_fund('BTC', 2);
+select admin_mm_set_account('BTC_USDT', 'mm@yourdomain');
 select admin_mm_configure('BTC_USDT', '{"target_base": 2, "max_skew_base": 1,
                           "half_spread_bps": 5, "levels": 5, "level_size": 0.01}');
 select admin_mm_set_enabled('BTC_USDT', true);           -- 同时挂上 5 秒的 pg_cron 任务
 select admin_mm_status();
 ```
+
+取钱：先 **Disable**（撤单，释放冻结余额），再以该账户走正常提现流程。只有在关闭状态下才能更换做市账户。
 
 | 参数 | 含义 |
 |---|---|
@@ -69,12 +76,9 @@ select admin_mm_status();
 | `target_base`、`max_skew_base`、`skew_bps` | 目标库存；偏离达到 `max_skew_base` 时停掉会继续加仓的一边，报价整体偏移 `skew_bps` |
 | `max_ref_age_s`、`max_ref_move_pct` | 币安数据过期或两次拉取间跳变超过阈值时撤掉全部报价 |
 
-`status` 为 `quoting`、`paused`（附 `reason`：`reference_stale`、`reference_jump`、
-`fetch_failed`、`quote_failed`、`no_float`）或 `disabled`。关闭时同一调用内撤单。
-库存不在币安对冲：资金规模按"价格单边走时可接受的亏损"来定。
-
-`demo_prints`（`admin_mm_set_enabled(pair, true, true)`）让 `HOUSE_MM_TAKER`
-偶尔吃一小口做市报价，使空闲的演示站也有成交。这是合成成交量，有真实用户时必须关闭。
+`status` 为 `quoting`、`paused`（附 `reason`：`no_maker_account`、`reference_stale`、
+`reference_jump`、`fetch_failed`、`quote_failed`、`no_balance`）或 `disabled`。
+库存不在币安对冲：充值金额按"价格单边走时可接受的亏损"来定。
 
 ## 漂移：线上库 vs 本仓库
 

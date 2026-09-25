@@ -138,7 +138,7 @@ function syncActionState() {
     ["mmEnable", "market.write"],
     ["mmDisable", "market.write"],
     ["mmConfigure", "market.write"],
-    ["mmFund", "market.write"],
+    ["mmSetAccount", "market.write"],
   ];
   for (const [id, perm] of pairs) {
     const b = el(id);
@@ -362,8 +362,8 @@ async function loadMarketMaker() {
   el("mmWhen").textContent = new Date().toLocaleTimeString();
   const age = (t) => t ? `${Math.max(0, Math.round((Date.now() - Date.parse(t)) / 1000))}s ago` : "—";
   const cls = (s) => s === "quoting" ? "up" : s === "paused" ? "down" : "";
-  el("mm").innerHTML = (rows && rows.length) ? `<table><thead><tr><th>Pair</th><th>Status</th><th>Binance bid / ask</th><th>Our bid / ask</th><th>Base float</th><th>Quote float</th><th>Spread · levels · size</th></tr></thead><tbody>${
-    rows.map((m) => `<tr><td>${escH(m.instrument)}</td>
+  el("mm").innerHTML = (rows && rows.length) ? `<table><thead><tr><th>Pair</th><th>Account</th><th>Status</th><th>Binance bid / ask</th><th>Our bid / ask</th><th>Base balance</th><th>Quote balance</th><th>Spread · levels · size</th></tr></thead><tbody>${
+    rows.map((m) => `<tr><td>${escH(m.instrument)}</td><td>${escH(m.maker_email || "not assigned")}</td>
       <td class="${cls(m.status)}" title="${escH(m.reason || "")}">${escH(m.status)}${m.reason ? ` · ${escH(m.reason)}` : ""}</td>
       <td class="mono-num">${fmt(m.ref_bid, 2)} / ${fmt(m.ref_ask, 2)} <span class="label">${age(m.ref_at)}</span></td>
       <td class="mono-num">${fmt(m.quoted_bid, 2)} / ${fmt(m.quoted_ask, 2)}</td>
@@ -390,12 +390,12 @@ el("mmConfigure").onclick = async () => {
   if (!Object.keys(settings).length) { toast("enter at least one setting", "err"); return; }
   await rpc("admin_mm_configure", { instrument_param: mmInst(), settings }); toast("Settings saved"); loadMarketMaker(); loadAudit();
 };
-el("mmFund").onclick = async () => {
+el("mmSetAccount").onclick = async () => {
   if (!can("market.write")) return toast("requires market.write", "err");
-  const c = el("mmFundCur").value.trim(), a = parseFloat(el("mmFundAmt").value);
-  if (!c || !Number.isFinite(a) || a === 0) { toast("currency and a non-zero amount required", "err"); return; }
-  const left = await rpc("admin_mm_fund", { currency_param: c, amount_param: a });
-  toast(`Float now ${fmt(left, 4)} ${c}`); loadMarketMaker(); loadAudit();
+  const email = el("mmEmail").value.trim();
+  if (!email) { toast("maker account email required", "err"); return; }
+  await rpc("admin_mm_set_account", { instrument_param: mmInst(), email_param: email });
+  toast("Maker account assigned"); loadMarketMaker(); loadAudit();
 };
 
 // ---- referral payouts (operator) ----
