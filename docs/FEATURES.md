@@ -68,6 +68,21 @@ Postgres and asserts the deposit is credited (EUR = 2.5). Requires `supabase sta
 The EVM log decoder (`hex_to_numeric` + topic/data parsing) is also checked deterministically against
 a real Transfer-log shape — including 256-bit amounts that overflow a naive `int64` parse.
 
+### Bitcoin testnet4 (migration `00160`)
+
+Users pick **BTC → Bitcoin · testnet4** under Wallet → Deposit and get a native segwit
+`tb1q…` address, derived in-DB from the HD master seed (secp256k1 → compressed pubkey →
+`hash160` → bech32; checked against the BIP-173 vectors). `poll_bitcoin` reads an Esplora API
+(`https://mempool.space/testnet4/api` by default) and credits every output paying a watched
+address through `credit_chain_deposit`, keyed `(txid, vout)`, after 2 confirmations. The chain
+ships disabled; turn it on with:
+
+```sql
+select admin_set_chain_config('bitcoin-testnet4', enabled_param => true);
+```
+
+Deposits only: there is no BTC withdrawal signer yet.
+
 ### Confirmations & idempotency
 
 `chain.confirmations` defaults: Sepolia 12, Tron Nile 19, Solana 32. `credit_chain_deposit` records

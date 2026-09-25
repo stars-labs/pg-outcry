@@ -64,6 +64,19 @@ foundry + docker：
 EVM 日志解码（`hex_to_numeric` + topic/data 解析）也用真实 Transfer 日志的形状做了确定性校验 ——
 包括会让朴素 `int64` 解析溢出的 256 位金额。
 
+### 比特币 testnet4（迁移 `00160`）
+
+用户在 Wallet → Deposit 选 **BTC → Bitcoin · testnet4**，得到原生隔离见证 `tb1q…` 地址，
+由库内 HD 主种子派生（secp256k1 → 压缩公钥 → `hash160` → bech32，已对照 BIP-173 测试向量）。
+`poll_bitcoin` 读取 Esplora API（默认 `https://mempool.space/testnet4/api`），把每个付给被监控地址的
+输出按 `(txid, vout)` 经 `credit_chain_deposit` 入账，2 个确认后到账。该链默认关闭，开启：
+
+```sql
+select admin_set_chain_config('bitcoin-testnet4', enabled_param => true);
+```
+
+仅支持充值：暂无 BTC 提现签名。
+
 ### 确认数与幂等
 
 `chain.confirmations` 默认：Sepolia 12、Tron Nile 19、Solana 32。`credit_chain_deposit` 记录每次观察

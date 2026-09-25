@@ -61,8 +61,10 @@ Setup:
 
 1. Sign up a **dedicated** account in the trading terminal (e.g. `mm@yourdomain`).
    Don't trade from it by hand: every tick cancels all of its open orders on the pair.
-2. Logged in as that account, **Wallet → Deposit**: send USDT and BTC on-chain to its
-   deposit address. The balance appears once the chain poller confirms it.
+2. Logged in as that account, **Wallet → Deposit**: send USDT (TRC-20 · Nile) and BTC
+   (Bitcoin · testnet4) to its deposit addresses. The balance appears once the chain
+   poller sees enough confirmations (BTC: 2 blocks). Both chains must be enabled
+   (`admin_set_chain_config(<chain>, enabled_param => true)`).
 3. Back-office **Markets → Market Maker**: assign the account by email, adjust the
    settings, **Enable**. Or as service_role:
 

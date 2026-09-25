@@ -785,7 +785,7 @@ async function renderReferral(body) {
 
 // Withdraw: coin → network → destination + amount. Coin maps to the debited currency
 // (native ETH/TRX/SOL pay out of the EUR balance; USDT/USDC are their own currency).
-const COIN_NAMES = { USDT: "Tether", USDC: "USD Coin", ETH: "Ethereum", TRX: "TRON", SOL: "Solana" };
+const COIN_NAMES = { BTC: "Bitcoin", USDT: "Tether", USDC: "USD Coin", ETH: "Ethereum", TRX: "TRON", SOL: "Solana" };
 const coinLabel = (sym) =>
   `<b>${sym}</b>${COIN_NAMES[sym] ? `<span class="coin-nm">${COIN_NAMES[sym]}</span>` : ""}`;
 
@@ -855,6 +855,7 @@ async function renderWithdraw(body) {
 // ---- Deposits: coin → network → in-DB-derived address/memo (CEX style: send from any wallet) ----
 // Only combos the in-DB watcher actually credits are offered.
 const DEPOSIT_ASSETS = [
+  { coin: "BTC",  chains: [{ chain: "bitcoin-testnet4", net: "Bitcoin · testnet4" }] },
   { coin: "USDT", chains: [{ chain: "tron-nile", net: "TRC-20 · Nile" }] },
   { coin: "USDC", chains: [{ chain: "solana-testnet", net: "SPL · devnet" }] },
   { coin: "ETH",  chains: [{ chain: "ethereum-sepolia", net: "Sepolia" }] },
@@ -874,7 +875,7 @@ async function renderDeposits(body) {
       <div class="acct-row"><span class="label">ADDRESS</span><input class="grow mono-num" readonly value="${escH(depInfo.address)}"/><button class="btn" data-copy="${escH(depInfo.address)}">Copy</button></div>
       ${depInfo.memo ? `<div class="acct-row"><span class="label">MEMO / TAG</span><input class="grow mono-num" readonly value="${escH(depInfo.memo)}"/><button class="btn" data-copy="${escH(depInfo.memo)}">Copy</button></div>
         <div class="empty">⚠ You <b>must</b> include this memo when sending, or the deposit can't be credited to you.</div>` : ""}
-      <div class="empty">Send <b>${depCoin}</b> on <b>${opt.net}</b> only to this address, from any wallet or exchange. A pure-SQL watcher credits it to your balance within ~30s. Sending a different coin or network will be lost. Testnet only.</div></div>` : "";
+      <div class="empty">Send <b>${depCoin}</b> on <b>${opt.net}</b> only to this address, from any wallet or exchange. A pure-SQL watcher credits it to your balance within ~30s of the required network confirmations. Sending a different coin or network will be lost. Testnet only.</div></div>` : "";
 
   body.innerHTML = `<div class="acct">
     <div class="acct-sec"><h4>1 · Select coin</h4>

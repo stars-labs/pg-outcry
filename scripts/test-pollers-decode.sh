@@ -118,6 +118,32 @@ check "tron balance: data[0].balance sun" "1500000" "$tron_bal"
 tron_bal0="$(q "select decode_tron_balance('{\"data\":[]}'::jsonb)::text;")"
 check "tron balance: inactive account -> 0" "0" "$tron_bal0"
 
+# ── Bitcoin testnet4 (migration 00160) ──────────────────────────────────────────
+# BIP-173 vector: priv = 1 -> pubkey G -> P2WPKH
+btc_tb="$(q "select btc_p2wpkh_address(secp_n2bytea(1), 'tb');")"
+check "bitcoin: BIP-173 testnet P2WPKH for priv=1" "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx" "$btc_tb"
+btc_bc="$(q "select btc_p2wpkh_address(secp_n2bytea(1), 'bc');")"
+check "bitcoin: BIP-173 mainnet P2WPKH for priv=1" "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4" "$btc_bc"
+# odd-y pubkey takes the 03 prefix (priv = 6: 6G has odd y). Expected value
+# computed independently (Python EC math + hashlib + BIP-173 reference bech32).
+btc_odd="$(q "select btc_p2wpkh_address(secp_n2bytea(6), 'bc');")"
+check "bitcoin: odd-y key uses 03 prefix" "bc1q0ldfeupqc9k2eaffep7cm6yml3ct3jwtwzqt7k" "$btc_odd"
+
+# Esplora /address/:a/txs, shape taken from mempool.space/testnet4: one confirmed tx
+# paying us at vout 1, one mempool tx paying us, one tx where we only spend.
+ME="tb1q8tjcjtnz4aq78ur03jv2znjzhxg3360z77lqcv"
+ESPLORA="[
+ {\"txid\":\"f8340df19c3ddb0cbd96f6a7752fcaf45fa7af6660b47fe84b4cd8465da7d3c4\",\"status\":{\"confirmed\":true,\"block_height\":153960},
+  \"vout\":[{\"scriptpubkey_address\":\"tb1qqws3aatj6jz2nz8d7zefwmtmcccx4umlc5ygr7\",\"value\":5602338},{\"scriptpubkey_address\":\"$ME\",\"value\":50000}]},
+ {\"txid\":\"aa00\",\"status\":{\"confirmed\":false},\"vout\":[{\"scriptpubkey_address\":\"$ME\",\"value\":120000000}]},
+ {\"txid\":\"bb00\",\"status\":{\"confirmed\":true,\"block_height\":153900},\"vin\":[{\"prevout\":{\"scriptpubkey_address\":\"$ME\"}}],
+  \"vout\":[{\"scriptpubkey_type\":\"op_return\",\"value\":0},{\"scriptpubkey_address\":\"tb1qother\",\"value\":1}]}
+]"
+btc_rows="$(q "select string_agg(left(txid,6)||':'||vout||':'||sats||':'||confirmations, ' ' order by txid desc)
+               from decode_esplora_deposits('${ESPLORA}'::jsonb, '$ME', 153961);")"
+check "bitcoin: esplora outputs to us, with vout index and confirmations" \
+  "f8340d:1:50000:2 aa00:0:120000000:0" "$btc_rows"
+
 echo "----------------------------------------"
 if [[ "$fails" -gt 0 ]]; then
   echo "FAILED: $fails assertion(s)"

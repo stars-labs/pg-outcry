@@ -56,7 +56,8 @@ flowchart LR
 开通步骤：
 
 1. 在交易终端注册一个**专用**账户（如 `mm@yourdomain`）。不要用它手动下单：每一轮都会撤掉它在该交易对上的所有挂单。
-2. 登录该账户，**Wallet → Deposit**，把 USDT 和 BTC 链上转到它的充值地址，链上确认后到账。
+2. 登录该账户，**Wallet → Deposit**，把 USDT（TRC-20 · Nile）和 BTC（Bitcoin · testnet4）转到它的充值地址，
+   确认数足够后到账（BTC 为 2 个区块）。两条链都需开启（`admin_set_chain_config(<chain>, enabled_param => true)`）。
 3. 后台 **Markets → Market Maker**：按邮箱指定该账户、调参数、**Enable**。或以 service_role 执行：
 
 ```sql
