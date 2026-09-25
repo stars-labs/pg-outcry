@@ -123,7 +123,7 @@ async function bootSession() {
 
 async function refreshAll() {
   await Promise.all([
-    loadRecon(), loadApprovals(), loadWithdrawQueue(), loadAccounts(), loadFees(), loadRisk(),
+    loadRecon(), loadApprovals(), loadWithdrawQueue(), loadAccounts(), loadFees(), loadRisk(), loadMarketMaker(),
     loadReferrals(), loadChainOps(), loadApiKeys(), loadDeriv(), loadAudit(), loadReconAlerts(),
   ]);
   loadStats();
@@ -135,6 +135,10 @@ function syncActionState() {
   const pairs = [
     ["setFee", "market.write"],
     ["setRisk", "market.write"],
+    ["mmEnable", "market.write"],
+    ["mmDisable", "market.write"],
+    ["mmConfigure", "market.write"],
+    ["mmFund", "market.write"],
   ];
   for (const [id, perm] of pairs) {
     const b = el(id);
@@ -346,6 +350,52 @@ el("setRisk").onclick = async () => {
   const i = el("rInst").value.trim(), a = parseFloat(el("rAmt").value), nn = parseFloat(el("rNot").value), b = parseFloat(el("rBand").value);
   if (!i) { toast("instrument required", "err"); return; }
   await rpc("admin_set_instrument_risk", { instrument_name_param: i, max_amount: a || null, max_notional: nn || null, band_pct: b || null }); toast("Risk set"); loadRisk(); loadAudit();
+};
+
+// ---- market maker ----
+async function loadMarketMaker() {
+  if (!can("market.read")) {
+    noPerm("mm", "market.read");
+    return;
+  }
+  const { data: rows } = await sb.rpc("admin_mm_status");
+  el("mmWhen").textContent = new Date().toLocaleTimeString();
+  const age = (t) => t ? `${Math.max(0, Math.round((Date.now() - Date.parse(t)) / 1000))}s ago` : "—";
+  const cls = (s) => s === "quoting" ? "up" : s === "paused" ? "down" : "";
+  el("mm").innerHTML = (rows && rows.length) ? `<table><thead><tr><th>Pair</th><th>Status</th><th>Binance bid / ask</th><th>Our bid / ask</th><th>Base float</th><th>Quote float</th><th>Spread · levels · size</th></tr></thead><tbody>${
+    rows.map((m) => `<tr><td>${escH(m.instrument)}</td>
+      <td class="${cls(m.status)}" title="${escH(m.reason || "")}">${escH(m.status)}${m.reason ? ` · ${escH(m.reason)}` : ""}</td>
+      <td class="mono-num">${fmt(m.ref_bid, 2)} / ${fmt(m.ref_ask, 2)} <span class="label">${age(m.ref_at)}</span></td>
+      <td class="mono-num">${fmt(m.quoted_bid, 2)} / ${fmt(m.quoted_ask, 2)}</td>
+      <td class="mono-num">${fmt(m.base_free, 4)} <span class="label">target ${fmt(m.target_base, 4)}</span></td>
+      <td class="mono-num">${fmt(m.quote_free, 2)}</td>
+      <td class="mono-num">${fmt(m.half_spread_bps, 1)} bps · ${m.levels} · ${fmt(m.level_size, 4)}</td></tr>`).join("")}</tbody></table>`
+    : `<div class="empty">No pairs configured</div>`;
+}
+const mmInst = () => el("mmInst").value.trim() || "BTC_USDT";
+const mmSetEnabled = async (on) => {
+  if (!can("market.write")) return toast("requires market.write", "err");
+  await rpc("admin_mm_set_enabled", { instrument_param: mmInst(), enabled_param: on });
+  toast(on ? "Market maker enabled" : "Market maker disabled"); loadMarketMaker(); loadAudit();
+};
+el("mmEnable").onclick = () => mmSetEnabled(true);
+el("mmDisable").onclick = () => mmSetEnabled(false);
+el("mmConfigure").onclick = async () => {
+  if (!can("market.write")) return toast("requires market.write", "err");
+  const settings = {};
+  for (const [id, key] of [["mmSpread", "half_spread_bps"], ["mmLevels", "levels"], ["mmSize", "level_size"], ["mmTarget", "target_base"], ["mmMaxSkew", "max_skew_base"]]) {
+    const v = parseFloat(el(id).value);
+    if (Number.isFinite(v)) settings[key] = v;
+  }
+  if (!Object.keys(settings).length) { toast("enter at least one setting", "err"); return; }
+  await rpc("admin_mm_configure", { instrument_param: mmInst(), settings }); toast("Settings saved"); loadMarketMaker(); loadAudit();
+};
+el("mmFund").onclick = async () => {
+  if (!can("market.write")) return toast("requires market.write", "err");
+  const c = el("mmFundCur").value.trim(), a = parseFloat(el("mmFundAmt").value);
+  if (!c || !Number.isFinite(a) || a === 0) { toast("currency and a non-zero amount required", "err"); return; }
+  const left = await rpc("admin_mm_fund", { currency_param: c, amount_param: a });
+  toast(`Float now ${fmt(left, 4)} ${c}`); loadMarketMaker(); loadAudit();
 };
 
 // ---- referral payouts (operator) ----

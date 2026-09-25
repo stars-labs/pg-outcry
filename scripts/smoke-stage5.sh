@@ -31,7 +31,7 @@ ord "$BT" BUY  100 1 >/dev/null
 echo "  last trade: $(curl -s "$API/rest/v1/trade_history?select=price&order=created_at.desc&limit=1" -H "apikey: $SERVICE" | jq -c .)"
 
 echo "== risk controls (seed: band 10%, max amount 100) =="
-chk "price 150 rejected by band"      "$(msg "$(ord "$AT" SELL 150 1)")"   "risk_price_band: 150 beyond 10 pct band of last 100.000000"
+chk "price 150 rejected by band"      "$(msg "$(ord "$AT" SELL 150 1)")"   "risk_price_band: 150 beyond 10 pct band of reference 100.000000"
 chk "amount 1000 rejected by max amt" "$(msg "$(ord "$AT" SELL 100 1000)")" "risk_max_order_amount: 1000 > 100"
 
 echo "== admin widens band -> 150 now allowed =="

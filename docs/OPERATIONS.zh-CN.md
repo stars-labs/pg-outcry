@@ -16,6 +16,7 @@
 | 提现签名与确认 | `pg_cron` | 按链 |
 | `roll-partitions` —— 建下个月的成交/账本分区 | `pg_cron` | 每天 |
 | `scripts/check-drift.sh` —— 线上库 vs 本仓库 | CI / 手动 | 每次部署 |
+| `mm_tick()` —— 锚定币安的房屋做市商（仅在有交易对启用时） | `pg_cron` | 5 秒 |
 
 ### 接通告警（收真实充值之前必须做）
 
@@ -33,6 +34,47 @@ insert into reconcile_alert(check_name, failures) values ('test_page', 1);
 select ops_notify_alerts();          -- 期望返回 1，且频道里收到消息
 delete from reconcile_alert where check_name = 'test_page';
 ```
+
+## 房屋做市商（锚定币安）
+
+`mm_tick()` 用房屋账户 `HOUSE_MM` 的自有资金，以币安盘口
+（`data-api.binance.vision` bookTicker，库内用 `http` 扩展拉取）为中心挂一组梯度报价。
+用户成交的对手是真实的自有资金；锚定价同时作为限价带、永续指数价和保证金估值的参考。
+
+```mermaid
+flowchart LR
+  B["币安 bookTicker"] -->|"http_get，每 5 秒"| R["mm_state.ref_bid / ref_ask"]
+  R --> Q["mm_quote：先撤单，再按库存偏移挂梯度"]
+  Q --> OB["订单簿"]
+  U["偏离锚定价的用户挂单"] --> OB
+  OB -->|"重新报价时吃掉它"| Q
+  R --> P["reference_price → 限价带 · 永续标记价 · 保证金"]
+```
+
+在后台（**Markets → Market Maker**）操作，或以 service_role 执行 SQL：
+
+```sql
+select admin_mm_fund('USDT', 200000);                    -- 注入自有资金（负数为取回）
+select admin_mm_fund('BTC', 2);
+select admin_mm_configure('BTC_USDT', '{"target_base": 2, "max_skew_base": 1,
+                          "half_spread_bps": 5, "levels": 5, "level_size": 0.01}');
+select admin_mm_set_enabled('BTC_USDT', true);           -- 同时挂上 5 秒的 pg_cron 任务
+select admin_mm_status();
+```
+
+| 参数 | 含义 |
+|---|---|
+| `half_spread_bps`、`level_step_bps`、`levels` | 最优报价离币安中间价的距离、档间距、每边档数 |
+| `level_size`、`size_growth` | 第一档数量（基础币）、每档递增比例（0.5 = +50%） |
+| `target_base`、`max_skew_base`、`skew_bps` | 目标库存；偏离达到 `max_skew_base` 时停掉会继续加仓的一边，报价整体偏移 `skew_bps` |
+| `max_ref_age_s`、`max_ref_move_pct` | 币安数据过期或两次拉取间跳变超过阈值时撤掉全部报价 |
+
+`status` 为 `quoting`、`paused`（附 `reason`：`reference_stale`、`reference_jump`、
+`fetch_failed`、`quote_failed`、`no_float`）或 `disabled`。关闭时同一调用内撤单。
+库存不在币安对冲：资金规模按"价格单边走时可接受的亏损"来定。
+
+`demo_prints`（`admin_mm_set_enabled(pair, true, true)`）让 `HOUSE_MM_TAKER`
+偶尔吃一小口做市报价，使空闲的演示站也有成交。这是合成成交量，有真实用户时必须关闭。
 
 ## 漂移：线上库 vs 本仓库
 

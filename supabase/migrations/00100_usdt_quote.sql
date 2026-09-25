@@ -43,22 +43,3 @@ insert into stake_pool (currency, apr) values ('USDT', 0.10)
 on conflict (currency) do nothing;
 
 do $$ begin perform create_currency_account('MASTER', 'USDT'); exception when others then null; end $$;
-
--- house makers quote the new pair, so they need USDT float
-do $$
-declare mk text; bal numeric;
-begin
-  foreach mk in array array['DEMO_MM_A','DEMO_MM_B'] loop
-    if exists (select 1 from app_entity where pub_id = mk) then
-      begin perform create_currency_account(mk, 'USDT'); exception when others then null; end;
-      select coalesce(max(ca.amount),0) into bal
-        from currency_account ca join app_entity e on e.id = ca.app_entity_id
-        where e.pub_id = mk and ca.currency_name = 'USDT';
-      if bal < 100000 then
-        perform process_transfer('DEPOSIT','MASTER',500000,'USDT',mk,'demo liquidity','house maker float',null);
-      end if;
-    end if;
-  end loop;
-exception when others then
-  raise warning 'USDT maker float skipped: %', sqlerrm;
-end $$;

@@ -17,6 +17,7 @@ exercised against the demo deployment, not aspirational.
 | Withdrawal signing + confirmations | `pg_cron` | per chain |
 | `roll-partitions` — create next month's trade/ledger partitions | `pg_cron` | daily |
 | `scripts/check-drift.sh` — deployed DB vs this repo | CI / manual | per deploy |
+| `mm_tick()` — Binance-anchored house market maker (only while a pair is enabled) | `pg_cron` | 5 s |
 
 ### Wire up paging (do this before you take real deposits)
 
@@ -35,6 +36,50 @@ insert into reconcile_alert(check_name, failures) values ('test_page', 1);
 select ops_notify_alerts();          -- expect 1, and a message in your channel
 delete from reconcile_alert where check_name = 'test_page';
 ```
+
+## House market maker (Binance-anchored)
+
+`mm_tick()` keeps a ladder of quotes from the house account `HOUSE_MM` centred on
+the Binance book (`data-api.binance.vision` bookTicker, fetched in-DB with the
+`http` extension). Users trade against real house money, and the anchor price is
+also what the price band, perp index and margin valuation use.
+
+```mermaid
+flowchart LR
+  B["Binance bookTicker"] -->|"http_get, every 5 s"| R["mm_state.ref_bid / ref_ask"]
+  R --> Q["mm_quote: cancel, then place ladder<br/>skewed by inventory"]
+  Q --> OB["order book"]
+  U["user order priced through the anchor"] --> OB
+  OB -->|"requote fills it"| Q
+  R --> P["reference_price → price band · perp mark · margin"]
+```
+
+Run it from the back-office (**Markets → Market Maker**) or via SQL as service_role:
+
+```sql
+select admin_mm_fund('USDT', 200000);                    -- house money in (negative = out)
+select admin_mm_fund('BTC', 2);
+select admin_mm_configure('BTC_USDT', '{"target_base": 2, "max_skew_base": 1,
+                          "half_spread_bps": 5, "levels": 5, "level_size": 0.01}');
+select admin_mm_set_enabled('BTC_USDT', true);           -- arms the 5 s pg_cron job
+select admin_mm_status();
+```
+
+| Setting | Meaning |
+|---|---|
+| `half_spread_bps`, `level_step_bps`, `levels` | best quote distance from the Binance mid, gap between levels, levels per side |
+| `level_size`, `size_growth` | first-level size in base, growth per level (0.5 = +50%) |
+| `target_base`, `max_skew_base`, `skew_bps` | inventory the maker aims to hold; at `max_skew_base` away from it the side that would grow the position stops and quotes are shifted by `skew_bps` |
+| `max_ref_age_s`, `max_ref_move_pct` | pull all quotes when Binance data is older than this, or jumps more than this between fetches |
+
+`status` is `quoting`, `paused` (with a `reason`: `reference_stale`,
+`reference_jump`, `fetch_failed`, `quote_failed`, `no_float`) or `disabled`.
+Disabling cancels the quotes in the same call. The float is not hedged on
+Binance: size it as the loss you accept if the price runs one way.
+
+`demo_prints` (`admin_mm_set_enabled(pair, true, true)`) lets `HOUSE_MM_TAKER`
+take a slice of the maker's quote now and then so an idle demo still prints
+trades. That is synthetic volume and must stay off with real customers.
 
 ## Drift: the deployed DB vs this repo
 
