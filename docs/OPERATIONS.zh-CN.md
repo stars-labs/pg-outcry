@@ -16,6 +16,7 @@
 | 提现签名与确认 | `pg_cron` | 按链 |
 | `roll-partitions` —— 建下个月的成交/账本分区 | `pg_cron` | 每天 |
 | `scripts/check-drift.sh` —— 线上库 vs 本仓库 | CI / 手动 | 每次部署 |
+| BTC 提现：`sign_bitcoin_withdrawals` / `broadcast_bitcoin_withdrawals` / `confirm_bitcoin_withdrawals` | `pg_cron` | 30 秒 / 20 秒 / 60 秒 |
 | `mm_tick()` —— 锚定币安的做市商（仅在有交易对启用时） | `pg_cron` | 5 秒 |
 
 ### 接通告警（收真实充值之前必须做）
@@ -68,7 +69,7 @@ select admin_mm_set_enabled('BTC_USDT', true);           -- 同时挂上 5 秒�
 select admin_mm_status();
 ```
 
-取钱：先 **Disable**（撤单，释放冻结余额），再以该账户走正常提现流程。只有在关闭状态下才能更换做市账户。
+取钱：先 **Disable**（撤单，释放冻结余额），再以该账户走正常提现流程（USDT 走 Tron，BTC 走 testnet4；审批通过后由 pg_cron 自动签名发送）。只有在关闭状态下才能更换做市账户。
 
 | 参数 | 含义 |
 |---|---|

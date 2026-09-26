@@ -144,6 +144,25 @@ btc_rows="$(q "select string_agg(left(txid,6)||':'||vout||':'||sats||':'||confir
 check "bitcoin: esplora outputs to us, with vout index and confirmations" \
   "f8340d:1:50000:2 aa00:0:120000000:0" "$btc_rows"
 
+# ── Bitcoin withdrawals (migration 00180) ───────────────────────────────────────
+# Signed-tx vectors produced by bitcoinjs-lib 6 (RFC-6979, so deterministic); the
+# builder was checked against 120 random cases, these two are kept as regressions.
+BTCV='{"inputs":[{"txid":"86080663da77d30bf1369d8679b7a1dc170e30a7d537eae4aa6f9c3d34f68ef7","vout":4,"value":312794034,"priv":"7e4099a12239d23c2fac0bdf797e961704d001a5b22fe8bf3139f5bd67824493"}],"outputs":[{"address":"mvTujwTjp5LLmJPxyc5chSrnNLMhAHMV6D","value":23948272},{"address":"tb1qm25r95jpzqulxxjfvnrcfw2s260qny03mnqhsulfl5rt90k8g5ps0ssm0m","value":80804343}]}'
+btc_tx="$(q "select btc_build_signed_tx(('$BTCV'::jsonb)->'inputs', ('$BTCV'::jsonb)->'outputs')->>'hex';")"
+check "bitcoin: 1-in/2-out P2WPKH spend byte-identical to bitcoinjs-lib" "02000000000101f78ef6343d9c6faae4ea37d5a7300e17dca1b779869d36f10bd377da630608860400000000ffffffff02f06b6d01000000001976a914a3f681d4ee9cdbdfd1fa99f587d13142a7e4f33188acf7f9d00400000000220020daa832d2411039f31a4964c784b950569e0991f1dcc17873e9fd06b2bec7450302483045022100d4abae1676a12ea7a1cb60ab41a13116c2ee097bc24a49935fcbbb9020793bdc02201fe418d3700cef32876bfd3211c00b61e953fd0e4af9064fb9e4dbb32ce8ca4b012102606ad2a72aa646ab9144762caea7b183cbeafd26cd5d88c2b160be44f558380600000000" "$btc_tx"
+BTCV='{"inputs":[{"txid":"dd9ec8dfb21fa3d7b79382e32e4416cf8122418bbd501f78aef9b0e092ce0ed5","vout":3,"value":751583971,"priv":"2922cb6352e98f8e608d1ec4190cad359b0eea16c510d5d476c80ab08cea1211"},{"txid":"447a15c7afdcd689f16b4f24d92058c3acaf7b688180826bafa35080d5a82177","vout":4,"value":361653323,"priv":"e412fab4f40983761300957d54fa4b67f2324cd353e68e2bc45efeebc35cf56b"},{"txid":"1719102a9537ee71b9622d1c32fb81be098a4dcf3ad623eaee4ab2a22bb93616","vout":3,"value":338212824,"priv":"ae889a96ddb5424141e86eba3e2fadff92c6ee9935c913a0cff6f2c3384b5cb0"}],"outputs":[{"address":"2N4JhnwqNs5YuTdWHWpedVo5AVkNhmroAP7","value":13695271},{"address":"tb1pznce58a6gthaq3w82klch3pv4ltff5vvwn7f7h2leqcjgry0dgjs52kj6j","value":69042607}]}'
+btc_tx="$(q "select btc_build_signed_tx(('$BTCV'::jsonb)->'inputs', ('$BTCV'::jsonb)->'outputs')->>'hex';")"
+check "bitcoin: 3-in spend incl. a P2TR output byte-identical to bitcoinjs-lib" "02000000000103d50ece92e0b0f9ae781f50bd8b412281cf16442ee38293b7d7a31fb2dfc89edd0300000000ffffffff7721a8d58050a3af6b828081687bafacc35820d9244f6bf189d6dcafc7157a440400000000ffffffff1636b92ba2b24aeeea23d63acf4d8a09be81fb321c2d62b971ee37952a1019170300000000ffffffff0227f9d0000000000017a9147951d77005f5ebdaeb63da82134e853ee6cd817387af811d040000000022512014f19a1fba42efd045c755bf8bc42cafd694d18c74fc9f5d5fc831240c8f6a250247304402201cb4f0f576b8212bc57002a8de718ff36a9c2b007e70a76096e96b27fc43b8ad0220293b10b271553de1b3dc3f2d8abd2bf78b0fd61bd22b9ab870ef614f9dfdd7530121022e06072a2e65a3e3315af08d97a99eba55d30d9d6e335763255039d98dc5030602483045022100c76e443c9a529d772cdf5fdff1f04e42f3e689ab80728d684fb1ed5d5f90c5d502201516a32de81d5ee6b187f535f9f89939d9248d9b898e457c41464684b3799c4e0121038938f0fef02126453bb8cc331ef459bc688fb7ac9a016efe903a0c2298d8a9470248304502210087e83ac5c2075bfaa35fae2a3a51989cdca1e9179d208a683366b76521868b8002206fa9c2e9dc9c0bbca71d7727fda23ea726010e477975f5bf499f92b3af0647bf012103f6f97e2b4f84b6bfbd9f1b4a3f552f31efc4284b9d731a65833096b71e90cb8200000000" "$btc_tx"
+btc_bad() { q "do \$\$ begin perform btc_testnet_script('$1'); raise exception 'accepted'; exception when others then raise notice '%', sqlerrm; end \$\$" 2>&1 | grep -o 'btc_address_[a-z_]*\|accepted' | head -1; }
+check "bitcoin: mainnet address refused" "btc_address_not_testnet" "$(btc_bad bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4)"
+check "bitcoin: bad bech32 checksum refused" "btc_address_bad_checksum" "$(btc_bad tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsy)"
+check "bitcoin: mixed-case bech32 refused" "btc_address_mixed_case" "$(btc_bad tb1qW508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx)"
+check "bitcoin: bech32 (not bech32m) taproot refused" "btc_address_bad_checksum" "$(btc_bad tb1pw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx)"
+sel="$(q "select (s->>'fee')||'/'||(s->>'change')||'/'||jsonb_array_length(s->'inputs') from btc_select_coins('[{\"txid\":\"a\",\"vout\":0,\"value\":30000},{\"txid\":\"b\",\"vout\":1,\"value\":100000}]'::jsonb, 90000, 2) s;")"
+check "bitcoin: coin selection takes the largest UTXO first, fee at 2 sat/vB" "330/9670/1" "$sel"
+dust="$(q "select (s->>'fee')||'/'||(s->>'change') from btc_select_coins('[{\"txid\":\"a\",\"vout\":0,\"value\":100500}]'::jsonb, 100000, 1) s;")"
+check "bitcoin: dust change is added to the fee" "500/0" "$dust"
+
 echo "----------------------------------------"
 if [[ "$fails" -gt 0 ]]; then
   echo "FAILED: $fails assertion(s)"

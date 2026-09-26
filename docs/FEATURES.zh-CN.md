@@ -75,7 +75,12 @@ EVM 日志解码（`hex_to_numeric` + topic/data 解析）也用真实 Transfer 
 select admin_set_chain_config('bitcoin-testnet4', enabled_param => true);
 ```
 
-仅支持充值：暂无 BTC 提现签名。
+**提现（迁移 `00180`）**同样在库内签名。热钱包是平台在该链上掌握私钥的所有 HD 地址（用户充值地址 + 金库，
+找零回金库），充值无需归集即可用于提现。交易为原生隔离见证（BIP-143，低 S 值 DER，复用 RFC-6979 签名），
+已在 120 笔随机交易上与 bitcoinjs-lib 逐字节比对一致；收款地址支持所有测试网类型（P2WPKH/P2WSH/P2TR/P2PKH/P2SH），
+拒绝主网地址。三个定时任务：`sign_bitcoin_withdrawals`（构建 + 签名 + 记录，每轮一笔，绝不重复使用已花费输出）、
+`broadcast_bitcoin_withdrawals`（幂等重发已记录的原始交易）、`confirm_bitcoin_withdrawals`。网络手续费由平台承担，
+收款方收到全额。默认限额每 24 小时 1 BTC（`withdrawal_limit`）。
 
 ### 确认数与幂等
 

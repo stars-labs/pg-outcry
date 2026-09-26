@@ -790,6 +790,7 @@ const coinLabel = (sym) =>
   `<b>${sym}</b>${COIN_NAMES[sym] ? `<span class="coin-nm">${COIN_NAMES[sym]}</span>` : ""}`;
 
 const WITHDRAW_ASSETS = [
+  { coin: "BTC",  currency: "BTC",  chains: [{ chain: "bitcoin-testnet4", net: "Bitcoin · testnet4" }] },
   { coin: "USDT", currency: "USDT", chains: [{ chain: "tron-nile", net: "TRC-20 · Nile" }] },
   { coin: "USDC", currency: "USDC", chains: [{ chain: "solana-testnet", net: "SPL · devnet" }, { chain: "ethereum-sepolia", net: "ERC-20 · Sepolia" }] },
   { coin: "ETH",  currency: "EUR",  chains: [{ chain: "ethereum-sepolia", net: "Sepolia" }] },

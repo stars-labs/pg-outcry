@@ -81,7 +81,15 @@ ships disabled; turn it on with:
 select admin_set_chain_config('bitcoin-testnet4', enabled_param => true);
 ```
 
-Deposits only: there is no BTC withdrawal signer yet.
+**Withdrawals (migration `00180`)** are signed in-DB too. The hot wallet is every HD address the
+venue controls on the chain (users' deposit addresses + the treasury, which takes change), so deposits
+fund withdrawals without a sweep. Transactions are native segwit (BIP-143, low-S DER via the existing
+RFC-6979 signer), checked byte-for-byte against bitcoinjs-lib on 120 random transactions; outputs can
+be any testnet address type (P2WPKH/P2WSH/P2TR/P2PKH/P2SH), mainnet addresses are refused. Three cron
+jobs: `sign_bitcoin_withdrawals` (build + sign + record, one per run, never reuses a spent outpoint),
+`broadcast_bitcoin_withdrawals` (idempotent resend of the recorded raw tx) and
+`confirm_bitcoin_withdrawals`. The venue pays the network fee; the recipient gets the full amount.
+Default limit 1 BTC per 24 h (`withdrawal_limit`).
 
 ### Confirmations & idempotency
 
