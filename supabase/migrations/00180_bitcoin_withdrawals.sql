@@ -434,7 +434,7 @@ on conflict (currency) do nothing;
 do $$ begin
   perform cron.schedule('sign-bitcoin-withdrawals',      '30 seconds', 'select sign_bitcoin_withdrawals()');
   perform cron.schedule('broadcast-bitcoin-withdrawals', '20 seconds', 'select broadcast_bitcoin_withdrawals()');
-  perform cron.schedule('confirm-bitcoin-withdrawals',   '60 seconds', 'select confirm_bitcoin_withdrawals()');
+  perform cron.schedule('confirm-bitcoin-withdrawals',   '* * * * *',  'select confirm_bitcoin_withdrawals()');
 exception when others then null; end $$;
 
 revoke execute on function btc_le(numeric,int), btc_varint(int), btc_dsha256(bytea), btc_reverse(bytea),

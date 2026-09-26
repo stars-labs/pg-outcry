@@ -16,7 +16,7 @@
 | 提现签名与确认 | `pg_cron` | 按链 |
 | `roll-partitions` —— 建下个月的成交/账本分区 | `pg_cron` | 每天 |
 | `scripts/check-drift.sh` —— 线上库 vs 本仓库 | CI / 手动 | 每次部署 |
-| BTC 提现：`sign_bitcoin_withdrawals` / `broadcast_bitcoin_withdrawals` / `confirm_bitcoin_withdrawals` | `pg_cron` | 30 秒 / 20 秒 / 60 秒 |
+| BTC 提现：`sign_bitcoin_withdrawals` / `broadcast_bitcoin_withdrawals` / `confirm_bitcoin_withdrawals` | `pg_cron` | 30 秒 / 20 秒 / 1 分钟 |
 | `mm_tick()` —— 锚定币安的做市商（仅在有交易对启用时） | `pg_cron` | 5 秒 |
 
 ### 接通告警（收真实充值之前必须做）

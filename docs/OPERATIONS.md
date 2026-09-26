@@ -17,7 +17,7 @@ exercised against the demo deployment, not aspirational.
 | Withdrawal signing + confirmations | `pg_cron` | per chain |
 | `roll-partitions` — create next month's trade/ledger partitions | `pg_cron` | daily |
 | `scripts/check-drift.sh` — deployed DB vs this repo | CI / manual | per deploy |
-| BTC withdrawals: `sign_bitcoin_withdrawals` / `broadcast_bitcoin_withdrawals` / `confirm_bitcoin_withdrawals` | `pg_cron` | 30 s / 20 s / 60 s |
+| BTC withdrawals: `sign_bitcoin_withdrawals` / `broadcast_bitcoin_withdrawals` / `confirm_bitcoin_withdrawals` | `pg_cron` | 30 s / 20 s / 1 min |
 | `mm_tick()` — Binance-anchored market maker (only while a pair is enabled) | `pg_cron` | 5 s |
 
 ### Wire up paging (do this before you take real deposits)

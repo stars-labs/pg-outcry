@@ -33,6 +33,9 @@ q "update chain set enabled=true, rpc_url='http://fake-chain-api:18999/evm' wher
 whitelist(){ urpc "$1" add_withdrawal_address "{\"currency_param\":\"$2\",\"address_param\":\"$3\"}" >/dev/null
   q "update withdrawal_address set active_at = now() - interval '1 minute' where address='$3'" >/dev/null; }   # skip cooling
 
+echo "== the migration scheduled the BTC jobs =="
+chk "sign/broadcast/confirm jobs exist" "$(q "select count(*) from cron.job where jobname in ('sign-bitcoin-withdrawals','broadcast-bitcoin-withdrawals','confirm-bitcoin-withdrawals')")" "3"
+
 echo "== BTC: deposit is credited =="
 TOK=$(signup_jwt "btcw_$S@ex.com" | cut -d" " -f1)
 ADDR=$(urpc "$TOK" my_deposit_address '{"chain_param":"bitcoin-testnet4"}' | jq -r .address)
