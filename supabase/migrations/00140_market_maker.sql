@@ -38,7 +38,9 @@ drop function if exists demo_enable_liquidity();
 drop function if exists demo_disable_liquidity();
 drop function if exists demo_maker_account(text);
 
--- cancel the old makers' orders and return their float to MASTER
+-- cancel the old makers' orders and return their float to MASTER. Only the
+-- unreserved part moves: amount_reserved <= amount is a table CHECK, and the demo
+-- makers carry small stale reservations with no open order behind them.
 do $$
 declare r record;
 begin
@@ -51,9 +53,9 @@ begin
     perform submit_cancel(r.pub_id);
   end loop;
   for r in
-    select e.pub_id, ca.currency_name, ca.amount from currency_account ca
+    select e.pub_id, ca.currency_name, ca.amount - ca.amount_reserved as amount from currency_account ca
     join app_entity e on e.id = ca.app_entity_id
-    where e.pub_id in ('DEMO_MM_A','DEMO_MM_B') and ca.amount > 0
+    where e.pub_id in ('DEMO_MM_A','DEMO_MM_B') and ca.amount - ca.amount_reserved > 0
   loop
     perform process_transfer('WITHDRAWAL', r.pub_id, r.amount, r.currency_name, 'MASTER',
                              'demo maker retired', 'return house float', null);
