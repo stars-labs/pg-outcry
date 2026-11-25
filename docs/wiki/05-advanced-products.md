@@ -17,7 +17,7 @@
 
 点击顶部导航栏的 **`FUTURES`** 按钮，打开永续合约工作台：
 
-![BTC-PERP 线性永续合约开仓与实时仓位监控面板](../../web/docs/wiki/20-product-futures-perp.png)
+![打开 Futures 投入 1,000 USDT 开立 0.1000 BTC 线性永续合约多单实操 GIF](../../web/docs/wiki/14-futures-perp-open.gif)
 
 ### 合约核心参数与计算公式
 
@@ -46,7 +46,7 @@
 
 点击顶部导航栏 **`MARGIN`**（或弹窗顶部 `MARGIN` 页签、下单面板底部 `BORROW` 快捷按钮），进入全仓抵押借币面板：
 
-![现货全仓杠杆健康度看板与借入 0.05 BTC 实操](../../web/docs/wiki/21-product-margin-borrow.png)
+![打开 Margin 核查账户健康度并借入 0.0500 BTC 全仓杠杆实操 GIF](../../web/docs/wiki/15-margin-borrow.gif)
 
 ### 核心风控模型与计息公式
 
@@ -74,7 +74,7 @@
 
 如果你持有闲置的 `BTC`、`USDT` 或 `EUR` 暂时不准备挂单交易，点击顶部导航栏 **`EARN`** 即可放入链下高息池按秒赚取收益：
 
-![Earn 质押赚币池列表与质押 0.5000 BTC 实操](../../web/docs/wiki/22-product-earn-staking.png)
+![打开 Earn 将 0.5000 BTC 投入 5% APR 质押池并实时累积收益实操 GIF](../../web/docs/wiki/16-earn-stake.gif)
 
 ### 收益结算与解锁机制
 1. **三档质押池年化收益率（`POOLS`）**：

@@ -14,7 +14,7 @@ Because OUTCRY's entire backend is **PostgREST (exposing whitelisted SQL functio
 
 Click **`API`** in the top header bar to open the `DEVELOPER API` modal:
 
-![Minting a quant trading API Key and displaying the one-time secret banner](../../web/docs/wiki/23-developer-api-keys.png)
+![Live GIF: Minting a labeled quant API Key and revealing the one-time secret banner](../../web/docs/wiki/17-developer-api-key.gif)
 
 1. Enter a descriptive label (e.g. `grid-bot-prod`) and click **`CREATE`**.
 2. **Copy and store both credentials from the amber banner immediately**:

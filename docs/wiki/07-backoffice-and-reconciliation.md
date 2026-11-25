@@ -14,9 +14,9 @@
 
 ## 7.1 登录管理后台与控制室总览（`Overview`）
 
-在浏览器打开 `http://127.0.0.1:4173/admin.html`（若带有 `?api=...&anon=...` 参数会自动预填后端地址与 Publishable Key），输入管理员邮箱与密码点击 **`SIGN IN / CREATE →`**，即可进入 **`CONTROL ROOM`（总控室）**：
+在浏览器打开 `http://127.0.0.1:4173/admin.html`（若带有 `?api=...&anon=...` 参数会自动预填后端地址与 Publishable Key），输入管理员邮箱与密码点击 **`SIGN IN / CREATE →`**，即可进入 **`CONTROL ROOM`（总控室）**核验七重对账不变量（`recon ALL PASS`），并切换到 **`TREASURY`** 放行待审提币申请（完整联动操作见下方动图）：
 
-![OUTCRY/ADMIN 管理后台总控室与实时七重对账全绿看板](../../web/docs/wiki/17-admin-overview-pending-approval.png)
+![OUTCRY/ADMIN 管理后台总控室核验 recon ALL PASS 并前往 Treasury 放行提币申请实操 GIF](../../web/docs/wiki/18-admin-reconcile-and-approve.gif)
 
 ### 读懂七项黄金对账不变量（顶部 `recon ALL PASS` 的底气）
 
@@ -40,17 +40,15 @@
 
 1. **`WALLET APPROVALS · CASH OPERATIONS`（待审提币审批队列）**：
    - 展示全站所有处于 `PENDING` 状态的客户提币申请。
-   - 点击绿色 **`APPROVE`**：在同一个数据库事务内释放冻结额、执行从客户账户到 `MASTER` 的 `WITHDRAWAL` 双边扣账、并将记录推入下方链上签名队列。
+   - 点击绿色 **`APPROVE`**（如上方 `18-admin-reconcile-and-approve.gif` 所示）：在同一个数据库事务内释放冻结额、执行从客户账户到 `MASTER` 的 `WITHDRAWAL` 双边扣账、并将记录推入下方链上签名队列。
    - 点击红色 **`REJECT`**：驳回提币请求，客户被冻结的资产立即 100% 解冻回可用余额。
-
-![后台 Treasury 待审批提币与链配置面板](../../web/docs/wiki/17b-admin-treasury-pending-queue.png)
 
 2. **`WITHDRAWAL QUEUE · CUSTODY SIGNER`（链上托管签名与广播状态机）**：
    - 每一笔已批准的链上提币依次经历四个阶段：**`QUEUED`（排队待签）→ `CLAIMED`（已被签名器原子认领，防并发双发）→ `BROADCAST`（已广播上链并写入唯一 `txid`）→ `CONFIRMED`（链上已打包确认）**。
-   - **Bitcoin Testnet4 全自动闭环**：开启 `bitcoin-testnet4` 后，库内 `pg_cron` 任务会自动完成选币、BIP-143 签名、广播与确认（见下图从 `QUEUED` 自动推进至绿色 `CONFIRMED`）。
+   - **Bitcoin Testnet4 全自动闭环**：开启 `bitcoin-testnet4` 后，库内 `pg_cron` 任务会自动完成选币、BIP-143 签名、广播与确认（见下方动图核验绿色 `CONFIRMED` 并切换至 `AUDIT` 审查完整审计链）。
    - **外部签名器对接（EVM 等）**：若使用独立部署的热钱包签名进程（参见 [`examples/withdrawal-signer.mjs`](../../examples/withdrawal-signer.mjs)），也可在此手动点击 `CLAIM NEXT TO SIGN` 或回填广播后的 `txid` 与确认状态。
 
-![签名器完成广播确认后状态变为绿色 CONFIRMED](../../web/docs/wiki/18b-admin-treasury-signer-confirmed.png)
+![签名器完成广播确认变更为绿色 CONFIRMED 并切换至 Audit 审查不可篡改审计日志实操 GIF](../../web/docs/wiki/19-admin-signer-confirm-and-audit.gif)
 
 3. **`CHAIN DEPOSITS · NETWORK OPERATIONS`（多链开关与 RPC 阈值管理）**：
    - 查看并动态调整 `bitcoin-testnet4`、`ethereum-sepolia`、`solana-testnet`、`tron-nile` 四条链的启用状态（`on`/`off`）、节点 RPC URL 与最低入账确认数（`CONF`）。
@@ -75,9 +73,7 @@
 
 ## 7.4 不可篡改的管理审计日志（`Audit`）
 
-点击导航栏的 **`AUDIT`**，进入合规审计追踪台：
-
-![Admin Audit Log 只追加不可篡改管理审计日志](../../web/docs/wiki/18c-admin-audit-log.png)
+点击导航栏的 **`AUDIT`**，进入合规审计追踪台（见上方 `19-admin-signer-confirm-and-audit.gif` 后半段展示的 `ADMIN AUDIT LOG · IMMUTABLE EVIDENCE`）：
 
 **为什么说这里的每一行都是「铁证（Immutable Evidence）」？**
 - 底层表 `admin_audit_log` 挂载了强制数据库触发器，**拒绝一切 `UPDATE` 与 `DELETE` 语句**（只允许 `INSERT` 追加）。

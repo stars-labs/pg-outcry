@@ -14,7 +14,7 @@
 
 点击顶部导航栏的 **`API`** 按钮，打开 `DEVELOPER API` 密钥管理面板：
 
-![创建量化交易 API Key 并展示一次性密钥警告框](../../web/docs/wiki/23-developer-api-keys.png)
+![输入标签创建量化交易 API Key 并展示一次性密钥横幅实操 GIF](../../web/docs/wiki/17-developer-api-key.gif)
 
 1. 在输入框填写便于区分用途的标签名（例如 `grid-bot-prod`），点击 **`CREATE`**。
 2. **立即复制并离线保存琥珀色警告框中的两项凭证**：

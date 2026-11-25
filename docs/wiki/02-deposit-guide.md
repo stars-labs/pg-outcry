@@ -65,25 +65,15 @@ sequenceDiagram
 
 ## 2.3 手把手实操：获取 BTC 与 USDT 充值地址并完成入金
 
-### 第 1 步：打开充值面板（两种入口任选）
-登录交易终端后，你可以通过以下任一入口唤起充值窗口：
-- **入口 A（顶部全局栏）**：点击右上角 **`WALLET`** 按钮（默认即停留在绿色的 `DEPOSIT` 页签）；
-- **入口 B（下单区快捷栏）**：点击右侧 `ORDER ENTRY` 面板底部的 **`DEPOSIT`** 按钮。
-
-打开后的初始充值面板如下图所示：
-
-![打开 Wallet → Deposit 选择充值币种面板](../../web/docs/wiki/04-wallet-deposit-select.png)
-
----
-
-### 第 2 步：获取 BTC（`Bitcoin · testnet4`）专属原生隔离见证地址
+### 第 1–2 步：打开充值面板并获取 BTC（`Bitcoin · testnet4`）专属原生隔离见证地址
+登录交易终端后，点击右上角 **`WALLET`** 按钮（或右侧 `ORDER ENTRY` 底部的 **`DEPOSIT`** 按钮）唤起充值窗口：
 1. 在 **`1 · SELECT COIN`** 区域，点击 **`BTC Bitcoin`** 按钮。
-2. 由于 BTC 当前仅开放唯一官方测试网通道，系统会自动为你选中 **`2 · SELECT NETWORK`** 下的 **`Bitcoin · testnet4`**，并在瞬间完成库内 secp256k1 公钥压缩、`HASH160` 与 BIP-173 Bech32 编码，展示 **`3 · YOUR BTC DEPOSIT ADDRESS · BITCOIN · TESTNET4`**：
+2. 系统自动选中 **`2 · SELECT NETWORK`** 下的 **`Bitcoin · testnet4`**，并在瞬间完成库内 secp256k1 公钥压缩、`HASH160` 与 BIP-173 Bech32 编码，展示 **`3 · YOUR BTC DEPOSIT ADDRESS · BITCOIN · TESTNET4`**：
 
-![生成专属 BTC Bitcoin testnet4 充值地址](../../web/docs/wiki/05-wallet-deposit-btc-address.png)
+![打开 Wallet → 选择 BTC → 库内派生专属 tb1q 充值地址并复制实操 GIF](../../web/docs/wiki/04-deposit-btc-address.gif)
 
 3. 点击地址框右侧的 **`COPY`** 按钮复制完整地址（界面右下角会弹出 `Copied` 提示）。
-   - 在本演示中，系统为 `alice@outcry.dev` 派生的专属地址为：`tb1qr02pefn96udnagxhuyhkd3mfn9sn9pf8tuzjwv`。
+   - 在本演示中，系统为 `alice@outcry.dev` 派生的专属地址为：`tb1q2y05tnvyhscujjc6jx8th7rmtgp9c423wk7ecv`。
    - **自检小技巧**：所有 Bitcoin Testnet4 原生隔离见证地址均以 **`tb1q`** 开头（全小写，长度 42 位）。如果你手上拿的是 `bc1q…` 或 `1…`、`3…` 开头的主网钱包，说明你的外部钱包还没切到 Testnet4 网络！
 
 ---
@@ -93,9 +83,9 @@ sequenceDiagram
 1. 在 **`1 · SELECT COIN`** 区域点击 **`USDT Tether`**。
 2. 系统自动选中 **`TRC-20 · Nile`** 网络，并展示你的专属波场测试网地址（以大写字母 **`T`** 开头，共 34 位）：
 
-![生成专属 USDT TRC-20 Nile 充值地址](../../web/docs/wiki/06-wallet-deposit-usdt-address.png)
+![切换选择 USDT → 派生专属 TRC-20 Nile 充值地址并复制实操 GIF](../../web/docs/wiki/05-deposit-usdt-address.gif)
 
-3. 点击 **`COPY`** 复制该 `T…` 地址（图中为 `TWkz7NMFNm8JSQAMqSBpnehRbQ9uXYsL4o`）。
+3. 点击 **`COPY`** 复制该 `T…` 地址（图中为 `TQStC9SW9Qd8D9Zaa3AoUojxKwvbH2u5bJ`）。
 
 > [!CAUTION]
 > **关于 Memo / Tag（备注标签）的特别提醒**：
@@ -117,9 +107,9 @@ sequenceDiagram
 
 外部钱包广播交易后，大约在 **20–30 秒**内（一个 `pg_cron` 轮询周期），你就能在充值面板底部的 **`DETECTED DEPOSITS`** 表格中看到系统捕获到的链上记录！
 
-请仔细观察下方这张极具代表性的实操截图——它同时展示了**「已入账（`credited`）」**与**「确认中（`pending…`）」**两种状态：
+请仔细观察下方这支连续实操动图——它完整演示了在 `DETECTED DEPOSITS` 中核对**「确认中（`pending…`）」**与**「已入账（`credited`）」**两种状态，随后关闭弹窗在底部 **`BALANCES`** 资产明细表中核验到账余额的全过程：
 
-![Detected Deposits 同时展示确认中 pending 与已入账 credited 状态](../../web/docs/wiki/07-wallet-deposit-pending-and-credited.png)
+![核对 Detected Deposits 的 pending 与 credited 状态并在 Balances 验证到账实操 GIF](../../web/docs/wiki/06-deposit-pending-to-credited.gif)
 
 让我们逐行拆解这张表里的每一列信息：
 
@@ -134,11 +124,7 @@ sequenceDiagram
 
 ### 第 6 步：核验到账后的账户资产总览（`Balances`）
 
-点击充值弹窗右上角的 **`✕ CLOSE`** 关闭弹窗，然后点击底部工作台的 **`BALANCES`** 页签，进行入金后的最终核验：
-
-![充值到账后的可用余额栏与 Balances 资产明细表](../../web/docs/wiki/08-balances-after-deposit.png)
-
-核对以下两处数字完全吻合，即代表充值流程 100% 圆满完成：
+如上方 `06-deposit-pending-to-credited.gif` 后半段所示，点击充值弹窗右上角的 **`✕ CLOSE`** 关闭弹窗，然后点击底部工作台的 **`BALANCES`** 页签，核对以下两处数字完全吻合，即代表充值流程 100% 圆满完成：
 1. **右上角 `AVAILABLE` 实时资产条**：由最初的空白提示变为醒目的 **`BTC 1.5000   USDT 50,000.0000`**。
 2. **底部 `BALANCES` 资产明细表**：
    - **`TOTAL`（总余额）**：你在该币种下的全部已确认账面资产（注意：刚才那笔还在 `pending…` 的 `0.25 BTC` 没有算进来，所以 `BTC` 总额严格等于已确认的 `1.5000`！）。

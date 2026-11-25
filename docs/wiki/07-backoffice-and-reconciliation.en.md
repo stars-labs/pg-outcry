@@ -14,9 +14,9 @@ Whether you are operating your own venue or exploring the live demo (where authe
 
 ## 7.1 Signing In & Reading the Control Room (`Overview`)
 
-Open `admin.html` (e.g. `http://127.0.0.1:4173/admin.html` locally or [`https://stars-labs.github.io/pg-outcry/admin.html`](https://stars-labs.github.io/pg-outcry/admin.html) on GitHub Pages) and click **`SIGN IN / CREATE →`** to enter the **`CONTROL ROOM`**:
+Open `admin.html` (e.g. `http://127.0.0.1:4173/admin.html` locally or [`https://stars-labs.github.io/pg-outcry/admin.html`](https://stars-labs.github.io/pg-outcry/admin.html) on GitHub Pages) and click **`SIGN IN / CREATE →`** to inspect the **`CONTROL ROOM`** (`recon ALL PASS`) and approve pending payouts in **`TREASURY`**:
 
-![OUTCRY/ADMIN Control Room showing recon ALL PASS across all 7 invariants](../../web/docs/wiki/17-admin-overview-pending-approval.png)
+![Live GIF: Verifying recon ALL PASS in Control Room and approving a pending withdrawal in Treasury](../../web/docs/wiki/18-admin-reconcile-and-approve.gif)
 
 ### The 7 Golden Solvency & Custody Invariants (`recon ALL PASS`)
 
@@ -40,17 +40,15 @@ Click **`TREASURY`** in the navigation bar to manage withdrawals and chain liste
 
 1. **`WALLET APPROVALS · CASH OPERATIONS` (Pending Withdrawal Queue)**:
    - Displays every customer withdrawal currently in `PENDING` state.
-   - Click green **`APPROVE`**: Inside one atomic transaction, releases the user hold, posts the double-entry `WITHDRAWAL` debit from User → `MASTER`, and enqueues the payout for on-chain signing.
+   - Click green **`APPROVE`** (shown in `18-admin-reconcile-and-approve.gif` above): Inside one atomic transaction, releases the user hold, posts the double-entry `WITHDRAWAL` debit from User → `MASTER`, and enqueues the payout for on-chain signing.
    - Click red **`REJECT`**: Cancels the request and immediately unfreezes 100% of the locked funds back to the customer's `Available` balance.
-
-![Treasury pending withdrawal approval queue and chain deposit configuration](../../web/docs/wiki/17b-admin-treasury-pending-queue.png)
 
 2. **`WITHDRAWAL QUEUE · CUSTODY SIGNER` (4-Stage On-Chain Payout Pipeline)**:
    - Every approved on-chain withdrawal advances monotonically through four states: **`QUEUED` → `CLAIMED` (atomically leased so concurrent signers never double-pay) → `BROADCAST` (raw tx broadcast with unique `txid`) → `CONFIRMED` (mined on-chain)**.
-   - **Autonomous Bitcoin Testnet4 Loop**: When `bitcoin-testnet4` is enabled, in-DB `pg_cron` jobs perform UTXO selection, BIP-143 SegWit signing, broadcast, and confirmation automatically (advancing to green `CONFIRMED` below).
+   - **Autonomous Bitcoin Testnet4 Loop**: When `bitcoin-testnet4` is enabled, in-DB `pg_cron` jobs perform UTXO selection, BIP-143 SegWit signing, broadcast, and confirmation automatically (watch the green `CONFIRMED` verification and `AUDIT` inspection in the live GIF below).
    - **External Signer Integration (EVM / Tron / Solana)**: External hot-wallet daemons (see [`examples/withdrawal-signer.mjs`](../../examples/withdrawal-signer.mjs)) or operators can also claim payouts via `CLAIM NEXT TO SIGN` and record `txid` / confirmation status.
 
-![Custody Signer queue after on-chain broadcast and confirmation](../../web/docs/wiki/18b-admin-treasury-signer-confirmed.png)
+![Live GIF: Verifying CONFIRMED status in Custody Signer and switching to the append-only Audit Trail](../../web/docs/wiki/19-admin-signer-confirm-and-audit.gif)
 
 3. **`CHAIN DEPOSITS · NETWORK OPERATIONS`**:
    - Toggle `bitcoin-testnet4`, `ethereum-sepolia`, `solana-testnet`, and `tron-nile` listeners (`on`/`off`), update RPC endpoints, and tune minimum confirmation thresholds (`CONF`) live.
@@ -73,9 +71,7 @@ Click **`TREASURY`** in the navigation bar to manage withdrawals and chain liste
 
 ## 7.4 Append-Only Immutable Audit Trail (`Audit`)
 
-Click **`AUDIT`** to inspect the compliance trail:
-
-![Immutable append-only Admin Audit Log recording approval, broadcast txid, and confirmation](../../web/docs/wiki/18c-admin-audit-log.png)
+Click **`AUDIT`** to inspect the compliance trail (shown in the second half of `19-admin-signer-confirm-and-audit.gif` above):
 
 **Why every row here is tamper-evident cryptographic evidence:**
 - `admin_audit_log` enforces a PostgreSQL trigger that **unconditionally rejects every `UPDATE` and `DELETE`** (`INSERT`-only append semantics).

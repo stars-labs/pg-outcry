@@ -22,9 +22,9 @@ Before sending your first satoshi or stablecoin to the exchange, understanding h
 
 ## 1.2 Anatomy of the Auth Gate
 
-When you open the terminal without an active session, the full-screen **Auth Gate** greets you:
+When you open the terminal without an active session, the full-screen **Auth Gate** greets you. The live-action GIF below demonstrates **switching to Sign-Up mode, typing `alice@outcry.dev` & password, clicking `CREATE ACCOUNT →`, and booting straight into the fresh trading terminal**:
 
-![OUTCRY Auth Gate Login Screen](../../web/docs/wiki/01-auth-login.png)
+![Live GIF: Switching to Register, creating alice@outcry.dev, and entering the terminal](../../web/docs/wiki/01-auth-register.gif)
 
 1. **Session Status Bar (`SECURE SESSION · GOTRUE OAUTH2`)**: The blinking phosphor-green indicator confirms WebAssembly initialization and GoTrue connectivity.
 2. **Unified Product Badges (`SPOT` · `MARGIN` · `PERPS` · `STAKING` · `WALLET`)**: All five modules share a single unified cash ledger — no cumbersome internal sub-account transfers required.
@@ -42,10 +42,7 @@ Let's walk through registering our live demonstration trader **`alice@outcry.dev
 1. Click **`NO ACCOUNT? REGISTER →`** at the bottom of the Auth Gate. The primary green action button changes to **`CREATE ACCOUNT →`**.
 2. Enter your email address in **`EMAIL`** (e.g., `alice@outcry.dev`).
 3. Enter a strong password in **`PASSWORD`** (at least 12 characters recommended; minimum 6 characters enforced by GoTrue).
-
-![Filling email and password to create a new account](../../web/docs/wiki/02-auth-register.png)
-
-4. Click **`CREATE ACCOUNT →`**.
+4. Click **`CREATE ACCOUNT →`** (watch the full typing and provisioning sequence in `01-auth-register.gif` above).
 
 ### What Happens Under the Hood? (Single-Transaction Provisioning)
 In one atomic PostgreSQL transaction triggered by `handle_new_user()`, the database:
@@ -57,9 +54,7 @@ In one atomic PostgreSQL transaction triggered by `handle_new_user()`, the datab
 
 ## 1.4 Terminal Orientation: The 8 Core Workspaces
 
-Immediately after registration, you enter the live trading workspace:
-
-![Fresh trading terminal overview for a newly registered user](../../web/docs/wiki/03-terminal-empty-fresh.png)
+Immediately after registration, you enter the live trading workspace (shown at the end of `01-auth-register.gif` above):
 
 | Zone | Panel Name | Function |
 |---|---|---|
@@ -79,12 +74,12 @@ Immediately after registration, you enter the live trading workspace:
 ### Daytime Light Theme (`☀` / `🌙`)
 Click **`☀`** in the top-right header to toggle between the default phosphor Night theme and the high-contrast **Daytime Light** theme (saved automatically in `localStorage`):
 
-![Daytime Light Theme Preview](../../web/docs/wiki/25-terminal-light-theme.png)
+![Live GIF: Toggling Daytime Light Theme and chart timeframe](../../web/docs/wiki/03-terminal-light-dark.gif)
 
 ### Referral Code & Commission Tracking (`ACCOUNT`)
-Click **`ACCOUNT`** in the top header to open the referral workspace:
+Click **`ACCOUNT`** in the top header to open the referral workspace and copy your invite URL in one click:
 
-![Account Referral Code and Earnings Modal](../../web/docs/wiki/24-account-referral.png)
+![Live GIF: Opening Account modal and copying invite link](../../web/docs/wiki/02-account-referral.gif)
 
 - **`YOUR REFERRAL CODE`**: Copy your unique invite link (`?ref=F5B319E1`) via **`COPY INVITE LINK`**.
 - **`EARNINGS`**: Tracks referred traders, total commissions accrued (`0.02%` default via ledger trigger `accrue_referral_commission()`), and unpaid balances awaiting operator payout.

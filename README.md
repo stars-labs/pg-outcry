@@ -18,7 +18,7 @@ Matching · Settlement · Wallet · Risk · Realtime · Auth — **no applicatio
 
 **[▶ Live demo — back-office](https://stars-labs.github.io/pg-outcry/admin.html?api=https://axtziasfallmdgssbgsl.supabase.co&anon=sb_publishable_j1Jr-NMeKb_P29JcBRhz6Q_0ZkbVzUc)** — test-open admin console: sign in or create a Supabase Auth user to try approvals, accounts, fees/risk, referral payouts, derivatives & staking, and audit on the same live data.
 
-**[📖 End-to-End User Operation Wiki (Deposit → Trade → Withdraw · 33 Live Screenshots)](./docs/wiki/README.en.md)** · **[🌐 Interactive Web Wiki (GitHub Pages)](https://stars-labs.github.io/pg-outcry/wiki.html?lang=en)**
+**[📖 End-to-End User Operation Wiki (Deposit → Trade → Withdraw · 19 Live Action GIFs)](./docs/wiki/README.en.md)** · **[🌐 Interactive Web Wiki (GitHub Pages)](https://stars-labs.github.io/pg-outcry/wiki.html?lang=en)**
 
 **[★ Why pg-outcry — comparison vs top-tier exchanges & the SMB advantage (diagrams)](./docs/WHY.md)**
 

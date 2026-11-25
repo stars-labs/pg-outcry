@@ -28,7 +28,7 @@ With **`1.5000 BTC`** and **`50,000.0000 USDT`** credited, you are ready to trad
 
 Every indicator in OUTCRY runs locally inside `orderbook.wasm` at 60fps:
 
-![5m candlesticks with Bollinger Bands, MAs, VWAP, MACD oscillator, and horizontal resistance drawing](../../web/docs/wiki/09-chart-indicators-and-drawings.png)
+![Live GIF: Switching to 5m candles, enabling MACD oscillator, and plotting a horizontal resistance line](../../web/docs/wiki/07-chart-indicators-drawing.gif)
 
 - **Resolutions**: Switch between **`1m`**, **`5m`**, and **`15m`** (backed by the pure-SQL `ohlcv` RPC + live `md:BTC_USDT` trade broadcast).
 - **Main-Pane Overlays (multi-toggle)**: `MA7` (cyan), `EMA25` (amber), `BOLL` (20,2 violet envelope), `VWAP` (pink dashed), and `VMA` (volume SMA).
@@ -57,20 +57,13 @@ Every indicator in OUTCRY runs locally inside `orderbook.wasm` at 60fps:
 
 Let's place a passive `GTC` Limit Buy for **`0.2 BTC`** at **`68,450.00 USDT`**:
 
-1. Select **`BUY / BID`**, **`LIMIT`**, enter `68450.00` in **`LIMIT PRICE`**, `0.2` in **`AMOUNT`**, and keep **`GTC`**. WASM previews **`Est. cost / proceeds: 13,690.00 USDT`**:
-
-![Entering a 68,450.00 USDT Limit Buy order for 0.2 BTC](../../web/docs/wiki/10-spot-limit-buy-entry.png)
-
-2. Click **`PLACE BUY ORDER`**. Three UI zones update instantaneously:
-   - The L2 bid ladder inserts **`68,450.00 | 0.2000`** between `68,460.00` and `68,448.00`;
+1. Select **`BUY / BID`**, **`LIMIT`**, enter `68450.00` in **`LIMIT PRICE`**, `0.2` in **`AMOUNT`**, keep **`GTC`**, and click **`PLACE BUY ORDER`**:
+   - WASM previews **`Est. cost / proceeds: 13,690.00 USDT`** prior to submission;
+   - The L2 bid ladder immediately inserts **`68,450.00 | 0.2000`** between `68,460.00` and `68,448.00`;
    - `OPEN ORDERS (1 WORKING)` lists the live order with a cancel **`✕`** button;
-   - `AVAILABLE` updates to **`USDT 36,310.0000 +13,690.0000 rsv`**.
+   - `AVAILABLE` updates to **`USDT 36,310.0000 +13,690.0000 rsv`**, and switching to **`BALANCES`** proves the exact reservation identity:
 
-![Resting Limit Buy live on L2 book, Open Orders, and Reserved bar](../../web/docs/wiki/11-spot-open-order-and-reserved.png)
-
-3. Click **`BALANCES`** in the blotter to inspect the fundamental reservation identity:
-
-![Balances tab showing Total = Reserved + Available](../../web/docs/wiki/12-spot-balances-reserved-detail.png)
+![Live GIF: Placing a 68,450.00 Limit Buy, resting on the L2 book, and verifying the 13,690 USDT reservation](../../web/docs/wiki/08-spot-limit-buy-reserve.gif)
 
 $$\underbrace{50,000.0000}_{\text{Total}} = \underbrace{13,690.0000}_{\text{Reserved}} + \underbrace{36,310.0000}_{\text{Available}}$$
 
@@ -84,8 +77,6 @@ Now Alice wants **`0.2 BTC` immediately** at market:
    - Why `68,505.29` instead of Best Ask `68,503.50`? Because Best Ask only has `0.1350 BTC`! WASM walks two ask levels (`0.1350 @ 68,503.50` + `0.0650 @ 68,509.00`):
      $$\text{VWAP} = \frac{0.1350 \times 68,503.50 + 0.0650 \times 68,509.00}{0.2000} = 68,505.2875 \approx \mathbf{68,505.29}$$
 
-![Market Buy preview walking two ask levels to compute exact VWAP 68,505.29](../../web/docs/wiki/13a-spot-market-preview.png)
-
 > [!TIP]
 > **Pro Tip — Price Band Guardrails & Marketable `LIMIT + IOC`**: When `instrument_risk.price_band_pct` (`±10%`) is active, submitting a raw `MARKET` order (`price=0`) may be blocked by `risk_price_band`. Institutional traders execute immediate sweeps using **`LIMIT` + a protective cap (e.g., `68,550.00`) + `IOC`**, which sweeps `68,503.50` and `68,509.00` identically while guaranteeing slippage protection!
 
@@ -94,7 +85,7 @@ Now Alice wants **`0.2 BTC` immediately** at market:
    - `TRADE TAPE` prints `68,509.00 (0.0650)` and `68,503.50 (0.1350)`;
    - Alice's `BTC` jumps from `1.5000` to **`1.7000`**, and `USDT` settles at **`22,608.9425`** (`36,310.0000 - 13,701.0575` — returning the `0.0025` budget rounding dust automatically!).
 
-![Market Buy filled across two levels with updated Trade Tape and 1.7000 BTC balance](../../web/docs/wiki/13b-spot-market-filled.png)
+![Live GIF: Previewing WASM VWAP 68,505.29 and sweeping two ask levels atomically with a Market Buy](../../web/docs/wiki/09-spot-market-sweep-fill.gif)
 
 ---
 
@@ -102,7 +93,7 @@ Now Alice wants **`0.2 BTC` immediately** at market:
 
 In **`OPEN ORDERS`**, click **`✕`** on the resting `68,450.00` order:
 
-![Order cancelled via ✕, releasing 13,690.0000 USDT back to Available](../../web/docs/wiki/13c-spot-order-cancelled.png)
+![Live GIF: Cancelling the resting order via ✕ and releasing 13,690.0000 USDT back to Available](../../web/docs/wiki/10-spot-cancel-unfreeze.gif)
 
 The `68,450.00` bid vanishes from the L2 book, `OPEN ORDERS` drops to `0 WORKING`, and `13,690.0000 USDT` returns immediately to `Available` (`36,298.9425 USDT`).
 

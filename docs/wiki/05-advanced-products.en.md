@@ -17,7 +17,7 @@ Once you have mastered the core **Deposit → Spot Trading → Withdrawal** loop
 
 Click **`FUTURES`** in the top header bar to open the perpetual derivatives desk:
 
-![BTC-PERP linear perpetual futures position entry and live uPnL monitor](../../web/docs/wiki/20-product-futures-perp.png)
+![Live GIF: Opening BTC-PERP Futures, posting 1,000 USDT margin, and entering a 0.1000 BTC Long](../../web/docs/wiki/14-futures-perp-open.gif)
 
 ### Core Contract Specifications & Formulas
 
@@ -45,7 +45,7 @@ Click **`FUTURES`** in the top header bar to open the perpetual derivatives desk
 
 Click **`MARGIN`** in the top header bar (or the **`BORROW`** shortcut in the Order Entry footer) to open the cross-margin lending desk:
 
-![Spot Cross-Margin Account Health dashboard and 0.05 BTC borrow walkthrough](../../web/docs/wiki/21-product-margin-borrow.png)
+![Live GIF: Inspecting Cross-Margin Account Health and borrowing 0.0500 BTC](../../web/docs/wiki/15-margin-borrow.gif)
 
 ### Risk Model & Continuous Interest Accrual
 
@@ -73,7 +73,7 @@ Click **`MARGIN`** in the top header bar (or the **`BORROW`** shortcut in the Or
 
 Have idle `BTC`, `USDT`, or `EUR` sitting between trades? Click **`EARN`** in the top bar to put idle balances to work in per-second yield pools:
 
-![Earn staking pools and active 0.5000 BTC stake position](../../web/docs/wiki/22-product-earn-staking.png)
+![Live GIF: Staking 0.5000 BTC in the 5% APR Earn pool with live pending rewards](../../web/docs/wiki/16-earn-stake.gif)
 
 ### Reward Mechanics & `pgmq` Unbonding
 1. **Three Active Yield Pools (`POOLS`)**:

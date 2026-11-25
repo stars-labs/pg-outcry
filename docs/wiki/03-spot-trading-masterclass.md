@@ -31,7 +31,7 @@
 
 OUTCRY 的全部技术指标均在浏览器本地通过 **WebAssembly (`orderbook.wasm`)** 零延迟计算，不消耗任何后端算力。下面我们将周期切到 **`5m`**、副图切到 **`MACD`**，并在阻力位画上一条水平参考线：
 
-![5m K 线周期、布林带与均线叠加、MACD 副图及水平画线实操](../../web/docs/wiki/09-chart-indicators-and-drawings.png)
+![切换 5m K 线周期、开启 MACD 副图并在图表绘制水平阻力线实操 GIF](../../web/docs/wiki/07-chart-indicators-drawing.gif)
 
 ### 图表控制栏全功能速查
 
@@ -85,22 +85,15 @@ OUTCRY 的全部技术指标均在浏览器本地通过 **WebAssembly (`orderboo
 4. **`TIME IN FORCE`** 保持默认的 **`GTC`**。
 5. 观察下方虚线预览框：WASM 引擎已用银行家舍入实时算出 **`Est. cost / proceeds: 13,690.00 USDT`**（$0.2 \times 68,450.00 = 13,690.00$）。
 
-![填写 68450.00 限价买单并核对 WASM 预估成本](../../web/docs/wiki/10-spot-limit-buy-entry.png)
+### 第 2–3 步：点击 `PLACE BUY ORDER` 提交挂单，观察三处实时联动与 `BALANCES` 恒等式
+点击绿色的 **`PLACE BUY ORDER`** 按钮后，无需刷新页面，屏幕上**盘口买单档位、挂单列表、右上角冻结栏与底部 `BALANCES` 资产明细**在数毫秒内同步更新（完整操作见下方实景动图）：
 
-### 第 2 步：点击 `PLACE BUY ORDER` 提交挂单，观察三处实时联动
-点击绿色的 **`PLACE BUY ORDER`** 按钮后，无需刷新页面，屏幕上**三处核心区域**在数毫秒内同步更新：
+![点击盘口填单、下达 68,450.00 限价买单、盘口入簿并核验 13,690 USDT 冻结恒等式实操 GIF](../../web/docs/wiki/08-spot-limit-buy-reserve.gif)
 
-![限价买单挂入盘口后：L2 新增买单档位、Open Orders 显示挂单、Available 显示冻结金额](../../web/docs/wiki/11-spot-open-order-and-reserved.png)
-
-请逐一对照上图核验这三处变化：
+请逐一对照上方动图核验核心变化：
 1. **左侧 `ORDER BOOK · L2` 买盘第 8 档**：在 `68,460.00` 与 `68,448.00` 之间，真实长出了属于你的绿色买单行 **`68,450.00 | 0.2000`**！这证明你的订单已进入全市场共享的实时盘口排队。
 2. **底部 `OPEN ORDERS (1 WORKING)`**：出现了工作中的挂单记录 `BTC_USDT | BUY | LIMIT | 68,450.00 | 0.2000 | 0.2000 | OPEN`，最右侧带有撤单按钮 **`✕`**。
-3. **右上角 `AVAILABLE` 资产栏**：USDT 显示为 **`36,310.0000 +13,690.0000 rsv`**！
-
-### 第 3 步：切换到 `BALANCES` 页签理解「冻结（Reserved）」会计恒等式
-点击底部工作台的 **`BALANCES`** 页签，你会看到极其清晰的资金三分法：
-
-![Balances 面板清晰展示挂单后的总额、冻结与可用关系](../../web/docs/wiki/12-spot-balances-reserved-detail.png)
+3. **右上角 `AVAILABLE` 与底部 `BALANCES` 恒等式**：USDT 显示为 **`36,310.0000 +13,690.0000 rsv`**，切换到 `BALANCES` 页签清晰印证资金三分法：
 
 $$\underbrace{50,000.0000}_{\text{TOTAL（总资产）}} = \underbrace{13,690.0000}_{\text{RESERVED（挂单冻结）}} + \underbrace{36,310.0000}_{\text{AVAILABLE（剩余可用）}}$$
 
@@ -114,10 +107,10 @@ $$\underbrace{50,000.0000}_{\text{TOTAL（总资产）}} = \underbrace{13,690.00
 
 接下来，Alice 希望不再等待排队，直接按当前市场最优卖盘**立即买入 `0.2 BTC`**。
 
-### 第 1 步：切换到 `MARKET`，读懂跨档 VWAP 预估均价
-在右侧 `ORDER ENTRY` 将订单类型点击切换为 **`MARKET`**（数量保持 **`0.2`** BTC）：
+### 第 1–2 步：切换到 `MARKET` 预估跨档 VWAP，点击 `PLACE BUY ORDER` 瞬时扫货交割
+在右侧 `ORDER ENTRY` 将订单类型点击切换为 **`MARKET`**（数量保持 **`0.2`** BTC），核对 WASM 预估均价后点击 **`PLACE BUY ORDER`**（完整操作与即时成交动画如下）：
 
-![切换到市价买单：WASM 自动遍历两档卖盘算出精确 VWAP 68505.29](../../web/docs/wiki/13a-spot-market-preview.png)
+![切换市价买单预估跨两档 VWAP 68,505.29 并瞬时扫空卖一、补齐卖二成交实操 GIF](../../web/docs/wiki/09-spot-market-sweep-fill.gif)
 
 **请特别留意预览框里出现的新数字：`Est. fill VWAP: 68,505.29`、`Est. cost / proceeds: 13,701.06 USDT`！为什么不是卖一价 `68,503.50`？**
 
@@ -132,17 +125,12 @@ $$\underbrace{50,000.0000}_{\text{TOTAL（总资产）}} = \underbrace{13,690.00
 > 在开启了严格防胖手指价格带风控（`instrument_risk.price_band_pct = 10%`）的交易对上，由于前端 `MARKET` 单向 RPC 传递 `price_param = 0`，若后端风控对 `0` 价格执行偏离度校验，可能会弹出红色提示 `risk price band: 0 beyond 10 pct band of reference ...`（以及高单价品种上 `BUY MARKET` 将报价预算传给 `amount_param` 时可能触碰默认 `max_order_amount`）。
 > - **交易员最佳实践**：当遇到价格带拦截市价单时，只需切回 **`LIMIT`**，填入略高于卖二/卖三的保护上限价（如 **`68,550.00`**），并将 **`TIME IN FORCE` 选为 `IOC`**！这在金融工程中称为 **Marketable Limit IOC Order（可成交限价 IOC 单）**——它与市价单一样在毫秒内按 `68,503.50` 和 `68,509.00` 最优价跨档扫货、绝不留挂单，同时还额外给你加了一道「绝不在极端插针时以高于 `68,550` 成交」的防滑点护盾！
 
-### 第 2 步：点击 `PLACE BUY ORDER`，验证跨档扫货与即时结算
-点击 **`PLACE BUY ORDER`** 成交后的终端画面如下：
-
-![市价买单即时跨两档成交：盘口卖一被吃光、成交带新增两笔记录、BTC 增至 1.7000](../../web/docs/wiki/13b-spot-market-filled.png)
-
-让我们逐项欣赏 PostgreSQL 单事务撮合与结算带来的**四处精确变化**：
+让我们逐项欣赏上方动图中 PostgreSQL 单事务撮合与结算带来的**四处精确变化**：
 1. **顶部最新成交价 Ticker**：跃升至刚才扫到的最高成交档位 **`68,509.00`**（荧光绿高亮）。
 2. **左侧 `ORDER BOOK · L2` 卖盘**：原本的卖一 `68,503.50 (0.1350)` 已被彻底吃光消失！原本的卖二 `68,509.00` 挂单量从 `0.2100` 精确扣减 `0.0650`，变为新的卖一 **`68,509.00 | 0.1450`**！
 3. **中央 `TRADE TAPE` 实时成交带**：最顶部瞬间弹出两笔最新成交明细：
-   - `68,509.00 | 0.0650 | 1:49:52 AM`
-   - `68,503.50 | 0.1350 | 1:49:52 AM`
+   - `68,509.00 | 0.0650`
+   - `68,503.50 | 0.1350`
 4. **右上角 `AVAILABLE` 实时余额**：
    - **`BTC`** 从 `1.5000` 精准增加 `0.2000`，变为 **`1.7000`**！
    - **`USDT`** 可用余额从 `36,310.0000` 精准扣除两档实付金额 `13,701.0575`（注意：比预算 `13,701.06` 省下的 `0.0025 USDT` 尾差已自动退回！），变为 **`22,608.9425`**！
@@ -154,9 +142,9 @@ $$\underbrace{50,000.0000}_{\text{TOTAL（总资产）}} = \underbrace{13,690.00
 如果市场价格没有回调到 `68,450.00`，Alice 决定撤回刚才挂在盘口上的那笔限价买单，释放锁定的 `13,690.0000 USDT`：
 
 1. 确保底部工作台停留在 **`OPEN ORDERS`** 页签。
-2. 找到目标挂单行最右侧的 **`✕`** 按钮，直接左键点击 **`✕`**。
+2. 找到目标挂单行最右侧的 **`✕`** 按钮，直接左键点击 **`✕`**：
 
-![点击 ✕ 撤销挂单后：Open Orders 归零，13690 USDT 冻结资金全额释放回可用余额](../../web/docs/wiki/13c-spot-order-cancelled.png)
+![点击 Open Orders 右侧 ✕ 一键撤销限价单并秒级解冻 13,690 USDT 实操 GIF](../../web/docs/wiki/10-spot-cancel-unfreeze.gif)
 
 撤单完成后的三处核验：
 - 底部显示 `0 WORKING` / `No working orders`；

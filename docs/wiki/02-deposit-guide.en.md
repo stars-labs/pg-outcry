@@ -61,52 +61,35 @@ sequenceDiagram
 
 ## 2.3 Step-by-Step Walkthrough: Depositing BTC & USDT
 
-### Step 1: Open `Wallet → Deposit`
-Click **`WALLET`** in the top header (or **`DEPOSIT`** at the bottom of the Order Entry panel):
+### Steps 1–2: Open `Wallet → Deposit` & Derive Your Dedicated BTC (`Bitcoin · testnet4`) Address
+Click **`WALLET`** in the top header (or **`DEPOSIT`** in the Order Entry footer), then click **`BTC Bitcoin`** under **`1 · SELECT COIN`**. **`Bitcoin · testnet4`** is selected automatically, and PostgreSQL derives your native SegWit `tb1q…` address in real time:
 
-![Opening Wallet → Deposit coin selector](../../web/docs/wiki/04-wallet-deposit-select.png)
+![Live GIF: Opening Wallet, deriving dedicated BTC tb1q deposit address, and clicking Copy](../../web/docs/wiki/04-deposit-btc-address.gif)
 
----
-
-### Step 2: Generate Your Dedicated BTC (`Bitcoin · testnet4`) Address
-1. Under **`1 · SELECT COIN`**, click **`BTC Bitcoin`**.
-2. **`Bitcoin · testnet4`** is selected automatically, and PostgreSQL derives your native SegWit `tb1q…` address in real time:
-
-![Derived BTC Bitcoin testnet4 P2WPKH deposit address](../../web/docs/wiki/05-wallet-deposit-btc-address.png)
-
-3. Click **`COPY`** to copy your address (`tb1qr02pefn96udnagxhuyhkd3mfn9sn9pf8tuzjwv` for Alice). Notice the **`tb1q`** prefix — confirming it is a Bitcoin Testnet4 native SegWit address.
+Click **`COPY`** to copy your address (`tb1q2y05tnvyhscujjc6jx8th7rmtgp9c423wk7ecv` for Alice). Notice the **`tb1q`** prefix — confirming it is a Bitcoin Testnet4 native SegWit address.
 
 ---
 
 ### Step 3: Generate Your Dedicated USDT (`TRC-20 · Nile`) Address
 1. Click **`USDT Tether`** under **`1 · SELECT COIN`**.
-2. **`TRC-20 · Nile`** is selected automatically, displaying your derived TRON `T…` address (`TWkz7NMFNm8JSQAMqSBpnehRbQ9uXYsL4o`):
+2. **`TRC-20 · Nile`** is selected automatically, displaying your derived TRON `T…` address (`TQStC9SW9Qd8D9Zaa3AoUojxKwvbH2u5bJ`), which you can copy in one click:
 
-![Derived USDT TRC-20 Nile deposit address](../../web/docs/wiki/06-wallet-deposit-usdt-address.png)
+![Live GIF: Selecting USDT TRC-20 Nile and copying the derived TRON deposit address](../../web/docs/wiki/05-deposit-usdt-address.gif)
 
 > [!CAUTION]
 > **Memo / Tag Rule**: When only `ADDRESS` is shown, you have a dedicated derived address and **no Memo is needed**. If a shared-treasury chain displays a **`MEMO / TAG`** row (e.g., `oc4`), you **must** include that exact memo string in your on-chain transfer or the deposit cannot be attributed to your account!
 
 ---
 
-### Step 4: Send Testnet Funds & Track `pending…` vs `credited`
-Acquire free testnet coins from a Bitcoin Testnet4 faucet / Sparrow Wallet or the TRON Nile faucet (`nileex.io`) and send them to your copied address. Within ~30 seconds, inspect **`DETECTED DEPOSITS`**:
+### Steps 4–5: Track `pending…` vs `credited` & Verify Balances in the Blotter
+Acquire free testnet coins from a Bitcoin Testnet4 faucet / Sparrow Wallet or the TRON Nile faucet (`nileex.io`) and send them to your copied address. Within ~30 seconds, inspect **`DETECTED DEPOSITS`**, then close the modal (`✕ CLOSE`) and switch to the **`BALANCES`** blotter tab:
 
-![Detected Deposits showing both pending and credited states](../../web/docs/wiki/07-wallet-deposit-pending-and-credited.png)
+![Live GIF: Inspecting pending vs credited deposits and verifying credited balances in the Blotter](../../web/docs/wiki/06-deposit-pending-to-credited.gif)
 
-Compare the two statuses in the screenshot above:
+Compare the two statuses in the animation above:
 - 🟠 **`pending…` (`0.250000 BTC`)**: Detected on-chain at 1/2 confirmations. To protect against block reorganizations, **`pending…` deposits are NOT added to your spendable balance yet**. Wait for the 2nd block confirmation and it will credit automatically.
 - 🟢 **`credited` (`50,000.000000 USDT` & `1.500000 BTC`)**: Required confirmations reached; funds have been atomically credited from `MASTER` into your account! Hover over any truncated `TX` hash to inspect the full 64-character `txid`.
-
----
-
-### Step 5: Verify Credited Balances in the Blotter
-Close the modal (`✕ CLOSE`) and open the **`BALANCES`** tab in the bottom blotter:
-
-![Credited balances verified in Available bar and Balances blotter](../../web/docs/wiki/08-balances-after-deposit.png)
-
-- **`AVAILABLE` bar**: Shows **`BTC 1.5000   USDT 50,000.0000`**.
-- **`BALANCES` table**: Confirms `Total = 1.5000 BTC` (excluding the unconfirmed `0.25 BTC` still in `pending…`) and `50,000.0000 USDT`, with `0.0000` reserved.
+- **`AVAILABLE` bar & `BALANCES` table**: Confirm `Total = 1.5000 BTC` (excluding the unconfirmed `0.25 BTC` still in `pending…`) and `50,000.0000 USDT`, with `0.0000` reserved.
 
 ---
 

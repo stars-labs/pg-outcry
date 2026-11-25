@@ -225,16 +225,20 @@ tr:hover td { background: rgba(120,150,138,0.04); }
 .badge.pend { color: var(--amber); border-color: rgba(255,180,84,.45); background: rgba(255,180,84,.07); }
 .badge.err { color: var(--coral); border-color: rgba(255,93,108,.45); background: rgba(255,93,108,.07); }
 
-/* Step Cards & Screenshots */
+/* Step Cards & Live Action GIFs */
 .shot-grid { display: grid; grid-template-columns: 1fr; gap: 22px; margin: 18px 0; }
-.shot-grid.two { grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); }
+.shot-grid.two { grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); }
 .shot-card { border: 1px solid var(--line); background: var(--bg-raised); overflow: hidden; }
 .shot-head {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
   padding: 9px 14px; border-bottom: 1px solid var(--line); font-size: 12.5px;
 }
-.shot-step { font-family: var(--mono); color: var(--phos); font-weight: 600; }
-.zoom-hint { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); }
+.shot-step { font-family: var(--mono); color: var(--phos); font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
+.gif-pill {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .08em; padding: 1px 6px;
+  color: var(--amber); border: 1px solid rgba(255,180,84,.45); background: rgba(255,180,84,.09);
+}
+.zoom-hint { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); white-space: nowrap; }
 .shot-card img {
   display: block; width: 100%; height: auto; cursor: zoom-in;
   border-bottom: 1px solid var(--line); transition: opacity .15s;
@@ -331,8 +335,8 @@ tr:hover td { background: rgba(120,150,138,0.04); }
         <span class="zh">OUTCRY 加密货币交易所全流程操作手册</span>
         <span class="en">OUTCRY Cryptocurrency Exchange End-to-End Operation Manual</span>
       </h1>
-      <p class="zh">从零创建账户、获取库内 HD 派生充值地址、理解区块确认与入账规则、使用 WebAssembly 盘口与技术指标下达限价/市价单，到绑定提币白名单、通过后台风控审批并由库内 BIP-143 原生隔离见证签名器广播到账——全部基于真实账户 <code>alice@outcry.dev</code> 连续实操截图与逐笔数学验算。</p>
-      <p class="en">Walk step by step from creating an account, deriving in-DB HD deposit addresses, tracking confirmation finality, and executing limit/market spot orders with WebAssembly indicators, all the way to whitelisting cold-storage addresses, passing back-office custody approval, and confirming zero-fee BIP-143 SegWit payouts — captured live on trader <code>alice@outcry.dev</code> and reconciled to <code>0.0001</code> precision.</p>
+      <p class="zh">从零创建账户、获取库内 HD 派生充值地址、理解区块确认与入账规则、使用 WebAssembly 盘口与技术指标下达限价/市价单，到绑定提币白名单、通过后台风控审批并由库内 BIP-143 原生隔离见证签名器广播到账——全程由 <b>19 支 Computer Use 桌面实景操作动图（GIF）</b>与真实账户 <code>alice@outcry.dev</code> 逐笔数学验算驱动。</p>
+      <p class="en">Walk step by step from creating an account, deriving in-DB HD deposit addresses, tracking confirmation finality, and executing limit/market spot orders with WebAssembly indicators, all the way to whitelisting cold-storage addresses, passing back-office custody approval, and confirming zero-fee BIP-143 SegWit payouts — demonstrated via <b>19 live Computer Use action GIFs</b> on trader <code>alice@outcry.dev</code> and reconciled to <code>0.0001</code> precision.</p>
 
       <div class="pipeline">
         <a class="pipe-step" href="#ch1">
@@ -364,8 +368,8 @@ tr:hover td { background: rgba(120,150,138,0.04); }
 
       <div class="kpi-strip">
         <div class="kpi">
-          <b><span class="zh">33 张</span><span class="en">33 Shots</span></b>
-          <span><span class="zh">真实桌面端连续实操截图（点击任意配图可全屏放大）</span><span class="en">Real desktop screenshots from one continuous session (click any image to zoom)</span></span>
+          <b><span class="zh">19 支 GIF</span><span class="en">19 Live GIFs</span></b>
+          <span><span class="zh">Computer Use 真实桌面连续实操录屏动图（点击任意动图可全屏放大观看）</span><span class="en">Real desktop action GIFs from one continuous session (click any GIF to enlarge)</span></span>
         </div>
         <div class="kpi">
           <b><span class="zh">0 提币费</span><span class="en">0 Fee Payout</span></b>
@@ -396,67 +400,42 @@ tr:hover td { background: rgba(120,150,138,0.04); }
       <p class="zh">打开交易终端首页后，首先进入全屏安全门禁（Auth Gate）。你可以选择 <b>GitHub OAuth2 一键登录</b>（直接复用你在 GitHub 上配置的硬件 Passkey / 2FA 双因素认证），或使用<b>邮箱 + 密码</b>极速创建新交易账户。</p>
       <p class="en">Opening the terminal presents the full-screen Auth Gate. Authenticate in one click via <b>GitHub OAuth2</b> (inheriting your GitHub hardware Passkey / TOTP 2FA) or register instantly with <b>Email + Password</b>.</p>
 
-      <div class="shot-grid two">
-        <div class="shot-card">
-          <div class="shot-head">
-            <span class="shot-step"><span class="zh">1.1 · 登录门禁页</span><span class="en">1.1 · Auth Gate (Sign In)</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
-          </div>
-          <img src="docs/wiki/01-auth-login.png" alt="OUTCRY Auth Gate Sign In" loading="lazy" />
-          <div class="shot-cap">
-            <span class="zh"><strong>默认登录态：</strong>展示五大核心模块徽章（Spot / Margin / Perps / Staking / Wallet），底部点击 <code>NO ACCOUNT? REGISTER →</code> 即可切换至注册模式。</span>
-            <span class="en"><strong>Default Sign-In view:</strong> Highlights all five core desks (Spot / Margin / Perps / Staking / Wallet). Click <code>NO ACCOUNT? REGISTER →</code> at the bottom to switch to Sign-Up mode.</span>
-          </div>
-        </div>
-        <div class="shot-card">
-          <div class="shot-head">
-            <span class="shot-step"><span class="zh">1.2 · 注册新交易员账户</span><span class="en">1.2 · Register Trader Account</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
-          </div>
-          <img src="docs/wiki/02-auth-register.png" alt="Create alice@outcry.dev account" loading="lazy" />
-          <div class="shot-cap">
-            <span class="zh"><strong>填写邮箱与密码：</strong>输入 <code>alice@outcry.dev</code> 与高强度密码后点击 <code>CREATE ACCOUNT →</code>，库内触发器自动创建客户实体与默认资金户。</span>
-            <span class="en"><strong>Instant provisioning:</strong> Enter <code>alice@outcry.dev</code> and a strong password, then click <code>CREATE ACCOUNT →</code>. Database triggers provision your isolated entity and cash accounts automatically.</span>
-          </div>
-        </div>
-      </div>
-
-      <h3><span class="zh">首次进入终端：八大核心功能区与主题切换</span><span class="en">First Look Inside the Terminal: 8 Zones, Referrals &amp; Light Theme</span></h3>
       <div class="shot-grid">
         <div class="shot-card">
           <div class="shot-head">
-            <span class="shot-step"><span class="zh">1.3 · 新账户首次进入主交易台</span><span class="en">1.3 · Fresh Account Inside the Trading Terminal</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+            <span class="shot-step"><span class="gif-pill">● LIVE GIF</span><span class="zh">1.1 · 门禁切换注册 → 创建 alice@outcry.dev → 进入零余额交易台</span><span class="en">1.1 · Auth Gate → Register alice@outcry.dev → Boot Live Terminal</span></span>
+            <span class="zoom-hint"><span class="zh">点击全屏播放 ⤢</span><span class="en">Click to enlarge ⤢</span></span>
           </div>
-          <img src="docs/wiki/03-terminal-empty-fresh.png" alt="Fresh zero-balance trading terminal" loading="lazy" />
+          <img src="docs/wiki/01-auth-register.gif" alt="Auth Gate registration and booting into the live OUTCRY trading terminal" loading="lazy" decoding="async" />
           <div class="shot-cap">
-            <span class="zh"><strong>零余额初始态：</strong>右上角绿点 <code>live · realtime</code> 表示毫秒级行情广播与个人 RLS 私有流均已就绪；右侧 <code>AVAILABLE</code> 明确引导新用户先前往 <code>Wallet → Deposit</code> 存入测试网资产。</span>
-            <span class="en"><strong>Zero-balance initial state:</strong> The green <code>live · realtime</code> indicator confirms WebSocket market broadcasts and RLS private streams are live, while <code>AVAILABLE</code> guides new users to <code>Wallet → Deposit</code>.</span>
+            <span class="zh"><strong>极速开户全过程：</strong>点击底部 <code>NO ACCOUNT? REGISTER →</code>，输入 <code>alice@outcry.dev</code> 与密码并点击 <code>CREATE ACCOUNT →</code>，库内触发器自动开通实体与资金户，直达 <code>live · realtime</code> 主交易台。</span>
+            <span class="en"><strong>30-second instant onboarding:</strong> Click <code>NO ACCOUNT? REGISTER →</code>, enter <code>alice@outcry.dev</code> &amp; password, and click <code>CREATE ACCOUNT →</code> to provision isolated RLS accounts and enter the live terminal.</span>
           </div>
         </div>
       </div>
 
+      <h3><span class="zh">首次进入终端：推荐返佣绑定与日/夜亮暗主题切换</span><span class="en">Inside the Terminal: Referral Link &amp; One-Click Day/Night Theme</span></h3>
       <div class="shot-grid two">
         <div class="shot-card">
           <div class="shot-head">
-            <span class="shot-step"><span class="zh">1.4 · 推荐码与返佣面板（Account）</span><span class="en">1.4 · Referral Code &amp; Rebates (Account)</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+            <span class="shot-step"><span class="gif-pill">● LIVE GIF</span><span class="zh">1.2 · 打开 Account 面板一键复制专属邀请链接</span><span class="en">1.2 · Open Account &amp; Copy Referral Invite Link</span></span>
+            <span class="zoom-hint"><span class="zh">点击全屏播放 ⤢</span><span class="en">Click to enlarge ⤢</span></span>
           </div>
-          <img src="docs/wiki/24-account-referral.png" alt="Account Referral modal" loading="lazy" />
+          <img src="docs/wiki/02-account-referral.gif" alt="Opening Account Referral modal and copying invite link" loading="lazy" decoding="async" />
           <div class="shot-cap">
-            <span class="zh">点击顶部 <code>ACCOUNT</code> 可复制专属邀请链接（自动携带 <code>?ref=代码</code>）或一次性绑定推荐人，账本流水自动按 <code>0.02%</code> 计提佣金。</span>
+            <span class="zh">点击顶部 <code>ACCOUNT</code> 即可一键复制专属邀请链接（<code>?ref=代码</code>）或一次性绑定推荐人，账本流水自动按 <code>0.02%</code> 计提佣金。</span>
             <span class="en">Click <code>ACCOUNT</code> to copy your referral URL (<code>?ref=CODE</code>) or bind a referrer code once to earn <code>2 bps (0.02%)</code> rebates on referee volume.</span>
           </div>
         </div>
         <div class="shot-card">
           <div class="shot-head">
-            <span class="shot-step"><span class="zh">1.5 · 日间亮色主题一键切换（☀ / 🌙）</span><span class="en">1.5 · One-Click Day / Night Theme (☀ / 🌙)</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+            <span class="shot-step"><span class="gif-pill">● LIVE GIF</span><span class="zh">1.3 · 日间亮色 / 暗黑磷光双主题切换（☀ / 🌙）</span><span class="en">1.3 · One-Click Day / Night Theme Toggle (☀ / 🌙)</span></span>
+            <span class="zoom-hint"><span class="zh">点击全屏播放 ⤢</span><span class="en">Click to enlarge ⤢</span></span>
           </div>
-          <img src="docs/wiki/25-terminal-light-theme.png" alt="Light theme terminal view" loading="lazy" />
+          <img src="docs/wiki/03-terminal-light-dark.gif" alt="Toggling daylight light theme and chart timeframe" loading="lazy" decoding="async" />
           <div class="shot-cap">
-            <span class="zh">点击右上角 <code>☀</code> 即可在「磷光暗黑模式」与「高对比日间亮色模式」之间无缝切换。</span>
-            <span class="en">Toggle <code>☀</code> in the top bar to switch between phosphor dark mode and high-contrast daylight mode.</span>
+            <span class="zh">点击右上角 <code>☀</code> 在「磷光暗黑模式」与「高对比日间亮色模式」之间无缝切换，并联动切换 K 线周期。</span>
+            <span class="en">Toggle <code>☀</code> in the top bar to switch seamlessly between phosphor dark mode and high-contrast daylight mode.</span>
           </div>
         </div>
       </div>
@@ -500,49 +479,24 @@ tr:hover td { background: rgba(120,150,138,0.04); }
       <div class="shot-grid two">
         <div class="shot-card">
           <div class="shot-head">
-            <span class="shot-step"><span class="zh">2.1 · 打开 Wallet → Deposit 选择币种</span><span class="en">2.1 · Open Wallet → Deposit &amp; Select Coin</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+            <span class="shot-step"><span class="gif-pill">● LIVE GIF</span><span class="zh">2.1 · 派生并复制专属 BTC (testnet4) 地址</span><span class="en">2.1 · Derive &amp; Copy BTC Native SegWit Address</span></span>
+            <span class="zoom-hint"><span class="zh">点击全屏播放 ⤢</span><span class="en">Click to enlarge ⤢</span></span>
           </div>
-          <img src="docs/wiki/04-wallet-deposit-select.png" alt="Select deposit coin" loading="lazy" />
+          <img src="docs/wiki/04-deposit-btc-address.gif" alt="Opening Wallet and deriving dedicated BTC tb1q deposit address" loading="lazy" decoding="async" />
           <div class="shot-cap">
-            <span class="zh">点击顶部 <code>WALLET</code> 或下单区底部 <code>DEPOSIT</code>，展示支持的全部 6 种加密资产。</span>
-            <span class="en">Click <code>WALLET</code> in the header or <code>DEPOSIT</code> in Order Entry to pick among all 6 supported assets.</span>
+            <span class="zh">打开 <code>WALLET</code> 选择 <code>BTC → Bitcoin · testnet4</code>，库内实时派生你独享的固定 <code>tb1q2y05…</code> 地址并点击 <code>COPY</code> 一键复制。</span>
+            <span class="en">Open <code>WALLET</code>, choose <code>BTC → Bitcoin · testnet4</code> to derive your permanent <code>tb1q2y05…</code> address inside PostgreSQL, and click <code>COPY</code>.</span>
           </div>
         </div>
         <div class="shot-card">
           <div class="shot-head">
-            <span class="shot-step"><span class="zh">2.2 · 派生专属 BTC 原生隔离见证地址</span><span class="en">2.2 · Derive Dedicated BTC Native SegWit Address</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+            <span class="shot-step"><span class="gif-pill">● LIVE GIF</span><span class="zh">2.2 · 派生并复制专属 USDT (TRC-20 · Nile) 地址</span><span class="en">2.2 · Derive &amp; Copy USDT (TRC-20 · Nile) Address</span></span>
+            <span class="zoom-hint"><span class="zh">点击全屏播放 ⤢</span><span class="en">Click to enlarge ⤢</span></span>
           </div>
-          <img src="docs/wiki/05-wallet-deposit-btc-address.png" alt="Derived BTC tb1q deposit address" loading="lazy" />
+          <img src="docs/wiki/05-deposit-usdt-address.gif" alt="Selecting USDT TRC-20 Nile and copying deposit address" loading="lazy" decoding="async" />
           <div class="shot-cap">
-            <span class="zh">选择 <code>BTC → Bitcoin · testnet4</code>，库内实时派生你独享的固定 <code>tb1q…</code> 地址，点击 <code>COPY</code> 一键复制。</span>
-            <span class="en">Choose <code>BTC → Bitcoin · testnet4</code> to derive your permanent personal <code>tb1q…</code> address inside PostgreSQL and click <code>COPY</code>.</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="shot-grid two">
-        <div class="shot-card">
-          <div class="shot-head">
-            <span class="shot-step"><span class="zh">2.3 · 派生专属 USDT (TRC-20 · Nile) 地址</span><span class="en">2.3 · Derive Dedicated USDT (TRC-20 · Nile) Address</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
-          </div>
-          <img src="docs/wiki/06-wallet-deposit-usdt-address.png" alt="Derived USDT TRC-20 deposit address" loading="lazy" />
-          <div class="shot-cap">
-            <span class="zh">选择 <code>USDT → TRC-20 · Nile</code>，获取专属波场 <code>T…</code> 地址，用于存入现货买单与合约保证金所需的 USDT。</span>
-            <span class="en">Choose <code>USDT → TRC-20 · Nile</code> to obtain your personal <code>T…</code> address for funding spot buys and perpetual margin.</span>
-          </div>
-        </div>
-        <div class="shot-card">
-          <div class="shot-head">
-            <span class="shot-step"><span class="zh">2.4 · 关键对比：确认中 pending… vs 已入账 credited</span><span class="en">2.4 · Key Comparison: pending… vs. credited</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
-          </div>
-          <img src="docs/wiki/07-wallet-deposit-pending-and-credited.png" alt="Pending vs credited deposits" loading="lazy" />
-          <div class="shot-cap">
-            <span class="zh"><strong>防重组双花保护：</strong>仅 1 个确认的 <code>0.25 BTC</code> 显示橙色 <code>pending…</code>（暂不入余额）；已满确认数的 <code>1.5 BTC</code> 与 <code>50,000 USDT</code> 显示绿色 <code>credited</code>！</span>
-            <span class="en"><strong>Reorg protection in action:</strong> The 1-conf <code>0.25 BTC</code> tx waits in amber <code>pending…</code>, while finalized <code>1.5 BTC</code> (3 conf) and <code>50,000 USDT</code> (25 conf) show green <code>credited</code>!</span>
+            <span class="zh">切换选择 <code>USDT → TRC-20 · Nile</code>，获取专属波场 <code>TQStC9SW…</code> 地址并复制，用于入金现货买单与合约保证金所需的 USDT。</span>
+            <span class="en">Select <code>USDT → TRC-20 · Nile</code> to obtain and copy your personal <code>TQStC9SW…</code> address for spot buys and perpetual margin.</span>
           </div>
         </div>
       </div>
@@ -550,13 +504,13 @@ tr:hover td { background: rgba(120,150,138,0.04); }
       <div class="shot-grid">
         <div class="shot-card">
           <div class="shot-head">
-            <span class="shot-step"><span class="zh">2.5 · 关闭弹窗并在 Balances 页签核验到账资金</span><span class="en">2.5 · Verify Credited Funds in the Balances Tab</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+            <span class="shot-step"><span class="gif-pill">● LIVE GIF</span><span class="zh">2.3 · 对比确认中 pending… 与已入账 credited → 在 Balances 核验到账余额</span><span class="en">2.3 · Inspect pending… vs. credited → Verify Credited Funds in Balances</span></span>
+            <span class="zoom-hint"><span class="zh">点击全屏播放 ⤢</span><span class="en">Click to enlarge ⤢</span></span>
           </div>
-          <img src="docs/wiki/08-balances-after-deposit.png" alt="Balances tab after deposit credit" loading="lazy" />
+          <img src="docs/wiki/06-deposit-pending-to-credited.gif" alt="Inspecting pending vs credited deposits and verifying Balances tab" loading="lazy" decoding="async" />
           <div class="shot-cap">
-            <span class="zh">右上角 <code>AVAILABLE</code> 与底部 <code>BALANCES</code> 同步显示已确认的 <code>1.5000 BTC</code> 与 <code>50,000.0000 USDT</code>（未满确认数的 <code>0.25 BTC</code> 严格不计入 <code>TOTAL</code>）。</span>
-            <span class="en">Both <code>AVAILABLE</code> and the bottom <code>BALANCES</code> blotter reflect finalized <code>1.5000 BTC</code> and <code>50,000.0000 USDT</code> (unfinalized deposits never inflate <code>TOTAL</code>).</span>
+            <span class="zh"><strong>防重组双花保护全流程：</strong>仅 1 确认的 <code>0.25 BTC</code> 保持橙色 <code>pending…</code>（严格不计入余额）；满确认数的 <code>1.5 BTC</code> 与 <code>50,000 USDT</code> 显示绿色 <code>credited</code>，关闭弹窗即可在底部 <code>BALANCES</code> 核验到账！</span>
+            <span class="en"><strong>Reorg protection in action:</strong> Unfinalized <code>0.25 BTC</code> (1/2 conf) stays in amber <code>pending…</code>, while finalized <code>1.5000 BTC</code> and <code>50,000.0000 USDT</code> show green <code>credited</code> and appear immediately in <code>BALANCES</code>!</span>
           </div>
         </div>
       </div>
@@ -589,13 +543,13 @@ tr:hover td { background: rgba(120,150,138,0.04); }
       <div class="shot-grid">
         <div class="shot-card">
           <div class="shot-head">
-            <span class="shot-step"><span class="zh">3.1 · 切换 5m 周期 + MACD 副图 + 绘制水平阻力线</span><span class="en">3.1 · 5m Timeframe + MACD Sub-Pane + Persistent Horizontal Line</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+            <span class="shot-step"><span class="gif-pill">● LIVE GIF</span><span class="zh">3.1 · 切换 5m 周期 + MACD 副图 + 绘制持久化水平阻力线</span><span class="en">3.1 · 5m Timeframe + MACD Sub-Pane + Persistent Horizontal Line</span></span>
+            <span class="zoom-hint"><span class="zh">点击全屏播放 ⤢</span><span class="en">Click to enlarge ⤢</span></span>
           </div>
-          <img src="docs/wiki/09-chart-indicators-and-drawings.png" alt="5m chart with MACD and horizontal drawing" loading="lazy" />
+          <img src="docs/wiki/07-chart-indicators-drawing.gif" alt="5m chart with MACD and horizontal drawing live GIF" loading="lazy" decoding="async" />
           <div class="shot-cap">
-            <span class="zh">点击右侧悬浮工具栏的 <code>─</code> 即可在 K 线上单击标出关键支撑/阻力位（按品种自动保存在本地浏览器，刷新不丢失）。</span>
-            <span class="en">Select <code>─</code> on the floating drawing rail to plot support/resistance levels — persisted per symbol in <code>localStorage</code> across reloads.</span>
+            <span class="zh">切换 <code>5m</code> 周期与 <code>MACD</code> 副图，点击右侧悬浮画线栏 <code>─</code> 在 K 线上标出关键支撑/阻力位（按品种自动保存在本地浏览器，刷新不丢失）。</span>
+            <span class="en">Switch to <code>5m</code> candles and <code>MACD</code>, then select <code>─</code> on the floating rail to plot support/resistance levels persisted in <code>localStorage</code>.</span>
           </div>
         </div>
       </div>
@@ -620,27 +574,16 @@ tr:hover td { background: rgba(120,150,138,0.04); }
       </div>
 
       <h3><span class="zh">实操一：挂出 68,450.00 限价买单并核验资金冻结（Reserved）</span><span class="en">Walkthrough A: Resting Limit Buy @ 68,450.00 &amp; Balance Reservation</span></h3>
-      <div class="shot-grid two">
+      <div class="shot-grid">
         <div class="shot-card">
           <div class="shot-head">
-            <span class="shot-step"><span class="zh">3.2 · 填写限价买单并查看 WASM 预估成本</span><span class="en">3.2 · Enter Limit Buy &amp; Inspect WASM Cost Preview</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+            <span class="shot-step"><span class="gif-pill">● LIVE GIF</span><span class="zh">3.2 · 点击盘口填单 → 下达 68,450.00 × 0.2 BTC 限价买单 → 盘口入簿并锁定 13,690 USDT</span><span class="en">3.2 · Autofill Price → Place 68,450.00 × 0.2 BTC Limit Buy → L2 Bid &amp; 13,690 USDT Hold</span></span>
+            <span class="zoom-hint"><span class="zh">点击全屏播放 ⤢</span><span class="en">Click to enlarge ⤢</span></span>
           </div>
-          <img src="docs/wiki/10-spot-limit-buy-entry.png" alt="Limit buy order entry" loading="lazy" />
+          <img src="docs/wiki/08-spot-limit-buy-reserve.gif" alt="Placing resting limit buy and verifying reserved USDT" loading="lazy" decoding="async" />
           <div class="shot-cap">
-            <span class="zh">输入限价 <code>68450.00</code>、数量 <code>0.2</code> BTC，WASM 引擎实时算出需冻结成本 <code>13,690.00 USDT</code>。</span>
-            <span class="en">Entering <code>68450.00</code> × <code>0.2</code> BTC previews the exact <code>13,690.00 USDT</code> reservation before submission.</span>
-          </div>
-        </div>
-        <div class="shot-card">
-          <div class="shot-head">
-            <span class="shot-step"><span class="zh">3.3 · 挂单入簿：盘口出现买单 + Open Orders 挂出</span><span class="en">3.3 · Resting on the L2 Book + Open Order Hold</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
-          </div>
-          <img src="docs/wiki/11-spot-open-order-and-reserved.png" alt="Resting order and reserved USDT" loading="lazy" />
-          <div class="shot-cap">
-            <span class="zh">左侧买盘新增 <code>68,450.00 | 0.2000</code>，右上角显示 <code>36,310.0000 +13,690.0000 rsv</code>，底部列出工作中挂单。</span>
-            <span class="en"><code>68,450.00 | 0.2000</code> appears on the bid ladder, <code>AVAILABLE</code> shows <code>36,310.0000 +13,690.0000 rsv</code>, and <code>OPEN ORDERS</code> tracks the live order.</span>
+            <span class="zh">输入 <code>68450.00 × 0.2 BTC</code> 点击 <code>PLACE BUY ORDER</code>：左侧买盘新增 <code>68,450.00 | 0.2000</code>，右上角显示 <code>36,310.0000 +13,690.0000 rsv</code>，底部 <code>BALANCES</code> 与 <code>OPEN ORDERS</code> 精准同步。</span>
+            <span class="en">Submit <code>68450.00 × 0.2 BTC</code>: <code>68,450.00 | 0.2000</code> joins the L2 bid ladder, <code>AVAILABLE</code> shows <code>36,310.0000 +13,690.0000 rsv</code>, and <code>BALANCES</code> proves <code>Total (50,000) = Reserved (13,690) + Available (36,310)</code>.</span>
           </div>
         </div>
       </div>
@@ -649,49 +592,24 @@ tr:hover td { background: rgba(120,150,138,0.04); }
       <div class="shot-grid two">
         <div class="shot-card">
           <div class="shot-head">
-            <span class="shot-step"><span class="zh">3.4 · 买单自动跨两档预估 VWAP 68,505.29</span><span class="en">3.4 · WASM Two-Level Sweep Preview (VWAP 68,505.29)</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+            <span class="shot-step"><span class="gif-pill">● LIVE GIF</span><span class="zh">3.3 · 市价买单跨两档 VWAP 68,505.29 即时成交</span><span class="en">3.3 · Multi-Level Market Sweep (VWAP 68,505.29)</span></span>
+            <span class="zoom-hint"><span class="zh">点击全屏播放 ⤢</span><span class="en">Click to enlarge ⤢</span></span>
           </div>
-          <img src="docs/wiki/13a-spot-market-preview.png" alt="Market buy VWAP preview" loading="lazy" />
+          <img src="docs/wiki/09-spot-market-sweep-fill.gif" alt="Market buy VWAP preview and immediate multi-level fill" loading="lazy" decoding="async" />
           <div class="shot-cap">
-            <span class="zh">卖一 <code>68,503.50</code> 仅有 <code>0.135 BTC</code>，WASM 自动向上遍历卖二 <code>68,509.00</code> 补齐剩余 <code>0.065 BTC</code>，算出精确均价 <code>68,505.29</code>！</span>
-            <span class="en">Best ask <code>68,503.50</code> holds <code>0.135 BTC</code>; WASM walks Ask 2 (<code>68,509.00</code>) for the remaining <code>0.065 BTC</code>, computing exact VWAP <code>68,505.29</code>!</span>
+            <span class="zh">切换 <code>MARKET</code> 预览跨两档均价 <code>68,505.29</code> 并下单：卖一 <code>68,503.50 (0.135)</code> 扫空、卖二 <code>68,509.00</code> 补齐 <code>0.065</code>，<code>BTC</code> 原子跃升至 <code>1.7000</code>！</span>
+            <span class="en">Switch to <code>MARKET</code>, preview exact two-level VWAP <code>68,505.29</code>, and execute: clears Ask 1 (<code>0.1350</code>) + sweeps Ask 2 (<code>0.0650</code>), jumping <code>BTC</code> to <code>1.7000</code>!</span>
           </div>
         </div>
         <div class="shot-card">
           <div class="shot-head">
-            <span class="shot-step"><span class="zh">3.5 · 即时跨档成交：卖一吃空 + 成交带刷屏 + BTC 增至 1.7000</span><span class="en">3.5 · Atomic Fill: Ask 1 Cleared + Tape Prints + 1.7000 BTC</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+            <span class="shot-step"><span class="gif-pill">● LIVE GIF</span><span class="zh">3.4 · 点击 ✕ 撤单：13,690 USDT 秒级解冻</span><span class="en">3.4 · One-Click Cancel (✕) Releases 13,690 USDT</span></span>
+            <span class="zoom-hint"><span class="zh">点击全屏播放 ⤢</span><span class="en">Click to enlarge ⤢</span></span>
           </div>
-          <img src="docs/wiki/13b-spot-market-filled.png" alt="Immediate multi-level fill" loading="lazy" />
+          <img src="docs/wiki/10-spot-cancel-unfreeze.gif" alt="Order cancelled via X and reserved funds released" loading="lazy" decoding="async" />
           <div class="shot-cap">
-            <span class="zh"><code>Trade Tape</code> 瞬间打印 <code>0.1350 @ 68,503.50</code> 与 <code>0.0650 @ 68,509.00</code> 两笔成交，<code>BTC</code> 可用余额精准跃升至 <code>1.7000</code>！</span>
-            <span class="en"><code>Trade Tape</code> prints both fills (<code>0.1350 @ 68,503.50</code> and <code>0.0650 @ 68,509.00</code>) and <code>BTC</code> jumps atomically to <code>1.7000</code>!</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="shot-grid two">
-        <div class="shot-card">
-          <div class="shot-head">
-            <span class="shot-step"><span class="zh">3.6 · 冻结期间的 Balances 恒等式明细</span><span class="en">3.6 · Accounting Identity in Balances Tab</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
-          </div>
-          <img src="docs/wiki/12-spot-balances-reserved-detail.png" alt="Balances reserved detail" loading="lazy" />
-          <div class="shot-cap">
-            <span class="zh">清晰印证会计恒等式：<code>Total (50,000) = Reserved (13,690) + Available (36,310)</code>。</span>
-            <span class="en">Proves the ledger identity: <code>Total (50,000) = Reserved (13,690) + Available (36,310)</code>.</span>
-          </div>
-        </div>
-        <div class="shot-card">
-          <div class="shot-head">
-            <span class="shot-step"><span class="zh">3.7 · 点击 ✕ 撤单：13,690 USDT 秒级解冻回可用余额</span><span class="en">3.7 · One-Click Cancel (✕) Releases 13,690 USDT</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
-          </div>
-          <img src="docs/wiki/13c-spot-order-cancelled.png" alt="Order cancelled and funds released" loading="lazy" />
-          <div class="shot-cap">
-            <span class="zh">点击挂单行右侧 <code>✕</code> 后，<code>13,690.0000 USDT</code> 立即释放，<code>USDT</code> 可用余额恢复为 <code>36,298.9425</code>。</span>
-            <span class="en">Clicking <code>✕</code> releases <code>13,690.0000 USDT</code> immediately, bringing free <code>USDT</code> to <code>36,298.9425</code>.</span>
+            <span class="zh">点击挂单行右侧 <code>✕</code> 后，<code>68,450.00</code> 买单从盘口移除，<code>13,690.0000 USDT</code> 立即释放回可用余额（<code>36,298.9425</code>）。</span>
+            <span class="en">Clicking <code>✕</code> removes the <code>68,450.00</code> bid and releases <code>13,690.0000 USDT</code> immediately back to free <code>Available</code> (<code>36,298.9425</code>).</span>
           </div>
         </div>
       </div>
@@ -720,74 +638,38 @@ tr:hover td { background: rgba(120,150,138,0.04); }
       <div class="shot-grid two">
         <div class="shot-card">
           <div class="shot-head">
-            <span class="shot-step"><span class="zh">4.1 · 打开 Withdraw 面板（初始未绑白名单）</span><span class="en">4.1 · Open Withdraw Modal (Empty Whitelist)</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+            <span class="shot-step"><span class="gif-pill">● LIVE GIF</span><span class="zh">4.1 · 添加冷钱包 Taproot 测试网地址至白名单（usable）</span><span class="en">4.1 · Whitelist Cold-Storage Address (usable)</span></span>
+            <span class="zoom-hint"><span class="zh">点击全屏播放 ⤢</span><span class="en">Click to enlarge ⤢</span></span>
           </div>
-          <img src="docs/wiki/14a-wallet-withdraw-empty-whitelist.png" alt="Initial withdraw modal" loading="lazy" />
+          <img src="docs/wiki/11-withdraw-whitelist-address.gif" alt="Whitelisting BTC destination address" loading="lazy" decoding="async" />
           <div class="shot-cap">
-            <span class="zh">选择 <code>BTC → Bitcoin · testnet4</code>，顶部提示扣减 <code>BTC</code> 账户（当前可用 <code>1.700000</code>），首次提币需先绑定白名单地址。</span>
-            <span class="en">Selecting <code>BTC → Bitcoin · testnet4</code> shows available <code>1.700000 BTC</code> and requires whitelisting a destination address first.</span>
+            <span class="zh">在 <code>Withdraw → BTC</code> 填入测试网地址 <code>tb1pznce…</code> 与备注 <code>Cold Ledger Vault</code> 点击 <code>WHITELIST</code>，状态显示为绿色 <code>usable</code> 并自动选入下拉框。</span>
+            <span class="en">In <code>Withdraw → BTC</code>, paste <code>tb1pznce…</code> with label <code>Cold Ledger Vault</code> and click <code>WHITELIST</code> — status turns green <code>usable</code> and auto-selects.</span>
           </div>
         </div>
         <div class="shot-card">
           <div class="shot-head">
-            <span class="shot-step"><span class="zh">4.2 · 添加测试网收款地址至白名单（usable）</span><span class="en">4.2 · Whitelist Cold-Storage Address (usable)</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+            <span class="shot-step"><span class="gif-pill">● LIVE GIF</span><span class="zh">4.2 · 提交 0.25 BTC 提币申请并立即锁定 +0.2500 rsv</span><span class="en">4.2 · Submit 0.25 BTC Payout &amp; Lock +0.2500 rsv</span></span>
+            <span class="zoom-hint"><span class="zh">点击全屏播放 ⤢</span><span class="en">Click to enlarge ⤢</span></span>
           </div>
-          <img src="docs/wiki/14b-wallet-withdraw-whitelisted.png" alt="Whitelisted BTC address" loading="lazy" />
+          <img src="docs/wiki/12-withdraw-submit-and-lock.gif" alt="Submitting 0.25 BTC withdrawal and tracking PENDING hold" loading="lazy" decoding="async" />
           <div class="shot-cap">
-            <span class="zh">填入测试网地址 <code>tb1pznce…</code> 与备注 <code>Cold Ledger Vault</code> 点击 <code>WHITELIST</code>，状态显示为绿色 <code>usable</code> 并自动选入下拉框。</span>
-            <span class="en">Paste <code>tb1pznce…</code> with label <code>Cold Ledger Vault</code> and click <code>WHITELIST</code> — status turns green <code>usable</code> and auto-selects in the dropdown.</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="shot-grid two">
-        <div class="shot-card">
-          <div class="shot-head">
-            <span class="shot-step"><span class="zh">4.3 · 输入提币金额 0.25 BTC 准备提交</span><span class="en">4.3 · Enter 0.25 BTC Payout Amount</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
-          </div>
-          <img src="docs/wiki/15a-wallet-withdraw-ready.png" alt="Ready to submit 0.25 BTC withdrawal" loading="lazy" />
-          <div class="shot-cap">
-            <span class="zh">核对收款地址、网络与提币数量 <code>0.25</code> 无误后点击 <code>WITHDRAW</code>（自动拒收 <code>bc1/1/3</code> 主网地址）。</span>
-            <span class="en">Enter <code>0.25</code> and click <code>WITHDRAW</code> (supports all BTC Testnet4 formats while rejecting mainnet <code>bc1/1/3</code> addresses).</span>
-          </div>
-        </div>
-        <div class="shot-card">
-          <div class="shot-head">
-            <span class="shot-step"><span class="zh">4.4 · 提交成功瞬间：立即锁定 +0.2500 rsv</span><span class="en">4.4 · Submitted: Immediate +0.2500 rsv Hold</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
-          </div>
-          <img src="docs/wiki/15b-wallet-withdraw-submitted.png" alt="Withdrawal submitted toast and balance lock" loading="lazy" />
-          <div class="shot-cap">
-            <span class="zh"><code>request_withdrawal_to</code> 原子校验限额并立即将可用余额从 <code>1.7000</code> 锁定为 <code>1.4500 +0.2500 rsv</code>，防止审前超卖双花。</span>
-            <span class="en"><code>request_withdrawal_to</code> enforces rolling limits and immediately locks <code>0.2500 BTC</code> into <code>Reserved</code> so pending payouts can never be double-spent.</span>
+            <span class="zh">输入 <code>0.25</code> 点击 <code>WITHDRAW</code>，系统立即锁定 <code>+0.2500 rsv</code> 防双花，并在底部 <code>WALLET</code> 页签生成 <code>PENDING</code> 待审记录。</span>
+            <span class="en">Enter <code>0.25</code> and click <code>WITHDRAW</code>: immediately locks <code>+0.2500 rsv</code> and tracks the <code>PENDING</code> request in the bottom <code>WALLET</code> blotter.</span>
           </div>
         </div>
       </div>
 
-      <div class="shot-grid two">
+      <div class="shot-grid">
         <div class="shot-card">
           <div class="shot-head">
-            <span class="shot-step"><span class="zh">4.5 · 底部 Wallet 页签追踪 PENDING 待审记录</span><span class="en">4.5 · Track PENDING Request in Wallet Blotter</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+            <span class="shot-step"><span class="gif-pill">● LIVE GIF</span><span class="zh">4.3 · 后台审批签名完成后：用户端实时变更为 APPROVED 并核销冻结</span><span class="en">4.3 · Realtime Closure: Wallet Blotter Updates to APPROVED &amp; Clears Hold</span></span>
+            <span class="zoom-hint"><span class="zh">点击全屏播放 ⤢</span><span class="en">Click to enlarge ⤢</span></span>
           </div>
-          <img src="docs/wiki/16-blotter-wallet-pending.png" alt="Wallet blotter showing PENDING withdrawal" loading="lazy" />
+          <img src="docs/wiki/13-withdraw-realtime-approved.gif" alt="Wallet blotter updated live to APPROVED with hold cleared" loading="lazy" decoding="async" />
           <div class="shot-cap">
-            <span class="zh">关闭弹窗后，底部 <code>WALLET</code> 页签清晰展示 <code>WITHDRAWAL · BTC · 0.25 · PENDING</code>。</span>
-            <span class="en">The bottom <code>WALLET</code> blotter displays <code>WITHDRAWAL · BTC · 0.25 · PENDING</code> alongside the active balance hold.</span>
-          </div>
-        </div>
-        <div class="shot-card">
-          <div class="shot-head">
-            <span class="shot-step"><span class="zh">4.6 · 审批与链上确认完成：自动变更为 APPROVED</span><span class="en">4.6 · Approved &amp; Signed On-Chain: Realtime Closure</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
-          </div>
-          <img src="docs/wiki/19-blotter-wallet-approved.png" alt="Wallet blotter updated to APPROVED" loading="lazy" />
-          <div class="shot-cap">
-            <span class="zh">后台放行并由库内 BIP-143 签名器广播确认后（见第 7 章），用户端通过 Realtime 自动变更为 <code>APPROVED</code>，外部冷钱包全额收到 <code>0.25000000 BTC</code>！</span>
-            <span class="en">Once approved and signed/confirmed on-chain (Chapter 7), Supabase Realtime flips the row to <code>APPROVED</code>, clears the hold, and delivers <code>0.25000000 BTC</code>!</span>
+            <span class="zh">后台放行并由库内 BIP-143 签名器广播确认后（见第 7 章），用户端通过 Realtime 自动变更为 <code>APPROVED</code>，<code>+0.2500 rsv</code> 冻结清零，冷钱包全额收到 <code>0.25000000 BTC</code>！</span>
+            <span class="en">Once approved and signed/confirmed on-chain (Chapter 7), Supabase Realtime flips the row to <code>APPROVED</code>, clears the <code>+0.2500 rsv</code> hold, and delivers 100% of <code>0.25000000 BTC</code>!</span>
           </div>
         </div>
       </div>
@@ -819,10 +701,10 @@ tr:hover td { background: rgba(120,150,138,0.04); }
       <div class="shot-grid">
         <div class="shot-card">
           <div class="shot-head">
-            <span class="shot-step"><span class="zh">5.1 · BTC-PERP 线性永续合约（最高 10× 杠杆 · 5% 维持率）</span><span class="en">5.1 · BTC-PERP Linear Perpetuals (10× Max Lev · 5% Maint)</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+            <span class="shot-step"><span class="gif-pill">● LIVE GIF</span><span class="zh">5.1 · BTC-PERP 线性永续合约（投入 1,000 USDT 开立 0.1000 BTC 多单）</span><span class="en">5.1 · BTC-PERP Linear Perpetuals (Post 1,000 USDT · Open 0.1000 BTC Long)</span></span>
+            <span class="zoom-hint"><span class="zh">点击全屏播放 ⤢</span><span class="en">Click to enlarge ⤢</span></span>
           </div>
-          <img src="docs/wiki/20-product-futures-perp.png" alt="BTC-PERP perpetual futures" loading="lazy" />
+          <img src="docs/wiki/14-futures-perp-open.gif" alt="Opening BTC-PERP perpetual futures position" loading="lazy" decoding="async" />
           <div class="shot-cap">
             <span class="zh">投入 <code>1,000 USDT</code> 保证金开立 <code>0.1000 BTC</code> 多单（Entry <code>68,503.50</code>），实时展示标记价、资金费率、未实现盈亏 <code>uPnL</code> 与一键 <code>close</code> 平仓按钮。</span>
             <span class="en">Post <code>1,000 USDT</code> margin to open a <code>0.1000 BTC</code> Long @ <code>68,503.50</code> with live mark price, funding rate, <code>uPnL</code>, and one-click <code>close</code> settlement.</span>
@@ -833,10 +715,10 @@ tr:hover td { background: rgba(120,150,138,0.04); }
       <div class="shot-grid two">
         <div class="shot-card">
           <div class="shot-head">
-            <span class="shot-step"><span class="zh">5.2 · 现货全仓杠杆（最高 3× · 10% 维持率 · 10% APR）</span><span class="en">5.2 · Spot Cross-Margin (3× Max · 10% Maint · 10% APR)</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+            <span class="shot-step"><span class="gif-pill">● LIVE GIF</span><span class="zh">5.2 · 现货全仓杠杆（借入 0.0500 BTC · 10% APR 惰性计息）</span><span class="en">5.2 · Spot Cross-Margin (Borrow 0.0500 BTC · 10% APR)</span></span>
+            <span class="zoom-hint"><span class="zh">点击全屏播放 ⤢</span><span class="en">Click to enlarge ⤢</span></span>
           </div>
-          <img src="docs/wiki/21-product-margin-borrow.png" alt="Spot cross-margin borrowing" loading="lazy" />
+          <img src="docs/wiki/15-margin-borrow.gif" alt="Spot cross-margin borrowing 0.05 BTC" loading="lazy" decoding="async" />
           <div class="shot-cap">
             <span class="zh">全账户抵押品统一折算估值（<code>Collateral 155,180.07</code>），借入 <code>0.0500 BTC</code> 后实时追踪应计利息，支持随时一键 <code>repay all</code>（先息后本）。</span>
             <span class="en">Portfolio-wide collateral valuation (<code>155,180.07</code>) backing a <code>0.0500 BTC</code> borrow with per-second interest accrual and interest-first <code>repay all</code>.</span>
@@ -844,10 +726,10 @@ tr:hover td { background: rgba(120,150,138,0.04); }
         </div>
         <div class="shot-card">
           <div class="shot-head">
-            <span class="shot-step"><span class="zh">5.3 · Earn 质押赚币（MasterChef 惰性计息 + pgmq 解锁队列）</span><span class="en">5.3 · Earn Staking (MasterChef O(1) Yield + pgmq Unbonding)</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+            <span class="shot-step"><span class="gif-pill">● LIVE GIF</span><span class="zh">5.3 · Earn 质押赚币（质押 0.5000 BTC · MasterChef 秒级收益）</span><span class="en">5.3 · Earn Staking (Stake 0.5000 BTC · MasterChef O(1) Yield)</span></span>
+            <span class="zoom-hint"><span class="zh">点击全屏播放 ⤢</span><span class="en">Click to enlarge ⤢</span></span>
           </div>
-          <img src="docs/wiki/22-product-earn-staking.png" alt="Earn staking pools" loading="lazy" />
+          <img src="docs/wiki/16-earn-stake.gif" alt="Earn staking 0.5000 BTC" loading="lazy" decoding="async" />
           <div class="shot-cap">
             <span class="zh">提供 <code>BTC (5% APR)</code>、<code>USDT (10% APR)</code>、<code>EUR (10% APR)</code> 三大矿池；收益按秒累积可随时 <code>claim</code> 秒到账，赎回本金经 7 天解锁期自动返还。</span>
             <span class="en">Stake into <code>BTC (5% APR)</code>, <code>USDT (10% APR)</code>, or <code>EUR (10% APR)</code>; harvest accrued rewards instantly via <code>claim</code>, with 7-day <code>pgmq</code> unbonding on principal.</span>
@@ -871,10 +753,10 @@ tr:hover td { background: rgba(120,150,138,0.04); }
       <div class="shot-grid">
         <div class="shot-card">
           <div class="shot-head">
-            <span class="shot-step"><span class="zh">6.1 · 创建 HMAC API Key（仅创建瞬间展示一次 Secret）</span><span class="en">6.1 · Mint HMAC API Key (One-Time Secret Reveal)</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+            <span class="shot-step"><span class="gif-pill">● LIVE GIF</span><span class="zh">6.1 · 输入 grid-bot-prod 创建 HMAC API Key（一次性展示 Secret）</span><span class="en">6.1 · Mint grid-bot-prod HMAC API Key (One-Time Secret Reveal)</span></span>
+            <span class="zoom-hint"><span class="zh">点击全屏播放 ⤢</span><span class="en">Click to enlarge ⤢</span></span>
           </div>
-          <img src="docs/wiki/23-developer-api-keys.png" alt="Developer API key creation" loading="lazy" />
+          <img src="docs/wiki/17-developer-api-key.gif" alt="Developer API key creation live GIF" loading="lazy" decoding="async" />
           <div class="shot-cap">
             <span class="zh">在 <code>DEVELOPER API</code> 弹窗输入标签名点击 <code>CREATE</code>，妥善保存琥珀色框内的 <code>key_id</code> 与一次性 <code>secret</code>；泄露时可随时点击 <code>revoke</code> 吊销。</span>
             <span class="en">Create a labeled bot key in <code>DEVELOPER API</code>, store the one-time <code>secret</code> from the amber banner immediately, and click <code>revoke</code> anytime to invalidate compromised keys.</span>
@@ -916,66 +798,27 @@ curl -sS -X POST "$API/rest/v1/rpc/request_withdrawal_to" \
       <p class="zh">打开 <code>admin.html</code> 即可看到 OUTCRY 独树一帜的透明风控后台：从 5 项核心复式记账不变量 + 2 项链上充值背书校验，到提币审批与库内 BIP-143 原生隔离见证自动签名确认，每一步都留有不可篡改的只追加审计证据。</p>
       <p class="en">Open <code>admin.html</code> to inspect OUTCRY's transparent operator control plane: 5 Core Ledger + 2 Custody invariants verified live, pending withdrawal approvals, autonomous in-DB BIP-143 SegWit signing, and an append-only immutable audit trail.</p>
 
-      <div class="shot-grid two">
-        <div class="shot-card">
-          <div class="shot-head">
-            <span class="shot-step"><span class="zh">7.1 · Control Room 总控室与全绿对账看板</span><span class="en">7.1 · Control Room &amp; recon ALL PASS</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
-          </div>
-          <img src="docs/wiki/17-admin-overview-pending-approval.png" alt="Admin Control Room recon ALL PASS" loading="lazy" />
-          <div class="shot-cap">
-            <span class="zh">顶部显示 <code>recon ALL PASS</code>，<code>0 RECON FAILS</code>、<code>0 FUNDING EXPOSURE</code>，并醒目提示 <code>1 PENDING WALLET</code> 待审批。</span>
-            <span class="en"><code>recon ALL PASS</code> with <code>0 RECON FAILS</code>, <code>0 FUNDING EXPOSURE</code>, and <code>1 PENDING WALLET</code> highlighted for review.</span>
-          </div>
-        </div>
-        <div class="shot-card">
-          <div class="shot-head">
-            <span class="shot-step"><span class="zh">7.2 · Treasury 金库台：审批待放行提币申请</span><span class="en">7.2 · Treasury: Approve or Reject Pending Payouts</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
-          </div>
-          <img src="docs/wiki/17b-admin-treasury-pending-queue.png" alt="Admin Treasury pending queue" loading="lazy" />
-          <div class="shot-cap">
-            <span class="zh">核验客户实体与风控无误后点击绿色 <code>APPROVE</code> 放行（点击 <code>REJECT</code> 则原路解冻退回客户可用余额）。</span>
-            <span class="en">Click green <code>APPROVE</code> to debit User → <code>MASTER</code> and enqueue signing (or <code>REJECT</code> to unfreeze 100% back to <code>Available</code>).</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="shot-grid two">
-        <div class="shot-card">
-          <div class="shot-head">
-            <span class="shot-step"><span class="zh">7.3 · 批准瞬间进入 Custody Signer 队列（QUEUED）</span><span class="en">7.3 · Custody Signer Queue (QUEUED)</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
-          </div>
-          <img src="docs/wiki/18a-admin-treasury-signer-queued.png" alt="Custody Signer QUEUED" loading="lazy" />
-          <div class="shot-cap">
-            <span class="zh">批准后申请立即进入签名队列（<code>QUEUED</code>），等待 <code>pg_cron</code> 定时签名器认领构造原始链上交易。</span>
-            <span class="en">Approved payouts enter <code>WITHDRAWAL QUEUE · CUSTODY SIGNER</code> as <code>QUEUED</code> for atomic signer lease.</span>
-          </div>
-        </div>
-        <div class="shot-card">
-          <div class="shot-head">
-            <span class="shot-step"><span class="zh">7.4 · 库内 BIP-143 签名、幂等广播与区块确认（CONFIRMED）</span><span class="en">7.4 · In-DB BIP-143 Signing &amp; Confirmation (CONFIRMED)</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
-          </div>
-          <img src="docs/wiki/18b-admin-treasury-signer-confirmed.png" alt="Custody Signer CONFIRMED" loading="lazy" />
-          <div class="shot-cap">
-            <span class="zh">库内自动选币生成 234 字节 SegWit 交易（真实 <code>txid: 3c91e9fb…</code>，330 sats 矿工费由金库承担）并完成链上确认，状态跃升为绿色 <code>CONFIRMED</code>！</span>
-            <span class="en">PostgreSQL builds the 234-byte BIP-143 SegWit tx (<code>txid: 3c91e9fb…</code>, absorbing <code>330 sats</code> fee from treasury change) and advances to green <code>CONFIRMED</code>!</span>
-          </div>
-        </div>
-      </div>
-
       <div class="shot-grid">
         <div class="shot-card">
           <div class="shot-head">
-            <span class="shot-step"><span class="zh">7.5 · Audit 合规台：只追加不可篡改审计日志</span><span class="en">7.5 · Audit Log: Append-Only Tamper-Evident Trail</span></span>
-            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+            <span class="shot-step"><span class="gif-pill">● LIVE GIF</span><span class="zh">7.1 · 总控室核验 recon ALL PASS → Treasury 批准 0.25 BTC 提币并推入签名队列</span><span class="en">7.1 · Verify recon ALL PASS → Approve 0.25 BTC Payout in Treasury &amp; Enqueue Signer</span></span>
+            <span class="zoom-hint"><span class="zh">点击全屏播放 ⤢</span><span class="en">Click to enlarge ⤢</span></span>
           </div>
-          <img src="docs/wiki/18c-admin-audit-log.png" alt="Immutable Admin Audit Log" loading="lazy" />
+          <img src="docs/wiki/18-admin-reconcile-and-approve.gif" alt="Admin Control Room recon ALL PASS and approving pending withdrawal" loading="lazy" decoding="async" />
           <div class="shot-cap">
-            <span class="zh">数据库触发器严拒 UPDATE/DELETE，完整记录充值入账、风控变更、提币批准、广播 TxID 与最终确认全链路证据。</span>
-            <span class="en">Database triggers reject all <code>UPDATE</code>/<code>DELETE</code> statements, permanently recording deposit credits, risk changes, approvals, broadcast TxIDs, and confirmations.</span>
+            <span class="zh">先在总控室核验 <code>recon ALL PASS</code>（<code>0 RECON FAILS</code>、<code>0 FUNDING EXPOSURE</code>），再切到 <code>TREASURY</code> 点击绿色 <code>APPROVE</code> 放行，申请立即进入 <code>WITHDRAWAL QUEUE · CUSTODY SIGNER</code>（<code>QUEUED</code>）！</span>
+            <span class="en">Verify <code>recon ALL PASS</code> in Control Room, switch to <code>TREASURY</code>, and click green <code>APPROVE</code> to debit User → <code>MASTER</code> and enqueue <code>88ff9cff-f</code> for in-DB SegWit signing!</span>
+          </div>
+        </div>
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="gif-pill">● LIVE GIF</span><span class="zh">7.2 · 库内 BIP-143 签名确认（CONFIRMED）→ Audit 合规台核查不可篡改审计链</span><span class="en">7.2 · In-DB BIP-143 Confirmation (CONFIRMED) → Inspect Immutable Audit Log</span></span>
+            <span class="zoom-hint"><span class="zh">点击全屏播放 ⤢</span><span class="en">Click to enlarge ⤢</span></span>
+          </div>
+          <img src="docs/wiki/19-admin-signer-confirm-and-audit.gif" alt="Custody Signer CONFIRMED and append-only Admin Audit Log" loading="lazy" decoding="async" />
+          <div class="shot-cap">
+            <span class="zh">库内自动生成 234 字节 SegWit 交易（<code>txid: 139142c2…</code>，330 sats 矿工费由金库承担）并完成链上确认（绿色 <code>CONFIRMED</code>），随后切至 <code>AUDIT</code> 核验只追加不可篡改的全链路审计记录！</span>
+            <span class="en">PostgreSQL builds &amp; broadcasts the 234-byte BIP-143 SegWit tx (<code>txid: 139142c2…</code>), advances the queue to green <code>CONFIRMED</code>, and records tamper-evident evidence in <code>AUDIT</code>!</span>
           </div>
         </div>
       </div>

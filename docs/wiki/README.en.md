@@ -5,7 +5,7 @@
 [← Back to English README](../../README.md) · [← 返回中文主页](../../README.zh-CN.md) · [← All Docs](../README.md) · [🌐 Live Interactive Web Wiki (GitHub Pages)](https://stars-labs.github.io/pg-outcry/wiki.html?lang=en) · [Source (`web/wiki.html`)](../../web/wiki.html)
 
 > **Welcome to the complete end-to-end OUTCRY operator & trader manual.**
-> Every screenshot in this Wiki comes from a single continuous live session of trader **`alice@outcry.dev`** on a running OUTCRY exchange instance — reconciled down to `0.0001` precision across **33 real desktop screenshots**. Follow it sequentially to master **Account Creation → Multi-Chain Deposits → Spot & Derivatives Trading → Address Whitelisting & Zero-Fee On-Chain Withdrawals**.
+> Every illustration in this Wiki is a **live-action animated GIF** recorded from a single continuous desktop session of trader **`alice@outcry.dev`** on a running OUTCRY exchange instance — reconciled down to `0.0001` precision across **19 Computer Use action GIFs**. Follow it sequentially to master **Account Creation → Multi-Chain Deposits → Spot & Derivatives Trading → Address Whitelisting & Zero-Fee On-Chain Withdrawals**.
 
 ---
 
@@ -56,35 +56,35 @@ flowchart TD
 
 ## 3. Chapter Directory
 
-| Chapter | Title | Key Topics Covered | Live Screenshots |
+| Chapter | Title | Key Topics Covered | Live Action GIFs |
 |---|---|---|---|
-| **Ch. 1** | **[Onboarding, Authentication & Security Baseline](./01-onboarding-and-security.en.md)** | Auth Gate anatomy, instant email signup, GitHub OAuth2 & delegated 2FA, custom `?api=&anon=` backend params, 8-zone terminal tour, Day/Night theme, referral codes | 5 |
-| **Ch. 2** | **[On-Chain Deposits (Deposit Guide)](./02-deposit-guide.en.md)** | 6-coin × 4-testnet matrix, in-DB HD address derivation, Memo/Tag rules, testnet faucets, `pending…` vs `credited` confirmation gating & idempotency, 7 anti-loss rules | 5 |
-| **Ch. 3** | **[Spot Trading Masterclass](./03-spot-trading-masterclass.en.md)** | L2 Order Book & Microprice $\mu$, WASM indicators (MA/EMA/BOLL/VWAP/RSI/MACD/KDJ/ATR) & 6 drawing tools, `LIMIT` vs `MARKET`, `GTC`/`IOC`/`FOK`, balance reservation math, multi-level Market VWAP sweep, cancellation, risk bands & banker's rounding | 7 |
-| **Ch. 4** | **[On-Chain Withdrawals (Withdrawal Guide)](./04-withdrawal-guide.en.md)** | 6-stage state machine, coin-to-currency debit mapping, address whitelisting, 24h rolling limits, idempotency keys, in-DB BIP-143 SegWit signing & UTXO lock, venue-paid miner fees, Market Maker atomic self-withdrawal | 9 |
+| **Ch. 1** | **[Onboarding, Authentication & Security Baseline](./01-onboarding-and-security.en.md)** | Auth Gate anatomy, instant email signup, GitHub OAuth2 & delegated 2FA, custom `?api=&anon=` backend params, 8-zone terminal tour, Day/Night theme, referral codes | 3 |
+| **Ch. 2** | **[On-Chain Deposits (Deposit Guide)](./02-deposit-guide.en.md)** | 6-coin × 4-testnet matrix, in-DB HD address derivation, Memo/Tag rules, testnet faucets, `pending…` vs `credited` confirmation gating & idempotency, 7 anti-loss rules | 3 |
+| **Ch. 3** | **[Spot Trading Masterclass](./03-spot-trading-masterclass.en.md)** | L2 Order Book & Microprice $\mu$, WASM indicators (MA/EMA/BOLL/VWAP/RSI/MACD/KDJ/ATR) & 6 drawing tools, `LIMIT` vs `MARKET`, `GTC`/`IOC`/`FOK`, balance reservation math, multi-level Market VWAP sweep, cancellation, risk bands & banker's rounding | 4 |
+| **Ch. 4** | **[On-Chain Withdrawals (Withdrawal Guide)](./04-withdrawal-guide.en.md)** | 6-stage state machine, coin-to-currency debit mapping, address whitelisting, 24h rolling limits, idempotency keys, in-DB BIP-143 SegWit signing & UTXO lock, venue-paid miner fees, Market Maker atomic self-withdrawal | 5 (incl. Admin loop) |
 | **Ch. 5** | **[Advanced Products (Futures · Margin · Staking)](./05-advanced-products.en.md)** | `BTC-PERP` linear perpetuals (10× max lev, funding rate, liquidation math), Spot Cross-Margin (3× max lev, lazy interest, health monitor), `Earn` Staking (MasterChef accumulator, `pgmq` 7-day unbonding) | 3 |
 | **Ch. 6** | **[Algorithmic Trading & Developer API Guide](./06-api-and-bot-guide.en.md)** | Creating/revoking HMAC API Keys, `api_key_login` JWT exchange, `curl`/Node.js scripts for deposits, orders, cancellations & withdrawals, WebSocket Broadcast & RLS private streams | 1 |
-| **Ch. 7** | **[Back-Office Console & 7-Invariant Solvency Proof](./07-backoffice-and-reconciliation.en.md)** | `admin.html` RBAC permissions, 5 Core Ledger + 2 Custody invariants, Treasury approval & signer queue operations, Fees/Risk/Binance-anchored Market Maker config, immutable `admin_audit_log` | 5 |
+| **Ch. 7** | **[Back-Office Console & 7-Invariant Solvency Proof](./07-backoffice-and-reconciliation.en.md)** | `admin.html` RBAC permissions, 5 Core Ledger + 2 Custody invariants, Treasury approval & signer queue operations, Fees/Risk/Binance-anchored Market Maker config, immutable `admin_audit_log` | 2 |
 | **Ch. 8** | **[Complete Error Reference, FAQ & CEX Glossary](./08-troubleshooting-and-faq.en.md)** | A-to-Z toast/RPC error dictionary with 1-minute fixes, Top 12 real-world FAQs, essential CEX terminology glossary | Reference |
 
 ---
 
 ## 4. Complete Reconciled Ledger Trail of Demo Account (`alice@outcry.dev`)
 
-Every screenshot across all 8 chapters follows one continuous account (`alice@outcry.dev`), allowing you to verify exact accounting conservation at every step:
+Every animated GIF across all chapters follows one continuous account (`alice@outcry.dev`), allowing you to verify exact accounting conservation at every step:
 
-| # | Action (Chapter & Screenshot) | BTC `Available` | BTC `Reserved` | USDT `Available` | USDT `Reserved` | On-Chain / Position Note |
+| # | Action (Chapter & GIF) | BTC `Available` | BTC `Reserved` | USDT `Available` | USDT `Reserved` | On-Chain / Position Note |
 |---|---|---|---|---|---|---|
-| 0 | Fresh registration (Shot `03`) | `0.0000` | `0.0000` | `0.0000` | `0.0000` | Empty new account |
-| 1 | On-chain deposits credited (Shots `07`–`08`) | **`1.5000`** | `0.0000` | **`50,000.0000`** | `0.0000` | `+1.5 BTC` (2 confs) & `+50,000 USDT` (25 confs) credited; `0.25 BTC` at 1/2 confs stays `pending…` (**excluded from balance**) |
-| 2 | Place resting Limit Buy `0.2 BTC @ 68,450` (Shots `10`–`12`) | `1.5000` | `0.0000` | **`36,310.0000`** | **`13,690.0000`** | Locks `0.2 × 68,450 = 13,690 USDT`; `Total` stays `50,000 USDT` |
-| 3 | Market Buy `0.2 BTC` across 2 ask levels (Shots `13a`–`13b`) | **`1.7000`** | `0.0000` | **`22,608.9425`** | `13,690.0000` | Sweeps `0.135 @ 68,503.50` + `0.065 @ 68,509.00` = `13,701.0575 USDT` (VWAP `68,505.29`) |
-| 4 | Cancel `68,450` Limit Buy via `✕` (Shot `13c`) | `1.7000` | `0.0000` | **`36,298.9425`** | **`0.0000`** | Releases `13,690.0000 USDT` immediately back to `Available` |
-| 5 | Submit `0.25 BTC` whitelisted withdrawal (Shots `14`–`16`) | **`1.4500`** | **`0.2500`** | `36,298.9425` | `0.0000` | Creates `PENDING` request `5b86b92b…`, locking `0.2500 BTC` |
-| 6 | Open `BTC-PERP` `+0.1 BTC` Long (Shot `20`) | `1.4500` | `0.2500` | **`35,298.9425`** | `0.0000` | Posts `1,000.00 USDT` margin at `68,503.50` entry (`~6.85×` lev) |
-| 7 | Spot Cross-Margin borrow `0.05 BTC` (Shot `21`) | **`1.5000`** | `0.2500` | `35,298.9425` | `0.0000` | Debt `0.0500 BTC` (`3,425.18` val), Net Equity `151,754.89` |
-| 8 | Stake `0.50 BTC` in `5% APR` pool (Shot `22`) | **`1.0000`** | `0.2500` | `35,298.9425` | `0.0000` | Locks principal into `stake_pool`, accruing lazy rewards per second |
-| 9 | Admin approves + In-DB SegWit broadcast & confirm (Shots `17`–`19`) | **`1.0000`** | **`0.0000`** | **`35,298.9425`** | **`0.0000`** | 234-byte SegWit tx `3c91e9fb…` confirmed on-chain; hold cleared; **all 7 invariants PASS** |
+| 0 | Fresh registration (GIF `01`) | `0.0000` | `0.0000` | `0.0000` | `0.0000` | Empty new account |
+| 1 | On-chain deposits credited (GIFs `04`–`06`) | **`1.5000`** | `0.0000` | **`50,000.0000`** | `0.0000` | `+1.5 BTC` (2 confs) & `+50,000 USDT` (25 confs) credited; `0.25 BTC` at 1/2 confs stays `pending…` (**excluded from balance**) |
+| 2 | Place resting Limit Buy `0.2 BTC @ 68,450` (GIF `08`) | `1.5000` | `0.0000` | **`36,310.0000`** | **`13,690.0000`** | Locks `0.2 × 68,450 = 13,690 USDT`; `Total` stays `50,000 USDT` |
+| 3 | Market Buy `0.2 BTC` across 2 ask levels (GIF `09`) | **`1.7000`** | `0.0000` | **`22,608.9425`** | `13,690.0000` | Sweeps `0.135 @ 68,503.50` + `0.065 @ 68,509.00` = `13,701.0575 USDT` (VWAP `68,505.29`) |
+| 4 | Cancel `68,450` Limit Buy via `✕` (GIF `10`) | `1.7000` | `0.0000` | **`36,298.9425`** | **`0.0000`** | Releases `13,690.0000 USDT` immediately back to `Available` |
+| 5 | Submit `0.25 BTC` whitelisted withdrawal (GIFs `11`–`12`) | **`1.4500`** | **`0.2500`** | `36,298.9425` | `0.0000` | Creates `PENDING` request `88ff9cff…`, locking `0.2500 BTC` |
+| 6 | Open `BTC-PERP` `+0.1 BTC` Long (GIF `14`) | `1.4500` | `0.2500` | **`35,298.9425`** | `0.0000` | Posts `1,000.00 USDT` margin at `68,503.50` entry (`~6.85×` lev) |
+| 7 | Spot Cross-Margin borrow `0.05 BTC` (GIF `15`) | **`1.5000`** | `0.2500` | `35,298.9425` | `0.0000` | Debt `0.0500 BTC` (`3,425.18` val), Net Equity `151,754.89` |
+| 8 | Stake `0.50 BTC` in `5% APR` pool (GIF `16`) | **`1.0000`** | `0.2500` | `35,298.9425` | `0.0000` | Locks principal into `stake_pool`, accruing lazy rewards per second |
+| 9 | Admin approves + In-DB SegWit broadcast & confirm (GIFs `18`, `19`, `13`) | **`1.0000`** | **`0.0000`** | **`35,298.9425`** | **`0.0000`** | 234-byte SegWit tx `139142c2…` confirmed on-chain; hold cleared; **all 7 invariants PASS** |
 
 ---
 
