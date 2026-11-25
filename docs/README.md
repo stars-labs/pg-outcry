@@ -7,6 +7,7 @@ Every doc is bilingual: an English file and a `*.zh-CN.md` mirror with a languag
 
 | Topic / 主题 | English | 中文 |
 |---|---|---|
+| **User Operation Wiki (Illustrated)** — step-by-step end-to-end manual from registration & deposit to spot/derivatives trading, whitelist withdrawal, API bots & troubleshooting (33 live screenshots) / **全流程实操百科 Wiki（33 张实景截图）**——从注册、充值、现货/合约/杠杆/质押交易到白名单提币与错误码词典 | [wiki/README.en.md](./wiki/README.en.md) · [Live Web Wiki](https://stars-labs.github.io/pg-outcry/wiki.html?lang=en) | [wiki/README.md](./wiki/README.md) · [在线网页版](https://stars-labs.github.io/pg-outcry/wiki.html?lang=zh) |
 | **Why pg-outcry** — architecture vs top-tier exchanges, SMB advantage, and how it compares to peatio / OpenCEX / OPEX with an honest gap analysis / 架构对比、中小所优势，以及与三个开源交易所的横向对比和差距分析 | [WHY.md](./WHY.md) | [WHY.zh-CN.md](./WHY.zh-CN.md) |
 | **Features** — on-chain custody in pure Postgres (derivation, signing, broadcast, pollers) and derivatives / staking / 纯 PG 链上托管（派生、签名、广播、轮询）与衍生品、质押 | [FEATURES.md](./FEATURES.md) | [FEATURES.zh-CN.md](./FEATURES.zh-CN.md) |
 | **Deploy** — hosted-Supabase demo & self-host high-performance / 托管演示与自建高性能 | [DEPLOY.md](./DEPLOY.md) | [DEPLOY.zh-CN.md](./DEPLOY.zh-CN.md) |

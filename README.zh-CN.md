@@ -18,6 +18,8 @@
 
 **[▶ 在线演示 · 管理后台](https://stars-labs.github.io/pg-outcry/admin.html?api=https://axtziasfallmdgssbgsl.supabase.co&anon=sb_publishable_j1Jr-NMeKb_P29JcBRhz6Q_0ZkbVzUc)** —— 测试开放管理台：登录或创建 Supabase Auth 用户即可试用审批、账户、费率/风控、推荐返佣结算、衍生品与质押、审计日志，基于同一份真实数据。
 
+**[📖 全流程实操百科 Wiki（充值 → 交易 → 提币 · 33 张实景截图操作手册）](./docs/wiki/README.md)** · **[🌐 交互式网页版操作百科（GitHub Pages）](https://stars-labs.github.io/pg-outcry/wiki.html?lang=zh)**
+
 **[★ 为什么选 pg-outcry —— 与顶级交易所对比 · 中小所优势（配图）](./docs/WHY.zh-CN.md)**
 
 [从演示到生产](#从演示到生产) · [快速开始](#快速开始) · [全部文档](./docs/) · [横向对比](./docs/WHY.zh-CN.md) · [部署](./docs/DEPLOY.zh-CN.md) · [基准测试](./docs/PERFORMANCE.zh-CN.md) · [调优阶梯](./docs/PERFORMANCE.zh-CN.md) · [性能](./docs/PERFORMANCE.zh-CN.md) · [开发](./docs/DEVELOPMENT.zh-CN.md)

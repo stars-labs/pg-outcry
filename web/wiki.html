@@ -1,0 +1,1210 @@
+<!doctype html>
+<html lang="zh-CN" data-lang="zh">
+<head>
+<meta charset="utf-8" />
+<meta name="google" content="notranslate" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>OUTCRY · 全流程实操百科 Wiki（充值 → 交易 → 提币）</title>
+<script>
+(function() {
+  try {
+    var p = new URLSearchParams(location.search);
+    var qLang = p.get("lang");
+    var saved = localStorage.getItem("oc_lang");
+    var nav = (navigator.language || "").toLowerCase();
+    var lang = (qLang === "en" || qLang === "zh") ? qLang
+      : (saved === "en" || saved === "zh") ? saved
+      : (nav.indexOf("zh") === 0 ? "zh" : "en");
+    document.documentElement.setAttribute("data-lang", lang);
+    document.documentElement.setAttribute("lang", lang === "en" ? "en" : "zh-CN");
+    var th = localStorage.getItem("oc_theme") || "dark";
+    document.documentElement.setAttribute("data-theme", th);
+  } catch (e) {}
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #06080a;
+  --bg-panel:  #0a0e10;
+  --bg-raised: #0f1518;
+  --grid:      rgba(78, 247, 168, 0.055);
+  --line:      rgba(120, 150, 138, 0.16);
+  --phos:      #4ef7a8;
+  --phos-dim:  #2a8f63;
+  --amber:     #ffb454;
+  --coral:     #ff5d6c;
+  --blue:      #5ad8ff;
+  --ink:       #d5e5dd;
+  --ink-dim:   #7d9288;
+  --ink-faint: #465850;
+  --glow:      0 0 10px rgba(78, 247, 168, 0.35);
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --cond: "IBM Plex Sans Condensed", system-ui, -apple-system, sans-serif;
+}
+:root[data-theme="light"] {
+  --bg:        #f4f7f9;
+  --bg-panel:  #ffffff;
+  --bg-raised: #edf2f6;
+  --grid:      rgba(20, 60, 40, 0.05);
+  --line:      rgba(30, 50, 40, 0.15);
+  --phos:      #0d9467;
+  --phos-dim:  #0a7350;
+  --amber:     #b45309;
+  --coral:     #dc2626;
+  --blue:      #0284c7;
+  --ink:       #14201a;
+  --ink-dim:   #4d5f57;
+  --ink-faint: #879890;
+  --glow:      none;
+}
+html[data-lang="en"] .zh { display: none !important; }
+html:not([data-lang="en"]) .en { display: none !important; }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", var(--mono), sans-serif;
+  font-size: 14.5px;
+  line-height: 1.72;
+  min-height: 100vh;
+}
+body::before {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+code, pre, .mono { font-family: var(--mono); }
+
+/* Top Header */
+.top {
+  position: sticky; top: 0; z-index: 50; height: 52px;
+  display: flex; align-items: center; gap: 10px; padding: 0 18px;
+  background: color-mix(in srgb, var(--bg-panel) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+.brand {
+  font-family: var(--cond); font-weight: 700; letter-spacing: .26em; font-size: 16px;
+  color: var(--phos); text-shadow: var(--glow); text-decoration: none; white-space: nowrap;
+}
+.brand span { color: var(--amber); letter-spacing: .14em; margin-left: 4px; font-size: 12px; }
+.search-wrap { position: relative; flex: 1; max-width: 420px; margin-left: 6px; }
+.search-wrap input {
+  width: 100%; background: var(--bg-raised); border: 1px solid var(--line); color: var(--ink);
+  padding: 7px 12px 7px 32px; font-family: var(--mono); font-size: 12.5px;
+}
+.search-wrap input:focus { outline: none; border-color: var(--phos); }
+.search-wrap .ico { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--ink-dim); font-size: 12px; }
+.spacer { flex: 1; }
+.nav-btn {
+  text-decoration: none; background: var(--bg-raised); border: 1px solid var(--line); color: var(--ink);
+  font-family: var(--cond); text-transform: uppercase; letter-spacing: .1em; font-size: 11px;
+  padding: 6px 11px; cursor: pointer; white-space: nowrap; transition: .15s;
+}
+.nav-btn:hover { border-color: var(--phos); color: var(--phos); }
+.nav-btn.primary { background: var(--phos); color: #04150d; border-color: var(--phos); font-weight: 700; }
+:root[data-theme="light"] .nav-btn.primary { color: #ffffff; }
+.progress-bar { position: fixed; top: 52px; left: 0; height: 2px; background: var(--phos); z-index: 51; width: 0%; transition: width .1s; }
+
+/* Shell Layout */
+.shell {
+  position: relative; z-index: 1;
+  display: grid; grid-template-columns: 276px minmax(0, 1fr);
+  max-width: 1480px; margin: 0 auto;
+}
+aside {
+  position: sticky; top: 54px; height: calc(100vh - 54px); overflow-y: auto;
+  border-right: 1px solid var(--line); padding: 20px 14px 40px;
+  background: color-mix(in srgb, var(--bg-panel) 78%, transparent);
+}
+.side-group { margin-bottom: 18px; }
+.side-title {
+  font-family: var(--cond); text-transform: uppercase; letter-spacing: .16em;
+  font-size: 10.5px; color: var(--ink-faint); padding: 0 10px 6px; font-weight: 600;
+}
+.side-link {
+  display: flex; align-items: center; gap: 8px; text-decoration: none;
+  color: var(--ink-dim); font-size: 13px; padding: 7px 10px; border-left: 2px solid transparent;
+  transition: .12s;
+}
+.side-link:hover { color: var(--ink); background: rgba(120,150,138,0.06); }
+.side-link.active { color: var(--phos); border-left-color: var(--phos); background: rgba(78,247,168,0.06); font-weight: 600; }
+.side-num { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); min-width: 22px; }
+.side-link.active .side-num { color: var(--phos); }
+
+/* Main Content */
+main { padding: 34px clamp(20px, 4vw, 56px) 90px; max-width: 1080px; min-width: 0; overflow-x: clip; }
+.hero {
+  border: 1px solid var(--line); background: var(--bg-panel); padding: 28px 30px; margin-bottom: 34px;
+  position: relative; overflow: hidden;
+}
+.hero::after {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--phos), var(--blue), var(--amber));
+}
+.eyebrow {
+  font-family: var(--cond); text-transform: uppercase; letter-spacing: .2em;
+  font-size: 11px; color: var(--phos); margin-bottom: 8px; display: block;
+}
+h1 { font-size: 28px; line-height: 1.3; margin-bottom: 12px; letter-spacing: -.01em; }
+.hero p { color: var(--ink-dim); font-size: 14.5px; max-width: 840px; }
+.kpi-strip {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 10px; margin-top: 20px;
+}
+.kpi { border: 1px solid var(--line); background: var(--bg-raised); padding: 11px 14px; }
+.kpi b { display: block; font-family: var(--mono); font-size: 18px; color: var(--phos); }
+.kpi span { font-size: 11.5px; color: var(--ink-dim); }
+
+/* Flow Pipeline */
+.pipeline {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 20px 0 6px;
+}
+.pipe-step {
+  border: 1px solid var(--line); background: var(--bg-raised); padding: 12px; position: relative;
+  text-decoration: none; color: inherit; transition: .15s;
+}
+.pipe-step:hover { border-color: var(--phos); transform: translateY(-2px); }
+.pipe-step .st-no { font-family: var(--mono); font-size: 11px; color: var(--amber); display: block; margin-bottom: 4px; }
+.pipe-step strong { display: block; font-size: 13.5px; margin-bottom: 4px; color: var(--ink); }
+.pipe-step small { color: var(--ink-dim); font-size: 11.5px; line-height: 1.45; display: block; }
+
+/* Chapters */
+section.chapter {
+  border: 1px solid var(--line); background: var(--bg-panel); padding: 28px 30px; margin-bottom: 30px;
+  scroll-margin-top: 72px;
+}
+.ch-head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+  border-bottom: 1px solid var(--line); padding-bottom: 14px; margin-bottom: 22px;
+}
+.ch-tag { font-family: var(--mono); font-size: 11px; color: var(--amber); text-transform: uppercase; letter-spacing: .14em; }
+.md-link {
+  font-family: var(--mono); font-size: 11.5px; color: var(--ink-dim); text-decoration: none;
+  border: 1px solid var(--line); background: var(--bg-raised); padding: 4px 10px; white-space: nowrap;
+}
+.md-link:hover { border-color: var(--phos); color: var(--phos); }
+h2 { font-size: 22px; margin-top: 4px; }
+h3 { font-size: 16.5px; margin: 24px 0 10px; color: var(--phos); display: flex; align-items: center; gap: 8px; }
+p { margin-bottom: 12px; }
+ul, ol { margin: 8px 0 16px 22px; }
+li { margin-bottom: 6px; }
+
+/* Callouts */
+.callout {
+  border-left: 3px solid var(--phos); background: var(--bg-raised);
+  padding: 13px 16px; margin: 16px 0; font-size: 13.5px;
+}
+.callout.warn { border-left-color: var(--amber); }
+.callout.danger { border-left-color: var(--coral); }
+.callout b.ct { display: block; font-family: var(--cond); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 4px; font-size: 12px; }
+.callout.warn b.ct { color: var(--amber); }
+.callout.danger b.ct { color: var(--coral); }
+.callout:not(.warn):not(.danger) b.ct { color: var(--phos); }
+
+/* Tables */
+.tbl-wrap { overflow-x: auto; margin: 14px 0 20px; border: 1px solid var(--line); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  text-align: left; background: var(--bg-raised); color: var(--ink-dim);
+  font-family: var(--cond); text-transform: uppercase; letter-spacing: .1em; font-size: 11px;
+  padding: 9px 12px; border-bottom: 1px solid var(--line); white-space: nowrap;
+}
+td { padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(120,150,138,0.04); }
+.badge {
+  display: inline-block; font-family: var(--mono); font-size: 11px; padding: 1px 7px;
+  border: 1px solid var(--line);
+}
+.badge.ok { color: var(--phos); border-color: var(--phos-dim); background: rgba(78,247,168,.07); }
+.badge.pend { color: var(--amber); border-color: rgba(255,180,84,.45); background: rgba(255,180,84,.07); }
+.badge.err { color: var(--coral); border-color: rgba(255,93,108,.45); background: rgba(255,93,108,.07); }
+
+/* Step Cards & Screenshots */
+.shot-grid { display: grid; grid-template-columns: 1fr; gap: 22px; margin: 18px 0; }
+.shot-grid.two { grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); }
+.shot-card { border: 1px solid var(--line); background: var(--bg-raised); overflow: hidden; }
+.shot-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 9px 14px; border-bottom: 1px solid var(--line); font-size: 12.5px;
+}
+.shot-step { font-family: var(--mono); color: var(--phos); font-weight: 600; }
+.zoom-hint { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); }
+.shot-card img {
+  display: block; width: 100%; height: auto; cursor: zoom-in;
+  border-bottom: 1px solid var(--line); transition: opacity .15s;
+}
+.shot-card img:hover { opacity: .94; }
+.shot-cap { padding: 11px 14px; font-size: 13px; color: var(--ink-dim); }
+.shot-cap strong { color: var(--ink); }
+
+/* Code Blocks */
+.code-box { position: relative; margin: 14px 0 18px; border: 1px solid var(--line); background: #05080a; }
+:root[data-theme="light"] .code-box { background: #161f1b; color: #e2efe8; }
+.code-box pre { padding: 14px 16px; overflow-x: auto; font-size: 12.5px; line-height: 1.58; color: #cfe0d7; }
+.copy-btn {
+  position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.18); color: #cfe0d7; font-family: var(--mono);
+  font-size: 11px; padding: 3px 9px; cursor: pointer;
+}
+.copy-btn:hover { border-color: #4ef7a8; color: #4ef7a8; }
+
+/* Interactive Checklists */
+.checklist { border: 1px solid var(--line); background: var(--bg-raised); padding: 14px 16px; margin: 14px 0; }
+.checklist label {
+  display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; cursor: pointer; font-size: 13.5px;
+  border-bottom: 1px dashed rgba(120,150,138,.14);
+}
+.checklist label:last-of-type { border-bottom: none; }
+.checklist input[type="checkbox"] { accent-color: var(--phos); margin-top: 5px; width: 15px; height: 15px; flex: none; }
+.chk-status { font-family: var(--mono); font-size: 11.5px; color: var(--phos); margin-bottom: 8px; }
+
+/* Lightbox */
+#lightbox {
+  position: fixed; inset: 0; z-index: 200; background: rgba(3, 6, 8, 0.92);
+  display: none; place-items: center; padding: 24px; cursor: zoom-out;
+}
+#lightbox.open { display: grid; }
+#lightbox img { max-width: 95vw; max-height: 90vh; border: 1px solid var(--phos-dim); box-shadow: 0 30px 90px rgba(0,0,0,.85); }
+#lightbox .lb-cap { color: #d5e5dd; font-family: var(--mono); font-size: 12.5px; margin-top: 10px; text-align: center; }
+
+@media (max-width: 980px) {
+  .shell { grid-template-columns: 1fr; }
+  aside { display: none; }
+  .pipeline { grid-template-columns: 1fr 1fr; }
+  .nav-btn.hide-sm { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="progress-bar" id="prog"></div>
+
+<header class="top">
+  <a class="brand" href="#top">OUTCRY<span><span class="zh">/WIKI 操作百科</span><span class="en">/WIKI MANUAL</span></span></a>
+  <div class="search-wrap">
+    <span class="ico">⌕</span>
+    <input id="q" type="search" placeholder="搜索充值网络、IOC/FOK、提币限额、报错关键词 (按 / 聚焦)…" />
+  </div>
+  <span class="spacer"></span>
+  <a class="nav-btn primary" id="goTrade" href="index.html">
+    <span class="zh">▶ 打开交易终端</span><span class="en">▶ Open Terminal</span>
+  </a>
+  <a class="nav-btn" id="goAdmin" href="admin.html">
+    <span class="zh">⚙ 管理后台</span><span class="en">⚙ Back-Office</span>
+  </a>
+  <a class="nav-btn hide-sm" id="goMd" href="https://github.com/stars-labs/pg-outcry/blob/main/docs/wiki/README.md" target="_blank" rel="noopener">
+    <span class="zh">📖 GitHub 文档</span><span class="en">📖 GitHub Docs</span>
+  </a>
+  <button class="nav-btn" id="langBtn" title="Switch Language / 切换中英文">EN</button>
+  <button class="nav-btn" id="themeBtn" title="Toggle day / night">☀</button>
+</header>
+
+<div class="shell" id="top">
+  <aside id="sidebar">
+    <div class="side-group">
+      <div class="side-title"><span class="zh">全链路核心导览</span><span class="en">Core Lifecycle</span></div>
+      <a class="side-link active" href="#overview"><span class="side-num">00</span><span class="zh">总览与账本闭环验算</span><span class="en">Overview &amp; Ledger Loop</span></a>
+      <a class="side-link" href="#ch1"><span class="side-num">01</span><span class="zh">注册、登录鉴权与安全基线</span><span class="en">Onboarding &amp; Security</span></a>
+      <a class="side-link" href="#ch2"><span class="side-num">02</span><span class="zh">链上充值全流程（Deposit）</span><span class="en">On-Chain Deposits</span></a>
+      <a class="side-link" href="#ch3"><span class="side-num">03</span><span class="zh">现货交易精讲（Spot）</span><span class="en">Spot Trading Masterclass</span></a>
+      <a class="side-link" href="#ch4"><span class="side-num">04</span><span class="zh">链上提币全流程（Withdraw）</span><span class="en">On-Chain Withdrawals</span></a>
+    </div>
+    <div class="side-group">
+      <div class="side-title"><span class="zh">衍生品 · 量化 · 运维排障</span><span class="en">Derivatives · API · Ops</span></div>
+      <a class="side-link" href="#ch5"><span class="side-num">05</span><span class="zh">永续合约 · 杠杆 · 质押赚币</span><span class="en">Perpetuals · Margin · Earn</span></a>
+      <a class="side-link" href="#ch6"><span class="side-num">06</span><span class="zh">API 密钥与量化机器人</span><span class="en">Developer API &amp; Bots</span></a>
+      <a class="side-link" href="#ch7"><span class="side-num">07</span><span class="zh">后台审批与七重账本自证</span><span class="en">Back-Office &amp; Solvency</span></a>
+      <a class="side-link" href="#ch8"><span class="side-num">08</span><span class="zh">全量错误码词典与 FAQ</span><span class="en">Error Dictionary &amp; FAQ</span></a>
+    </div>
+  </aside>
+
+  <main>
+    <!-- OVERVIEW -->
+    <div class="hero" id="overview">
+      <span class="eyebrow">PURE-POSTGRESQL CEX · END-TO-END ILLUSTRATED USER MANUAL</span>
+      <h1>
+        <span class="zh">OUTCRY 加密货币交易所全流程操作手册</span>
+        <span class="en">OUTCRY Cryptocurrency Exchange End-to-End Operation Manual</span>
+      </h1>
+      <p class="zh">从零创建账户、获取库内 HD 派生充值地址、理解区块确认与入账规则、使用 WebAssembly 盘口与技术指标下达限价/市价单，到绑定提币白名单、通过后台风控审批并由库内 BIP-143 原生隔离见证签名器广播到账——全部基于真实账户 <code>alice@outcry.dev</code> 连续实操截图与逐笔数学验算。</p>
+      <p class="en">Walk step by step from creating an account, deriving in-DB HD deposit addresses, tracking confirmation finality, and executing limit/market spot orders with WebAssembly indicators, all the way to whitelisting cold-storage addresses, passing back-office custody approval, and confirming zero-fee BIP-143 SegWit payouts — captured live on trader <code>alice@outcry.dev</code> and reconciled to <code>0.0001</code> precision.</p>
+
+      <div class="pipeline">
+        <a class="pipe-step" href="#ch1">
+          <span class="st-no"><span class="zh">STEP 01 · 开户</span><span class="en">STEP 01 · ONBOARD</span></span>
+          <strong><span class="zh">注册与会话隔离</span><span class="en">Auth &amp; RLS Isolation</span></strong>
+          <small><span class="zh">GoTrue 秒级签发 JWT，RLS 行级策略自动隔离个人资产流</span><span class="en">GoTrue JWT + kernel-level PostgreSQL Row-Level Security</span></small>
+        </a>
+        <a class="pipe-step" href="#ch2">
+          <span class="st-no"><span class="zh">STEP 02 · 入金</span><span class="en">STEP 02 · DEPOSIT</span></span>
+          <strong><span class="zh">多链充值入账</span><span class="en">Multi-Chain Funding</span></strong>
+          <small><span class="zh">6 币种 × 4 测试网，达标确认数自动双边入账，幂等防重</span><span class="en">6 coins × 4 testnets, finality-gated double-entry credit</span></small>
+        </a>
+        <a class="pipe-step" href="#ch3">
+          <span class="st-no"><span class="zh">STEP 03 · 交易</span><span class="en">STEP 03 · TRADE</span></span>
+          <strong><span class="zh">现货看盘与撮合</span><span class="en">Spot &amp; WASM Engine</span></strong>
+          <small><span class="zh">L2 微观价 μ、WASM 指标画线、限价冻结、跨档市价吃单</span><span class="en">L2 microprice μ, WASM indicators, limit holds &amp; VWAP sweeps</span></small>
+        </a>
+        <a class="pipe-step" href="#ch4">
+          <span class="st-no"><span class="zh">STEP 04 · 出金</span><span class="en">STEP 04 · WITHDRAW</span></span>
+          <strong><span class="zh">白名单安全提币</span><span class="en">Whitelist Payouts</span></strong>
+          <small><span class="zh">地址白名单 + 24h 滚动限额 + 提币即冻结 + 平台包揽矿工费</span><span class="en">Whitelist + 24h rolling cap + instant hold + 0 withdrawal fee</span></small>
+        </a>
+        <a class="pipe-step" href="#ch7">
+          <span class="st-no"><span class="zh">STEP 05 · 自证</span><span class="en">STEP 05 · SOLVENCY</span></span>
+          <strong><span class="zh">链上确认与对账</span><span class="en">Signing &amp; Audit</span></strong>
+          <small><span class="zh">BIP-143 库内签名广播，7 项实时数学对账不变量 ALL PASS</span><span class="en">In-DB BIP-143 SegWit signing + 7 invariants ALL PASS</span></small>
+        </a>
+      </div>
+
+      <div class="kpi-strip">
+        <div class="kpi">
+          <b><span class="zh">33 张</span><span class="en">33 Shots</span></b>
+          <span><span class="zh">真实桌面端连续实操截图（点击任意配图可全屏放大）</span><span class="en">Real desktop screenshots from one continuous session (click any image to zoom)</span></span>
+        </div>
+        <div class="kpi">
+          <b><span class="zh">0 提币费</span><span class="en">0 Fee Payout</span></b>
+          <span><span class="zh">链上矿工费由平台金库承担，收款地址 100% 全额到账</span><span class="en">Miner fees absorbed by hot-wallet treasury; recipient gets 100% full amount</span></span>
+        </div>
+        <div class="kpi">
+          <b><span class="zh">单事务 ACID</span><span class="en">1-Tx ACID</span></b>
+          <span><span class="zh">撮合与复式双边记账在同一个 PostgreSQL 事务内原子交割</span><span class="en">Matching &amp; double-entry settlement commit atomically inside PostgreSQL</span></span>
+        </div>
+        <div class="kpi">
+          <b>7 / 7 PASS</b>
+          <span><span class="zh">核心账本守恒 + 链上充值背书每 5 分钟自动巡检自证</span><span class="en">5 Core Ledger + 2 Custody invariants continuously verified every 5 min</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAPTER 1 -->
+    <section class="chapter" id="ch1">
+      <div class="ch-head">
+        <div>
+          <span class="ch-tag">Chapter 01 · Onboarding &amp; Security</span>
+          <h2><span class="zh">第 1 章：账户注册、登录鉴权与安全基线</span><span class="en">Chapter 1: Account Creation, Authentication &amp; Security Baseline</span></h2>
+        </div>
+        <a class="md-link" data-md="01-onboarding-and-security" href="https://github.com/stars-labs/pg-outcry/blob/main/docs/wiki/01-onboarding-and-security.md" target="_blank" rel="noopener">
+          <span class="zh">📄 完整章节 Markdown →</span><span class="en">📄 Full Markdown Chapter →</span>
+        </a>
+      </div>
+      <p class="zh">打开交易终端首页后，首先进入全屏安全门禁（Auth Gate）。你可以选择 <b>GitHub OAuth2 一键登录</b>（直接复用你在 GitHub 上配置的硬件 Passkey / 2FA 双因素认证），或使用<b>邮箱 + 密码</b>极速创建新交易账户。</p>
+      <p class="en">Opening the terminal presents the full-screen Auth Gate. Authenticate in one click via <b>GitHub OAuth2</b> (inheriting your GitHub hardware Passkey / TOTP 2FA) or register instantly with <b>Email + Password</b>.</p>
+
+      <div class="shot-grid two">
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">1.1 · 登录门禁页</span><span class="en">1.1 · Auth Gate (Sign In)</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/01-auth-login.png" alt="OUTCRY Auth Gate Sign In" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh"><strong>默认登录态：</strong>展示五大核心模块徽章（Spot / Margin / Perps / Staking / Wallet），底部点击 <code>NO ACCOUNT? REGISTER →</code> 即可切换至注册模式。</span>
+            <span class="en"><strong>Default Sign-In view:</strong> Highlights all five core desks (Spot / Margin / Perps / Staking / Wallet). Click <code>NO ACCOUNT? REGISTER →</code> at the bottom to switch to Sign-Up mode.</span>
+          </div>
+        </div>
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">1.2 · 注册新交易员账户</span><span class="en">1.2 · Register Trader Account</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/02-auth-register.png" alt="Create alice@outcry.dev account" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh"><strong>填写邮箱与密码：</strong>输入 <code>alice@outcry.dev</code> 与高强度密码后点击 <code>CREATE ACCOUNT →</code>，库内触发器自动创建客户实体与默认资金户。</span>
+            <span class="en"><strong>Instant provisioning:</strong> Enter <code>alice@outcry.dev</code> and a strong password, then click <code>CREATE ACCOUNT →</code>. Database triggers provision your isolated entity and cash accounts automatically.</span>
+          </div>
+        </div>
+      </div>
+
+      <h3><span class="zh">首次进入终端：八大核心功能区与主题切换</span><span class="en">First Look Inside the Terminal: 8 Zones, Referrals &amp; Light Theme</span></h3>
+      <div class="shot-grid">
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">1.3 · 新账户首次进入主交易台</span><span class="en">1.3 · Fresh Account Inside the Trading Terminal</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/03-terminal-empty-fresh.png" alt="Fresh zero-balance trading terminal" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh"><strong>零余额初始态：</strong>右上角绿点 <code>live · realtime</code> 表示毫秒级行情广播与个人 RLS 私有流均已就绪；右侧 <code>AVAILABLE</code> 明确引导新用户先前往 <code>Wallet → Deposit</code> 存入测试网资产。</span>
+            <span class="en"><strong>Zero-balance initial state:</strong> The green <code>live · realtime</code> indicator confirms WebSocket market broadcasts and RLS private streams are live, while <code>AVAILABLE</code> guides new users to <code>Wallet → Deposit</code>.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="shot-grid two">
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">1.4 · 推荐码与返佣面板（Account）</span><span class="en">1.4 · Referral Code &amp; Rebates (Account)</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/24-account-referral.png" alt="Account Referral modal" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh">点击顶部 <code>ACCOUNT</code> 可复制专属邀请链接（自动携带 <code>?ref=代码</code>）或一次性绑定推荐人，账本流水自动按 <code>0.02%</code> 计提佣金。</span>
+            <span class="en">Click <code>ACCOUNT</code> to copy your referral URL (<code>?ref=CODE</code>) or bind a referrer code once to earn <code>2 bps (0.02%)</code> rebates on referee volume.</span>
+          </div>
+        </div>
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">1.5 · 日间亮色主题一键切换（☀ / 🌙）</span><span class="en">1.5 · One-Click Day / Night Theme (☀ / 🌙)</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/25-terminal-light-theme.png" alt="Light theme terminal view" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh">点击右上角 <code>☀</code> 即可在「磷光暗黑模式」与「高对比日间亮色模式」之间无缝切换。</span>
+            <span class="en">Toggle <code>☀</code> in the top bar to switch between phosphor dark mode and high-contrast daylight mode.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHAPTER 2 -->
+    <section class="chapter" id="ch2">
+      <div class="ch-head">
+        <div>
+          <span class="ch-tag">Chapter 02 · On-Chain Deposit</span>
+          <h2><span class="zh">第 2 章：链上充值全流程精讲（Deposit）</span><span class="en">Chapter 2: On-Chain Deposits (Multi-Chain Derivation &amp; Finality)</span></h2>
+        </div>
+        <a class="md-link" data-md="02-deposit-guide" href="https://github.com/stars-labs/pg-outcry/blob/main/docs/wiki/02-deposit-guide.md" target="_blank" rel="noopener">
+          <span class="zh">📄 完整章节 Markdown →</span><span class="en">📄 Full Markdown Chapter →</span>
+        </a>
+      </div>
+      <p class="zh">OUTCRY 严禁无链上背书的余额铸造——每一笔客户入金都由数据库内置的 <code>pg_cron</code> 链上轮询器监测，并在达到目标链区块确认阈值后自动执行 <code>MASTER → 用户账户</code> 的复式入账。</p>
+      <p class="en">OUTCRY strictly prohibits unbacked balance minting — every customer credit is watched by in-database <code>pg_cron</code> chain pollers and posted via an idempotent <code>MASTER → User</code> double-entry transfer once block finality is reached.</p>
+
+      <h3><span class="zh">支持的充值币种、区块链网络与入账确认阈值</span><span class="en">Supported Deposit Coins, Networks &amp; Confirmation Thresholds</span></h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th><span class="zh">前端币种</span><span class="en">UI Coin</span></th>
+              <th><span class="zh">选择网络</span><span class="en">Network</span></th>
+              <th><span class="zh">地址格式</span><span class="en">Address Format</span></th>
+              <th><span class="zh">要求的区块确认数</span><span class="en">Required Confirmations</span></th>
+              <th><span class="zh">到账账本币种</span><span class="en">Credited Currency</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><b>BTC</b></td><td><code>Bitcoin · testnet4</code></td><td><code>tb1q…</code> <span class="zh">（原生隔离见证 P2WPKH）</span><span class="en">(Native SegWit P2WPKH)</span></td><td><span class="badge ok"><span class="zh">2 个区块</span><span class="en">2 blocks</span></span></td><td><b>BTC</b></td></tr>
+            <tr><td><b>USDT</b></td><td><code>TRC-20 · Nile</code></td><td><code>T…</code> <span class="zh">（波场 Nile 测试网 34 位地址）</span><span class="en">(34-char Tron Nile Base58Check)</span></td><td><span class="badge ok"><span class="zh">19 个区块</span><span class="en">19 blocks</span></span></td><td><b>USDT</b></td></tr>
+            <tr><td><b>USDC</b></td><td><code>SPL · devnet</code> / <code>ERC-20 · Sepolia</code></td><td>Solana Base58 / EVM <code>0x…</code></td><td><span class="badge ok">32 / 12</span></td><td><b>USDC</b></td></tr>
+            <tr><td><b>ETH / TRX / SOL</b></td><td><code>Sepolia</code> / <code>Nile</code> / <code>devnet</code></td><td><span class="zh">对应测试网原生地址</span><span class="en">Native testnet addresses</span></td><td>12 / 19 / 32</td><td><b>EUR</b> <span class="zh">（演示映射）</span><span class="en">(demo mapping)</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="shot-grid two">
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">2.1 · 打开 Wallet → Deposit 选择币种</span><span class="en">2.1 · Open Wallet → Deposit &amp; Select Coin</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/04-wallet-deposit-select.png" alt="Select deposit coin" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh">点击顶部 <code>WALLET</code> 或下单区底部 <code>DEPOSIT</code>，展示支持的全部 6 种加密资产。</span>
+            <span class="en">Click <code>WALLET</code> in the header or <code>DEPOSIT</code> in Order Entry to pick among all 6 supported assets.</span>
+          </div>
+        </div>
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">2.2 · 派生专属 BTC 原生隔离见证地址</span><span class="en">2.2 · Derive Dedicated BTC Native SegWit Address</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/05-wallet-deposit-btc-address.png" alt="Derived BTC tb1q deposit address" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh">选择 <code>BTC → Bitcoin · testnet4</code>，库内实时派生你独享的固定 <code>tb1q…</code> 地址，点击 <code>COPY</code> 一键复制。</span>
+            <span class="en">Choose <code>BTC → Bitcoin · testnet4</code> to derive your permanent personal <code>tb1q…</code> address inside PostgreSQL and click <code>COPY</code>.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="shot-grid two">
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">2.3 · 派生专属 USDT (TRC-20 · Nile) 地址</span><span class="en">2.3 · Derive Dedicated USDT (TRC-20 · Nile) Address</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/06-wallet-deposit-usdt-address.png" alt="Derived USDT TRC-20 deposit address" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh">选择 <code>USDT → TRC-20 · Nile</code>，获取专属波场 <code>T…</code> 地址，用于存入现货买单与合约保证金所需的 USDT。</span>
+            <span class="en">Choose <code>USDT → TRC-20 · Nile</code> to obtain your personal <code>T…</code> address for funding spot buys and perpetual margin.</span>
+          </div>
+        </div>
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">2.4 · 关键对比：确认中 pending… vs 已入账 credited</span><span class="en">2.4 · Key Comparison: pending… vs. credited</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/07-wallet-deposit-pending-and-credited.png" alt="Pending vs credited deposits" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh"><strong>防重组双花保护：</strong>仅 1 个确认的 <code>0.25 BTC</code> 显示橙色 <code>pending…</code>（暂不入余额）；已满确认数的 <code>1.5 BTC</code> 与 <code>50,000 USDT</code> 显示绿色 <code>credited</code>！</span>
+            <span class="en"><strong>Reorg protection in action:</strong> The 1-conf <code>0.25 BTC</code> tx waits in amber <code>pending…</code>, while finalized <code>1.5 BTC</code> (3 conf) and <code>50,000 USDT</code> (25 conf) show green <code>credited</code>!</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="shot-grid">
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">2.5 · 关闭弹窗并在 Balances 页签核验到账资金</span><span class="en">2.5 · Verify Credited Funds in the Balances Tab</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/08-balances-after-deposit.png" alt="Balances tab after deposit credit" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh">右上角 <code>AVAILABLE</code> 与底部 <code>BALANCES</code> 同步显示已确认的 <code>1.5000 BTC</code> 与 <code>50,000.0000 USDT</code>（未满确认数的 <code>0.25 BTC</code> 严格不计入 <code>TOTAL</code>）。</span>
+            <span class="en">Both <code>AVAILABLE</code> and the bottom <code>BALANCES</code> blotter reflect finalized <code>1.5000 BTC</code> and <code>50,000.0000 USDT</code> (unfinalized deposits never inflate <code>TOTAL</code>).</span>
+          </div>
+        </div>
+      </div>
+
+      <h3><span class="zh">交互式充值防丢币自检表（转账前请逐项勾选）</span><span class="en">Interactive Pre-Deposit Safety Checklist (Tick Before Sending)</span></h3>
+      <div class="checklist" data-checklist="dep">
+        <div class="chk-status"></div>
+        <label><input type="checkbox" /> <span><span class="zh"><b>网络完全一致：</b>面板选定的是 <code>Bitcoin · testnet4</code> 或 <code>TRC-20 · Nile</code>，外部发送钱包已切到完全相同的区块链网络。</span><span class="en"><b>Exact Network Match:</b> Your external wallet is set to the exact network shown in the modal (<code>Bitcoin · testnet4</code> or <code>TRC-20 · Nile</code>).</span></span></label>
+        <label><input type="checkbox" /> <span><span class="zh"><b>严禁混充主网资产：</b>已确认外部钱包处于测试网模式，绝不向 <code>tb1q…</code> / 测试网地址转入主网真金白银。</span><span class="en"><b>Testnet Coins Only:</b> Never send real mainnet funds to a testnet deposit address.</span></span></label>
+        <label><input type="checkbox" /> <span><span class="zh"><b>首尾 6 位字符复核：</b>粘贴收款地址后，已肉眼核对前 6 位与后 6 位字符与 OUTCRY 弹窗分毫不差。</span><span class="en"><b>First &amp; Last 6 Characters Verified:</b> Visually confirm the pasted address matches the modal to guard against clipboard hijackers.</span></span></label>
+        <label><input type="checkbox" /> <span><span class="zh"><b>Memo / Tag 检查：</b>若页面额外显示了 <code>MEMO / TAG</code> 行（如共享地址模式下的 <code>oc…</code>），已在转账备注中原样填写。</span><span class="en"><b>Memo / Tag Checked:</b> If a <code>MEMO / TAG</code> row (<code>oc…</code>) is displayed, include it verbatim in your transfer memo.</span></span></label>
+        <label><input type="checkbox" /> <span><span class="zh"><b>合约地址核验：</b>发送 TRC-20 USDT 或 SPL USDC 时，确认使用的是官方映射测试网代币而非同名仿盘代币。</span><span class="en"><b>Official Token Contract:</b> Sending the whitelisted TRC-20 / SPL / ERC-20 token contract rather than a look-alike spoof token.</span></span></label>
+      </div>
+    </section>
+
+    <!-- CHAPTER 3 -->
+    <section class="chapter" id="ch3">
+      <div class="ch-head">
+        <div>
+          <span class="ch-tag">Chapter 03 · Spot Trading Masterclass</span>
+          <h2><span class="zh">第 3 章：现货交易全流程精讲（看盘、限价冻结、市价吃单与撤单）</span><span class="en">Chapter 3: Spot Trading Masterclass (WASM Charting, Limit Holds &amp; Market Sweeps)</span></h2>
+        </div>
+        <a class="md-link" data-md="03-spot-trading-masterclass" href="https://github.com/stars-labs/pg-outcry/blob/main/docs/wiki/03-spot-trading-masterclass.md" target="_blank" rel="noopener">
+          <span class="zh">📄 完整章节 Markdown →</span><span class="en">📄 Full Markdown Chapter →</span>
+        </a>
+      </div>
+      <p class="zh">OUTCRY 终端内置完整的 WebAssembly 盘口与指标计算内核：支持点击左侧 L2 盘口任意价格自动填单、5 种主图均线/布林/VWAP 叠加、4 种摆动副图（RSI/MACD/KDJ/ATR）、6 种持久化画线工具，以及 <code>LIMIT</code> / <code>MARKET</code> 与 <code>GTC</code> / <code>IOC</code> / <code>FOK</code> 组合报单。</p>
+      <p class="en">Powered by a client-side WebAssembly engine, the terminal offers one-click L2 price-to-ticket autofill, 5 overlay indicators (MA/EMA/BOLL/VWAP), 4 sub-pane oscillators (RSI/MACD/KDJ/ATR), 6 persistent chart drawing tools, and full <code>LIMIT</code> / <code>MARKET</code> × <code>GTC</code> / <code>IOC</code> / <code>FOK</code> execution.</p>
+
+      <div class="shot-grid">
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">3.1 · 切换 5m 周期 + MACD 副图 + 绘制水平阻力线</span><span class="en">3.1 · 5m Timeframe + MACD Sub-Pane + Persistent Horizontal Line</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/09-chart-indicators-and-drawings.png" alt="5m chart with MACD and horizontal drawing" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh">点击右侧悬浮工具栏的 <code>─</code> 即可在 K 线上单击标出关键支撑/阻力位（按品种自动保存在本地浏览器，刷新不丢失）。</span>
+            <span class="en">Select <code>─</code> on the floating drawing rail to plot support/resistance levels — persisted per symbol in <code>localStorage</code> across reloads.</span>
+          </div>
+        </div>
+      </div>
+
+      <h3><span class="zh">三大生效时间策略（Time in Force）核心对比</span><span class="en">Time-in-Force (TIF) Execution Semantics</span></h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th><span class="zh">策略</span><span class="en">TIF</span></th>
+              <th><span class="zh">全称</span><span class="en">Full Name</span></th>
+              <th><span class="zh">撮合执行逻辑</span><span class="en">Matching Behavior</span></th>
+              <th><span class="zh">最佳实战场景</span><span class="en">Ideal Use Case</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>GTC</code></td><td>Good-Til-Cancelled</td><td><span class="zh">未立即成交的部分进入盘口持续排队，直至成交或手动点 <code>✕</code> 撤销。</span><span class="en">Unfilled remainder rests on the order book until filled or cancelled via <code>✕</code>.</span></td><td><span class="zh">逢低挂买单接针、逢高分批挂卖止盈。</span><span class="en">Passive bid accumulation &amp; staged take-profit asks.</span></td></tr>
+            <tr><td><code>IOC</code></td><td>Immediate-Or-Cancel</td><td><span class="zh">立即按对手盘最优价能成多少成多少，<b>剩余未成部分当场自动撤销解冻</b>，绝不留单。</span><span class="en">Fills immediately up to your limit price; <b>any unfilled remainder cancels immediately</b>.</span></td><td><span class="zh"><b>机构首选「带滑点上限保护的市价扫货单」！</b></span><span class="en"><b>Institutional favorite: slippage-capped aggressive sweeps!</b></span></td></tr>
+            <tr><td><code>FOK</code></td><td>Fill-Or-Kill</td><td><span class="zh">对手盘够填满 100% 数量则原子全成，<b>差一丝一毫则整单全部取消</b>。</span><span class="en">Fills 100% of requested size immediately or <b>cancels the entire order atomically</b>.</span></td><td><span class="zh">要求双腿严格等量的套利与大宗对冲。</span><span class="en">All-or-nothing multi-leg arbitrage &amp; block hedges.</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3><span class="zh">实操一：挂出 68,450.00 限价买单并核验资金冻结（Reserved）</span><span class="en">Walkthrough A: Resting Limit Buy @ 68,450.00 &amp; Balance Reservation</span></h3>
+      <div class="shot-grid two">
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">3.2 · 填写限价买单并查看 WASM 预估成本</span><span class="en">3.2 · Enter Limit Buy &amp; Inspect WASM Cost Preview</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/10-spot-limit-buy-entry.png" alt="Limit buy order entry" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh">输入限价 <code>68450.00</code>、数量 <code>0.2</code> BTC，WASM 引擎实时算出需冻结成本 <code>13,690.00 USDT</code>。</span>
+            <span class="en">Entering <code>68450.00</code> × <code>0.2</code> BTC previews the exact <code>13,690.00 USDT</code> reservation before submission.</span>
+          </div>
+        </div>
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">3.3 · 挂单入簿：盘口出现买单 + Open Orders 挂出</span><span class="en">3.3 · Resting on the L2 Book + Open Order Hold</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/11-spot-open-order-and-reserved.png" alt="Resting order and reserved USDT" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh">左侧买盘新增 <code>68,450.00 | 0.2000</code>，右上角显示 <code>36,310.0000 +13,690.0000 rsv</code>，底部列出工作中挂单。</span>
+            <span class="en"><code>68,450.00 | 0.2000</code> appears on the bid ladder, <code>AVAILABLE</code> shows <code>36,310.0000 +13,690.0000 rsv</code>, and <code>OPEN ORDERS</code> tracks the live order.</span>
+          </div>
+        </div>
+      </div>
+
+      <h3><span class="zh">实操二：跨两档市价扫货（VWAP 精确验算）与一键撤单解冻</span><span class="en">Walkthrough B: Multi-Level Taker Sweep (VWAP 68,505.29) &amp; Instant Cancel</span></h3>
+      <div class="shot-grid two">
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">3.4 · 买单自动跨两档预估 VWAP 68,505.29</span><span class="en">3.4 · WASM Two-Level Sweep Preview (VWAP 68,505.29)</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/13a-spot-market-preview.png" alt="Market buy VWAP preview" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh">卖一 <code>68,503.50</code> 仅有 <code>0.135 BTC</code>，WASM 自动向上遍历卖二 <code>68,509.00</code> 补齐剩余 <code>0.065 BTC</code>，算出精确均价 <code>68,505.29</code>！</span>
+            <span class="en">Best ask <code>68,503.50</code> holds <code>0.135 BTC</code>; WASM walks Ask 2 (<code>68,509.00</code>) for the remaining <code>0.065 BTC</code>, computing exact VWAP <code>68,505.29</code>!</span>
+          </div>
+        </div>
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">3.5 · 即时跨档成交：卖一吃空 + 成交带刷屏 + BTC 增至 1.7000</span><span class="en">3.5 · Atomic Fill: Ask 1 Cleared + Tape Prints + 1.7000 BTC</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/13b-spot-market-filled.png" alt="Immediate multi-level fill" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh"><code>Trade Tape</code> 瞬间打印 <code>0.1350 @ 68,503.50</code> 与 <code>0.0650 @ 68,509.00</code> 两笔成交，<code>BTC</code> 可用余额精准跃升至 <code>1.7000</code>！</span>
+            <span class="en"><code>Trade Tape</code> prints both fills (<code>0.1350 @ 68,503.50</code> and <code>0.0650 @ 68,509.00</code>) and <code>BTC</code> jumps atomically to <code>1.7000</code>!</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="shot-grid two">
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">3.6 · 冻结期间的 Balances 恒等式明细</span><span class="en">3.6 · Accounting Identity in Balances Tab</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/12-spot-balances-reserved-detail.png" alt="Balances reserved detail" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh">清晰印证会计恒等式：<code>Total (50,000) = Reserved (13,690) + Available (36,310)</code>。</span>
+            <span class="en">Proves the ledger identity: <code>Total (50,000) = Reserved (13,690) + Available (36,310)</code>.</span>
+          </div>
+        </div>
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">3.7 · 点击 ✕ 撤单：13,690 USDT 秒级解冻回可用余额</span><span class="en">3.7 · One-Click Cancel (✕) Releases 13,690 USDT</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/13c-spot-order-cancelled.png" alt="Order cancelled and funds released" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh">点击挂单行右侧 <code>✕</code> 后，<code>13,690.0000 USDT</code> 立即释放，<code>USDT</code> 可用余额恢复为 <code>36,298.9425</code>。</span>
+            <span class="en">Clicking <code>✕</code> releases <code>13,690.0000 USDT</code> immediately, bringing free <code>USDT</code> to <code>36,298.9425</code>.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout warn">
+        <b class="ct"><span class="zh">实战进阶贴士：防胖手指价格带（Price Band）与「LIMIT + IOC」黄金组合</span><span class="en">Pro Tip: Fat-Finger Price Bands &amp; Marketable LIMIT + IOC Sweeps</span></b>
+        <span class="zh">当交易对开启了 <code>±10%</code> 价格保护带时，若直接提交无价格（<code>price=0</code>）的市价单被价格带拦截，只需选择 <b><code>LIMIT</code> + 略优于对手盘的保护限价（如买单填 <code>68,550</code>）+ <code>IOC</code></b>，即可享受与市价单完全一致的毫秒级跨档扫货体验，同时自带最大滑点保护盾！</span>
+        <span class="en">When an instrument enforces a <code>±10%</code> fat-finger price band, use <b><code>LIMIT</code> + a protective cap price (e.g. <code>68,550</code>) + <code>IOC</code></b> instead of an uncapped <code>MARKET</code> order — it sweeps multiple ask levels in milliseconds while guaranteeing your worst-case fill price!</span>
+      </div>
+    </section>
+
+    <!-- CHAPTER 4 -->
+    <section class="chapter" id="ch4">
+      <div class="ch-head">
+        <div>
+          <span class="ch-tag">Chapter 04 · On-Chain Withdrawal</span>
+          <h2><span class="zh">第 4 章：链上提币全流程精讲（白名单、冻结、审批与零扣费全额到账）</span><span class="en">Chapter 4: On-Chain Withdrawals (Whitelist, Rolling Caps &amp; Zero-Fee Payout)</span></h2>
+        </div>
+        <a class="md-link" data-md="04-withdrawal-guide" href="https://github.com/stars-labs/pg-outcry/blob/main/docs/wiki/04-withdrawal-guide.md" target="_blank" rel="noopener">
+          <span class="zh">📄 完整章节 Markdown →</span><span class="en">📄 Full Markdown Chapter →</span>
+        </a>
+      </div>
+      <p class="zh">在 OUTCRY 中，提币受到<b>强制白名单机制</b>、<b>24 小时滚动限额（默认 5 BTC / 50,000 USDT）</b>、<b>幂等键防重扣</b>与<b>管理员审批（做市商账户支持原子自提自动放行）</b>四重保护；且链上矿工费由平台金库承担，收款地址 <b>100% 全额收到申请金额</b>！</p>
+      <p class="en">Withdrawals are guarded by <b>mandatory address whitelisting</b>, <b>24-hour rolling caps (5 BTC / 50,000 USDT)</b>, <b>idempotency keys</b>, and <b>operator approval (with atomic auto-approval for assigned Market Makers)</b> — and because miner fees are paid by treasury change, your external wallet receives <b>100% of the requested amount</b>!</p>
+
+      <div class="shot-grid two">
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">4.1 · 打开 Withdraw 面板（初始未绑白名单）</span><span class="en">4.1 · Open Withdraw Modal (Empty Whitelist)</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/14a-wallet-withdraw-empty-whitelist.png" alt="Initial withdraw modal" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh">选择 <code>BTC → Bitcoin · testnet4</code>，顶部提示扣减 <code>BTC</code> 账户（当前可用 <code>1.700000</code>），首次提币需先绑定白名单地址。</span>
+            <span class="en">Selecting <code>BTC → Bitcoin · testnet4</code> shows available <code>1.700000 BTC</code> and requires whitelisting a destination address first.</span>
+          </div>
+        </div>
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">4.2 · 添加测试网收款地址至白名单（usable）</span><span class="en">4.2 · Whitelist Cold-Storage Address (usable)</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/14b-wallet-withdraw-whitelisted.png" alt="Whitelisted BTC address" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh">填入测试网地址 <code>tb1pznce…</code> 与备注 <code>Cold Ledger Vault</code> 点击 <code>WHITELIST</code>，状态显示为绿色 <code>usable</code> 并自动选入下拉框。</span>
+            <span class="en">Paste <code>tb1pznce…</code> with label <code>Cold Ledger Vault</code> and click <code>WHITELIST</code> — status turns green <code>usable</code> and auto-selects in the dropdown.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="shot-grid two">
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">4.3 · 输入提币金额 0.25 BTC 准备提交</span><span class="en">4.3 · Enter 0.25 BTC Payout Amount</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/15a-wallet-withdraw-ready.png" alt="Ready to submit 0.25 BTC withdrawal" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh">核对收款地址、网络与提币数量 <code>0.25</code> 无误后点击 <code>WITHDRAW</code>（自动拒收 <code>bc1/1/3</code> 主网地址）。</span>
+            <span class="en">Enter <code>0.25</code> and click <code>WITHDRAW</code> (supports all BTC Testnet4 formats while rejecting mainnet <code>bc1/1/3</code> addresses).</span>
+          </div>
+        </div>
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">4.4 · 提交成功瞬间：立即锁定 +0.2500 rsv</span><span class="en">4.4 · Submitted: Immediate +0.2500 rsv Hold</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/15b-wallet-withdraw-submitted.png" alt="Withdrawal submitted toast and balance lock" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh"><code>request_withdrawal_to</code> 原子校验限额并立即将可用余额从 <code>1.7000</code> 锁定为 <code>1.4500 +0.2500 rsv</code>，防止审前超卖双花。</span>
+            <span class="en"><code>request_withdrawal_to</code> enforces rolling limits and immediately locks <code>0.2500 BTC</code> into <code>Reserved</code> so pending payouts can never be double-spent.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="shot-grid two">
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">4.5 · 底部 Wallet 页签追踪 PENDING 待审记录</span><span class="en">4.5 · Track PENDING Request in Wallet Blotter</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/16-blotter-wallet-pending.png" alt="Wallet blotter showing PENDING withdrawal" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh">关闭弹窗后，底部 <code>WALLET</code> 页签清晰展示 <code>WITHDRAWAL · BTC · 0.25 · PENDING</code>。</span>
+            <span class="en">The bottom <code>WALLET</code> blotter displays <code>WITHDRAWAL · BTC · 0.25 · PENDING</code> alongside the active balance hold.</span>
+          </div>
+        </div>
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">4.6 · 审批与链上确认完成：自动变更为 APPROVED</span><span class="en">4.6 · Approved &amp; Signed On-Chain: Realtime Closure</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/19-blotter-wallet-approved.png" alt="Wallet blotter updated to APPROVED" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh">后台放行并由库内 BIP-143 签名器广播确认后（见第 7 章），用户端通过 Realtime 自动变更为 <code>APPROVED</code>，外部冷钱包全额收到 <code>0.25000000 BTC</code>！</span>
+            <span class="en">Once approved and signed/confirmed on-chain (Chapter 7), Supabase Realtime flips the row to <code>APPROVED</code>, clears the hold, and delivers <code>0.25000000 BTC</code>!</span>
+          </div>
+        </div>
+      </div>
+
+      <h3><span class="zh">交互式提币终审安全清单（点击 Withdraw 前必勾）</span><span class="en">Interactive Pre-Withdrawal Safety Checklist</span></h3>
+      <div class="checklist" data-checklist="wd">
+        <div class="chk-status"></div>
+        <label><input type="checkbox" /> <span><span class="zh"><b>测试网地址格式校验：</b>提取 BTC 时已确认地址为 <code>tb1q…</code> / <code>tb1p…</code> / <code>m/n/2…</code> 测试网地址，而非 <code>bc1…</code> 主网地址。</span><span class="en"><b>Valid Testnet Address:</b> BTC destination begins with <code>tb1q</code>, <code>tb1p</code>, <code>m</code>, <code>n</code>, or <code>2</code> (mainnet <code>bc1/1/3</code> is rejected).</span></span></label>
+        <label><input type="checkbox" /> <span><span class="zh"><b>收款网络匹配：</b>提 USDT 走 <code>TRC-20 · Nile</code> 时，已确认目标钱包支持波场网络而非仅支持以太坊 ERC-20。</span><span class="en"><b>Matching Recipient Network:</b> Recipient wallet supports Tron <code>TRC-20</code> when withdrawing Nile USDT.</span></span></label>
+        <label><input type="checkbox" /> <span><span class="zh"><b>可用余额未被挂单占用：</b>若可用余额小于总资产，已先在 <code>OPEN ORDERS</code> 撤销不再需要的挂单释放冻结额度。</span><span class="en"><b>Free Available Balance:</b> Unneeded resting orders in <code>OPEN ORDERS</code> have been cancelled (<code>✕</code>) to unlock <code>Reserved</code> funds.</span></span></label>
+        <label><input type="checkbox" /> <span><span class="zh"><b>24 小时滚动额度检查：</b>本次提币金额加上过去 24 小时已提金额未超过币种上限（5 BTC / 50,000 USDT）。</span><span class="en"><b>Within 24h Rolling Cap:</b> Total trailing-24h withdrawals remain within <code>5 BTC</code> / <code>50,000 USDT</code>.</span></span></label>
+      </div>
+    </section>
+
+    <!-- CHAPTER 5 -->
+    <section class="chapter" id="ch5">
+      <div class="ch-head">
+        <div>
+          <span class="ch-tag">Chapter 05 · Futures, Margin &amp; Staking</span>
+          <h2><span class="zh">第 5 章：进阶金融产品（永续合约 · 现货杠杆 · 质押赚币）</span><span class="en">Chapter 5: Advanced Products (Perpetuals · Cross-Margin · Earn Staking)</span></h2>
+        </div>
+        <a class="md-link" data-md="05-advanced-products" href="https://github.com/stars-labs/pg-outcry/blob/main/docs/wiki/05-advanced-products.md" target="_blank" rel="noopener">
+          <span class="zh">📄 完整章节 Markdown →</span><span class="en">📄 Full Markdown Chapter →</span>
+        </a>
+      </div>
+      <p class="zh">无需繁琐的账户划转，你的现货可用资金可直接在顶部导航栏打开 <code>FUTURES</code>、<code>MARGIN</code>、<code>EARN</code> 参与衍生品交易与链下生息，所有资金流转均复用 <code>process_transfer</code> 保持全库复式记账平衡。</p>
+      <p class="en">With zero internal sub-account transfer friction, open <code>FUTURES</code>, <code>MARGIN</code>, or <code>EARN</code> right from the top header bar — every margin lock, loan, interest accrual, and staking reward settles on the same double-entry ledger.</p>
+
+      <div class="shot-grid">
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">5.1 · BTC-PERP 线性永续合约（最高 10× 杠杆 · 5% 维持率）</span><span class="en">5.1 · BTC-PERP Linear Perpetuals (10× Max Lev · 5% Maint)</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/20-product-futures-perp.png" alt="BTC-PERP perpetual futures" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh">投入 <code>1,000 USDT</code> 保证金开立 <code>0.1000 BTC</code> 多单（Entry <code>68,503.50</code>），实时展示标记价、资金费率、未实现盈亏 <code>uPnL</code> 与一键 <code>close</code> 平仓按钮。</span>
+            <span class="en">Post <code>1,000 USDT</code> margin to open a <code>0.1000 BTC</code> Long @ <code>68,503.50</code> with live mark price, funding rate, <code>uPnL</code>, and one-click <code>close</code> settlement.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="shot-grid two">
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">5.2 · 现货全仓杠杆（最高 3× · 10% 维持率 · 10% APR）</span><span class="en">5.2 · Spot Cross-Margin (3× Max · 10% Maint · 10% APR)</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/21-product-margin-borrow.png" alt="Spot cross-margin borrowing" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh">全账户抵押品统一折算估值（<code>Collateral 155,180.07</code>），借入 <code>0.0500 BTC</code> 后实时追踪应计利息，支持随时一键 <code>repay all</code>（先息后本）。</span>
+            <span class="en">Portfolio-wide collateral valuation (<code>155,180.07</code>) backing a <code>0.0500 BTC</code> borrow with per-second interest accrual and interest-first <code>repay all</code>.</span>
+          </div>
+        </div>
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">5.3 · Earn 质押赚币（MasterChef 惰性计息 + pgmq 解锁队列）</span><span class="en">5.3 · Earn Staking (MasterChef O(1) Yield + pgmq Unbonding)</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/22-product-earn-staking.png" alt="Earn staking pools" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh">提供 <code>BTC (5% APR)</code>、<code>USDT (10% APR)</code>、<code>EUR (10% APR)</code> 三大矿池；收益按秒累积可随时 <code>claim</code> 秒到账，赎回本金经 7 天解锁期自动返还。</span>
+            <span class="en">Stake into <code>BTC (5% APR)</code>, <code>USDT (10% APR)</code>, or <code>EUR (10% APR)</code>; harvest accrued rewards instantly via <code>claim</code>, with 7-day <code>pgmq</code> unbonding on principal.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHAPTER 6 -->
+    <section class="chapter" id="ch6">
+      <div class="ch-head">
+        <div>
+          <span class="ch-tag">Chapter 06 · Algorithmic Trading &amp; API</span>
+          <h2><span class="zh">第 6 章：API 密钥管理与量化机器人接入</span><span class="en">Chapter 6: Developer API Keys &amp; Algorithmic Trading Bots</span></h2>
+        </div>
+        <a class="md-link" data-md="06-api-and-bot-guide" href="https://github.com/stars-labs/pg-outcry/blob/main/docs/wiki/06-api-and-bot-guide.md" target="_blank" rel="noopener">
+          <span class="zh">📄 完整章节 Markdown →</span><span class="en">📄 Full Markdown Chapter →</span>
+        </a>
+      </div>
+
+      <div class="shot-grid">
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">6.1 · 创建 HMAC API Key（仅创建瞬间展示一次 Secret）</span><span class="en">6.1 · Mint HMAC API Key (One-Time Secret Reveal)</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/23-developer-api-keys.png" alt="Developer API key creation" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh">在 <code>DEVELOPER API</code> 弹窗输入标签名点击 <code>CREATE</code>，妥善保存琥珀色框内的 <code>key_id</code> 与一次性 <code>secret</code>；泄露时可随时点击 <code>revoke</code> 吊销。</span>
+            <span class="en">Create a labeled bot key in <code>DEVELOPER API</code>, store the one-time <code>secret</code> from the amber banner immediately, and click <code>revoke</code> anytime to invalidate compromised keys.</span>
+          </div>
+        </div>
+      </div>
+
+      <h3><span class="zh">三步跑通量化交易闭环（换取 JWT → 下单撤单 → 幂等提币）</span><span class="en">3-Step Quant Loop (Mint Bot JWT → Slippage-Capped IOC → Idempotent Withdrawal)</span></h3>
+      <div class="code-box">
+        <button class="copy-btn" data-copy-code>Copy</button>
+<pre><code># 1) Exchange key_id + secret for an in-DB authenticated Bearer JWT
+BOT_JWT="$(curl -sS -X POST "$API/rest/v1/rpc/api_key_login" \
+  -H "apikey: $ANON" -H "Content-Type: application/json" \
+  -d '{"key_id_param":"ock_...","secret_param":"ocs_...","ttl_seconds_param":3600}' | jq -r .access_token)"
+
+# 2) Submit a slippage-capped aggressive sweep (LIMIT + IOC)
+curl -sS -X POST "$API/rest/v1/rpc/place_order" \
+  -H "apikey: $ANON" -H "Authorization: Bearer $BOT_JWT" -H "Content-Type: application/json" \
+  -d '{"instrument_name_param":"BTC_USDT","side_param":"BUY","order_type_param":"LIMIT","price_param":68550,"amount_param":0.05,"time_in_force_param":"IOC"}'
+
+# 3) Submit an idempotent on-chain withdrawal (safe across network retries)
+curl -sS -X POST "$API/rest/v1/rpc/request_withdrawal_to" \
+  -H "apikey: $ANON" -H "Authorization: Bearer $BOT_JWT" -H "Content-Type: application/json" \
+  -d '{"currency_param":"BTC","amount_param":0.1,"to_address_param":"tb1p...","idempotency_key_param":"bot-wd-001"}'</code></pre>
+      </div>
+    </section>
+
+    <!-- CHAPTER 7 -->
+    <section class="chapter" id="ch7">
+      <div class="ch-head">
+        <div>
+          <span class="ch-tag">Chapter 07 · Back-Office &amp; Solvency Proof</span>
+          <h2><span class="zh">第 7 章：管理后台、提币签名流转与七重账本自证</span><span class="en">Chapter 7: Back-Office, Signer Pipeline &amp; 7-Invariant Proof of Solvency</span></h2>
+        </div>
+        <a class="md-link" data-md="07-backoffice-and-reconciliation" href="https://github.com/stars-labs/pg-outcry/blob/main/docs/wiki/07-backoffice-and-reconciliation.md" target="_blank" rel="noopener">
+          <span class="zh">📄 完整章节 Markdown →</span><span class="en">📄 Full Markdown Chapter →</span>
+        </a>
+      </div>
+      <p class="zh">打开 <code>admin.html</code> 即可看到 OUTCRY 独树一帜的透明风控后台：从 5 项核心复式记账不变量 + 2 项链上充值背书校验，到提币审批与库内 BIP-143 原生隔离见证自动签名确认，每一步都留有不可篡改的只追加审计证据。</p>
+      <p class="en">Open <code>admin.html</code> to inspect OUTCRY's transparent operator control plane: 5 Core Ledger + 2 Custody invariants verified live, pending withdrawal approvals, autonomous in-DB BIP-143 SegWit signing, and an append-only immutable audit trail.</p>
+
+      <div class="shot-grid two">
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">7.1 · Control Room 总控室与全绿对账看板</span><span class="en">7.1 · Control Room &amp; recon ALL PASS</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/17-admin-overview-pending-approval.png" alt="Admin Control Room recon ALL PASS" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh">顶部显示 <code>recon ALL PASS</code>，<code>0 RECON FAILS</code>、<code>0 FUNDING EXPOSURE</code>，并醒目提示 <code>1 PENDING WALLET</code> 待审批。</span>
+            <span class="en"><code>recon ALL PASS</code> with <code>0 RECON FAILS</code>, <code>0 FUNDING EXPOSURE</code>, and <code>1 PENDING WALLET</code> highlighted for review.</span>
+          </div>
+        </div>
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">7.2 · Treasury 金库台：审批待放行提币申请</span><span class="en">7.2 · Treasury: Approve or Reject Pending Payouts</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/17b-admin-treasury-pending-queue.png" alt="Admin Treasury pending queue" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh">核验客户实体与风控无误后点击绿色 <code>APPROVE</code> 放行（点击 <code>REJECT</code> 则原路解冻退回客户可用余额）。</span>
+            <span class="en">Click green <code>APPROVE</code> to debit User → <code>MASTER</code> and enqueue signing (or <code>REJECT</code> to unfreeze 100% back to <code>Available</code>).</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="shot-grid two">
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">7.3 · 批准瞬间进入 Custody Signer 队列（QUEUED）</span><span class="en">7.3 · Custody Signer Queue (QUEUED)</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/18a-admin-treasury-signer-queued.png" alt="Custody Signer QUEUED" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh">批准后申请立即进入签名队列（<code>QUEUED</code>），等待 <code>pg_cron</code> 定时签名器认领构造原始链上交易。</span>
+            <span class="en">Approved payouts enter <code>WITHDRAWAL QUEUE · CUSTODY SIGNER</code> as <code>QUEUED</code> for atomic signer lease.</span>
+          </div>
+        </div>
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">7.4 · 库内 BIP-143 签名、幂等广播与区块确认（CONFIRMED）</span><span class="en">7.4 · In-DB BIP-143 Signing &amp; Confirmation (CONFIRMED)</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/18b-admin-treasury-signer-confirmed.png" alt="Custody Signer CONFIRMED" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh">库内自动选币生成 234 字节 SegWit 交易（真实 <code>txid: 3c91e9fb…</code>，330 sats 矿工费由金库承担）并完成链上确认，状态跃升为绿色 <code>CONFIRMED</code>！</span>
+            <span class="en">PostgreSQL builds the 234-byte BIP-143 SegWit tx (<code>txid: 3c91e9fb…</code>, absorbing <code>330 sats</code> fee from treasury change) and advances to green <code>CONFIRMED</code>!</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="shot-grid">
+        <div class="shot-card">
+          <div class="shot-head">
+            <span class="shot-step"><span class="zh">7.5 · Audit 合规台：只追加不可篡改审计日志</span><span class="en">7.5 · Audit Log: Append-Only Tamper-Evident Trail</span></span>
+            <span class="zoom-hint"><span class="zh">点击放大 ⤢</span><span class="en">Click to zoom ⤢</span></span>
+          </div>
+          <img src="docs/wiki/18c-admin-audit-log.png" alt="Immutable Admin Audit Log" loading="lazy" />
+          <div class="shot-cap">
+            <span class="zh">数据库触发器严拒 UPDATE/DELETE，完整记录充值入账、风控变更、提币批准、广播 TxID 与最终确认全链路证据。</span>
+            <span class="en">Database triggers reject all <code>UPDATE</code>/<code>DELETE</code> statements, permanently recording deposit credits, risk changes, approvals, broadcast TxIDs, and confirmations.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHAPTER 8 -->
+    <section class="chapter" id="ch8">
+      <div class="ch-head">
+        <div>
+          <span class="ch-tag">Chapter 08 · Error Reference &amp; FAQ</span>
+          <h2><span class="zh">第 8 章：全量错误码速查词典与高频排障</span><span class="en">Chapter 8: Complete Error Code Dictionary &amp; Troubleshooting</span></h2>
+        </div>
+        <a class="md-link" data-md="08-troubleshooting-and-faq" href="https://github.com/stars-labs/pg-outcry/blob/main/docs/wiki/08-troubleshooting-and-faq.md" target="_blank" rel="noopener">
+          <span class="zh">📄 完整章节 Markdown →</span><span class="en">📄 Full Markdown Chapter →</span>
+        </a>
+      </div>
+      <p class="zh">遇到右下角红色报错气泡时，直接在顶部搜索框输入报错关键词即可定位根因与解决方案：</p>
+      <p class="en">Type any toast or API error message into the top search bar (press <code>/</code>) to filter root causes and 60-second fixes:</p>
+
+      <div class="tbl-wrap">
+        <table id="errTable">
+          <thead>
+            <tr>
+              <th><span class="zh">弹窗 / API 错误信息</span><span class="en">Toast / API Error Message</span></th>
+              <th><span class="zh">触发原因解析</span><span class="en">Root Cause</span></th>
+              <th><span class="zh">1 分钟解决步骤</span><span class="en">60-Second Fix</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>insufficient available balance</code> / <code>insufficient funds</code></td>
+              <td><span class="zh">可用余额不足（常因老挂单或待审提币占用了 <code>Reserved</code> 冻结额度）。</span><span class="en">Free <code>Available</code> balance is insufficient (often locked by resting orders or pending withdrawals in <code>Reserved</code>).</span></td>
+              <td><span class="zh">前往底部 <code>OPEN ORDERS</code> 点击 <code>✕</code> 撤销未成交挂单释放资金，或补充链上充值。</span><span class="en">Cancel unneeded open orders via <code>✕</code> in <code>OPEN ORDERS</code> to release holds, or deposit more funds.</span></td>
+            </tr>
+            <tr>
+              <td><code>risk price band: P beyond 10 pct band of reference R</code></td>
+              <td><span class="zh">限价偏离参考价超过 <code>±10%</code> 防胖手指阈值（或开启价格带时发送了 <code>price=0</code> 市价单）。</span><span class="en">Limit price deviates more than <code>±10%</code> from reference price (or uncapped <code>price=0</code> market order hit an active band).</span></td>
+              <td><span class="zh">修正限价至参考价 <code>±10%</code> 内；市价扫货请选 <code>LIMIT</code> + 保护限价 + <code>IOC</code>。</span><span class="en">Keep limit price within <code>±10%</code> of spot; for instant sweeps use <code>LIMIT</code> + protective cap + <code>IOC</code>.</span></td>
+            </tr>
+            <tr>
+              <td><code>risk max order notional: X &gt; 100000</code></td>
+              <td><span class="zh">单笔名义金额（价格 × 数量）超过默认的 <code>100,000 USDT</code> 上限。</span><span class="en">Single-order notional (<code>price × amount</code>) exceeds <code>100,000 USDT</code>.</span></td>
+              <td><span class="zh">调小单笔数量（例如 68,500 USDT 下每笔 ≤ 1.45 BTC），分批下单。</span><span class="en">Reduce clip size (e.g. ≤ 1.45 BTC at 68,500 USDT) and execute in tranches.</span></td>
+            </tr>
+            <tr>
+              <td><code>risk max order amount: X &gt; 100</code></td>
+              <td><span class="zh">单笔数量超过品种上限（或高价品种 <code>BUY MARKET</code> 报价预算超过默认上限）。</span><span class="en">Order quantity exceeds <code>max_order_amount</code> (or <code>BUY MARKET</code> quote budget exceeds 100 on high-priced pairs).</span></td>
+              <td><span class="zh">拆单提交，或使用 <code>LIMIT + IOC</code> 按基础币数量报单。</span><span class="en">Split into smaller clips or submit base quantity via <code>LIMIT + IOC</code>.</span></td>
+            </tr>
+            <tr>
+              <td><code>address not whitelisted or cooling</code></td>
+              <td><span class="zh">提币收款地址尚未添加进白名单，或处于新地址冷却期。</span><span class="en">Destination address is not whitelisted on your account or is still in cooldown.</span></td>
+              <td><span class="zh">在 <code>Wallet → Withdraw</code> 下方先点击 <code>WHITELIST</code> 添加地址，待状态变为绿色 <code>usable</code> 后提交。</span><span class="en">Click <code>WHITELIST</code> in <code>Wallet → Withdraw</code>, verify status is green <code>usable</code>, and select it.</span></td>
+            </tr>
+            <tr>
+              <td><code>withdrawal limit exceeded</code></td>
+              <td><span class="zh">过去 24 小时滚动窗口内累计提币（含待审 <code>PENDING</code>）超出单日限额。</span><span class="en">Trailing 24-hour withdrawals (<code>PENDING</code> + <code>APPROVED</code>) exceed rolling cap (<code>5 BTC</code> / <code>50,000 USDT</code>).</span></td>
+              <td><span class="zh">调小提币金额至剩余额度内，或等待 24 小时滚动窗口释放额度。</span><span class="en">Lower withdrawal amount to remaining 24h quota or wait for older requests to roll off.</span></td>
+            </tr>
+            <tr>
+              <td><code>btc address not testnet</code> / <code>bad checksum</code></td>
+              <td><span class="zh">BTC 提币误填了 <code>bc1/1/3</code> 主网地址或地址拼写损坏。</span><span class="en">Mainnet Bitcoin address (<code>bc1/1/3</code>) or corrupted Bech32/Base58 checksum supplied.</span></td>
+              <td><span class="zh">改用合法的 Bitcoin Testnet4 地址（<code>tb1q…</code> / <code>tb1p…</code> / <code>m/n/2…</code>）并重新复制粘贴。</span><span class="en">Copy-paste a valid Bitcoin Testnet4 address (<code>tb1q…</code>, <code>tb1p…</code>, <code>m/n…</code>, or <code>2…</code>).</span></td>
+            </tr>
+            <tr>
+              <td><code>position exists close first</code></td>
+              <td><span class="zh">永续合约单市场已有持仓，不支持同市场直接叠加新仓。</span><span class="en">An open perpetual position already exists in this market (net-position model).</span></td>
+              <td><span class="zh">先在 <code>Futures</code> 面板点击当前持仓右侧的 <code>close</code> 平仓，再重新开仓。</span><span class="en">Click <code>close</code> on your current position in <code>Futures</code> first, then open the new size.</span></td>
+            </tr>
+            <tr>
+              <td><code>insufficient margin</code> / <code>exceeds max leverage</code></td>
+              <td><span class="zh">合约初始保证金低于 <code>10×</code> 要求，或全仓杠杆总负债超过 <code>2 × Equity</code>。</span><span class="en">Perp margin is below the <code>10×</code> minimum, or cross-margin debt exceeds <code>2 × Equity</code>.</span></td>
+              <td><span class="zh">增加投入的保证金或降低开仓/借款数量。</span><span class="en">Post additional margin/collateral or reduce position/borrow size.</span></td>
+            </tr>
+            <tr>
+              <td><code>account suspended</code></td>
+              <td><span class="zh">账户已被后台风控临时冻结，暂停交易与提币权限。</span><span class="en">Account has been frozen by an operator; orders and withdrawals are paused.</span></td>
+              <td><span class="zh">联系管理员在后台 <code>Accounts</code> 模块核实解除（<code>Unsuspend</code>）。</span><span class="en">Ask an administrator to click <code>Unsuspend</code> in <code>admin.html → Accounts</code>.</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="lightbox">
+  <div>
+    <img id="lbImg" src="" alt="" />
+    <div class="lb-cap" id="lbCap"></div>
+  </div>
+</div>
+
+<script>
+// 1. Resolve Terminal & Back-Office links (preserve ?api=&anon=, or auto-attach hosted demo on GitHub Pages)
+(function wireAppLinks() {
+  const DEMO_QS = "?api=https://axtziasfallmdgssbgsl.supabase.co&anon=sb_publishable_j1Jr-NMeKb_P29JcBRhz6Q_0ZkbVzUc";
+  const incoming = new URLSearchParams(location.search);
+  incoming.delete("lang");
+  const cleanSearch = incoming.toString();
+  let appQs = "";
+  if (cleanSearch) {
+    appQs = "?" + cleanSearch;
+  } else {
+    let hasSavedApi = false;
+    try { hasSavedApi = !!localStorage.getItem("oc_api"); } catch {}
+    if (!hasSavedApi && location.hostname.endsWith("github.io")) {
+      appQs = DEMO_QS;
+    }
+  }
+  document.getElementById("goTrade").href = "index.html" + appQs;
+  document.getElementById("goAdmin").href = "admin.html" + appQs;
+})();
+
+// 2. Bilingual (zh / en) state + live DOM synchronization
+const GH_WIKI_BASE = "https://github.com/stars-labs/pg-outcry/blob/main/docs/wiki/";
+function currentLang() {
+  return document.documentElement.getAttribute("data-lang") === "en" ? "en" : "zh";
+}
+function refreshChecklists() {
+  const en = currentLang() === "en";
+  document.querySelectorAll("[data-checklist]").forEach((box) => {
+    const boxes = [...box.querySelectorAll("input[type=checkbox]")];
+    const st = box.querySelector(".chk-status");
+    const n = boxes.filter((b) => b.checked).length;
+    st.textContent = n === boxes.length
+      ? (en ? `✓ All ${boxes.length} / ${boxes.length} safety checks verified — ready to proceed!`
+            : `✓ 全部 ${boxes.length} / ${boxes.length} 项安全核验通过，可放心操作！`)
+      : (en ? `Checklist progress: ${n} / ${boxes.length} verified`
+            : `当前核对进度：${n} / ${boxes.length} 项已确认`);
+  });
+}
+function setLang(lang, pushUrl) {
+  const en = lang === "en";
+  document.documentElement.setAttribute("data-lang", en ? "en" : "zh");
+  document.documentElement.setAttribute("lang", en ? "en" : "zh-CN");
+  try { localStorage.setItem("oc_lang", en ? "en" : "zh"); } catch {}
+  document.title = en
+    ? "OUTCRY · End-to-End User Operation Wiki (Deposit → Trade → Withdraw)"
+    : "OUTCRY · 全流程实操百科 Wiki（充值 → 交易 → 提币）";
+  document.getElementById("langBtn").textContent = en ? "中文" : "EN";
+  document.getElementById("q").placeholder = en
+    ? "Search networks, IOC/FOK, withdrawal limits, or error messages (press / to focus)…"
+    : "搜索充值网络、IOC/FOK、提币限额、报错关键词 (按 / 聚焦)…";
+  document.getElementById("goMd").href = GH_WIKI_BASE + (en ? "README.en.md" : "README.md");
+  document.querySelectorAll("[data-md]").forEach((a) => {
+    const slug = a.getAttribute("data-md");
+    a.href = GH_WIKI_BASE + slug + (en ? ".en.md" : ".md");
+  });
+  document.querySelectorAll("[data-copy-code]").forEach((btn) => {
+    btn.textContent = en ? "Copy" : "复制代码";
+  });
+  refreshChecklists();
+  if (pushUrl) {
+    try {
+      const u = new URL(location.href);
+      u.searchParams.set("lang", en ? "en" : "zh");
+      history.replaceState(null, "", u.pathname + u.search + u.hash);
+    } catch {}
+  }
+}
+setLang(currentLang(), false);
+document.getElementById("langBtn").onclick = () => setLang(currentLang() === "en" ? "zh" : "en", true);
+
+// 3. Theme toggle
+function setTheme(t) {
+  document.documentElement.setAttribute("data-theme", t);
+  try { localStorage.setItem("oc_theme", t); } catch {}
+  document.getElementById("themeBtn").textContent = t === "light" ? "🌙" : "☀";
+}
+setTheme(document.documentElement.getAttribute("data-theme") || "dark");
+document.getElementById("themeBtn").onclick = () =>
+  setTheme(document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light");
+
+// 4. Scroll progress + active sidebar link
+const links = [...document.querySelectorAll(".side-link")];
+const targets = links.map((a) => document.querySelector(a.getAttribute("href"))).filter(Boolean);
+window.addEventListener("scroll", () => {
+  const h = document.documentElement.scrollHeight - window.innerHeight;
+  document.getElementById("prog").style.width = (h > 0 ? (window.scrollY / h) * 100 : 0) + "%";
+  let cur = targets[0];
+  for (const s of targets) { if (s.getBoundingClientRect().top <= 120) cur = s; }
+  links.forEach((a) => a.classList.toggle("active", cur && a.getAttribute("href") === "#" + cur.id));
+}, { passive: true });
+
+// 5. Lightbox zoom on any screenshot
+const lb = document.getElementById("lightbox"), lbImg = document.getElementById("lbImg"), lbCap = document.getElementById("lbCap");
+document.querySelectorAll(".shot-card img").forEach((img) => {
+  img.onclick = () => {
+    const en = currentLang() === "en";
+    const card = img.closest(".shot-card");
+    const stepEl = card?.querySelector(en ? ".shot-step .en" : ".shot-step .zh") || card?.querySelector(".shot-step");
+    lbImg.src = img.src;
+    lbCap.textContent = (stepEl ? stepEl.textContent : img.alt) + (en ? " (Press Esc or click anywhere to close)" : "（按 Esc 或点击任意处关闭）");
+    lb.classList.add("open");
+  };
+});
+lb.onclick = () => lb.classList.remove("open");
+window.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") lb.classList.remove("open");
+  if (e.key === "/" && document.activeElement.tagName !== "INPUT") { e.preventDefault(); document.getElementById("q").focus(); }
+});
+
+// 6. Interactive checklists
+document.querySelectorAll("[data-checklist] input[type=checkbox]").forEach((b) => {
+  b.addEventListener("change", refreshChecklists);
+});
+
+// 7. Copy code buttons
+document.querySelectorAll("[data-copy-code]").forEach((btn) => {
+  btn.onclick = () => {
+    const en = currentLang() === "en";
+    const code = btn.parentElement.querySelector("pre").innerText;
+    navigator.clipboard?.writeText(code);
+    btn.textContent = en ? "Copied ✓" : "已复制 ✓";
+    setTimeout(() => { btn.textContent = en ? "Copy" : "复制代码"; }, 1800);
+  };
+});
+
+// 8. Bilingual live search filter across chapters and error rows
+document.getElementById("q").addEventListener("input", (e) => {
+  const kw = e.target.value.trim().toLowerCase();
+  document.querySelectorAll("#errTable tbody tr").forEach((tr) => {
+    tr.style.display = !kw || tr.textContent.toLowerCase().includes(kw) ? "" : "none";
+  });
+  document.querySelectorAll("section.chapter").forEach((sec) => {
+    sec.style.display = !kw || sec.textContent.toLowerCase().includes(kw) ? "" : "none";
+  });
+});
+</script>
+</body>
+</html>
